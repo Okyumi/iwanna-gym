@@ -2,6 +2,11 @@
  * Drop this env into pufferlib/ocean/iwanna/ as:
  *   iwanna.h  iwanna.c (demo)  binding.c
  * plus config/iwanna.ini, then:  puffer build iwanna && puffer train iwanna
+ *
+ * Action space: declare Discrete(12) on the Python side for the full space
+ * (a = shoot_held*6 + 2*(h+1) + jump_held; docs/action_and_reset_semantics.md).
+ * Actions 0..5 are the legacy no-shoot space — declare Discrete(6) to
+ * reproduce pre-shooting experiments; the core accepts both.
  */
 #include "iwanna.h"
 

@@ -58,7 +58,7 @@ frame = env.render()                       # (608, 800, 3) uint8
 | `IWannaGoal-v0` / `IWannaGoalEnv` | `Dict(observation, achieved_goal, desired_goal)` | HER-ready `compute_reward`, random reachable goals, per-episode goal override |
 | `PixelObsWrapper(env, factor=8)` | `Box(0, 255, (76, 100, 3))` | numpy-rendered RGB frames |
 
-**Actions** — `Discrete(6)`: `2*(h+1) + jump_held` with `h ∈ {-1, 0, +1}`. Press/release edges are derived inside the core from consecutive `jump_held` values, exactly like GameMaker keyboard events, so short hops, full jumps, and double jumps all work.
+**Actions** — `Discrete(6)` for classic/research levels (legacy space, unchanged): `2*(h+1) + jump_held` with `h ∈ {-1, 0, +1}`. Exact-game envs use `Discrete(12)`: `shoot_held*6 + 2*(h+1) + jump_held` — actions 0–5 are the legacy space, +6 adds the gun (IWBTGR source semantics: one bullet per press, ±16 px/frame, 42-frame lifetime, max 4 alive, shot-activated saves). Press/release edges for jump and shoot are derived inside the core from consecutive held values, exactly like GameMaker keyboard events. Override with `action_mode="legacy"/"full"`; see [docs/action_and_reset_semantics.md](docs/action_and_reset_semantics.md) (also: attempt vs task reset, `env.attempt_reset()`).
 
 **Rewards** — sparse (`+1` goal) or dense (distance-delta shaping, `0.01/px`), with a configurable death penalty. The core auto-resets on terminal (PufferLib convention); the Gymnasium wrapper stays API-correct.
 

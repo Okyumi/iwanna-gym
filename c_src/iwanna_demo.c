@@ -4,7 +4,7 @@
  * Interactive:  gcc -O2 -o iwanna_demo iwanna_demo.c -lraylib -lm && ./iwanna_demo [level]
  * Benchmark:    gcc -O2 -DIW_NO_RAYLIB -o iwanna_bench iwanna_demo.c -lm && ./iwanna_bench [level]
  *
- * Controls: left/right arrows move, shift (or Z) jump, R nothing to do, ESC quit.
+ * Controls: left/right arrows move, shift (or Z) jump, X shoot, ESC quit.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +47,8 @@ int main(int argc, char** argv) {
         if (IsKeyDown(KEY_LEFT))  h = 0;
         if (IsKeyDown(KEY_RIGHT)) h = 2;
         int j = (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_Z)) ? 1 : 0;
-        env.actions[0] = 2 * h + j;
+        int s = IsKeyDown(KEY_X) ? 1 : 0;
+        env.actions[0] = 6 * s + 2 * h + j;
         c_step(&env);
         c_render(&env);
         if (env.terminals[0]) {

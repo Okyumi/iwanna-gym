@@ -7,6 +7,7 @@
  * following the PufferLib Ocean convention (auto-reset inside step).
  */
 #include <stdlib.h>
+#include <time.h>
 #include "iwanna.h"
 
 typedef struct {
@@ -134,6 +135,45 @@ int iw_killers(void* h, float* out, int max_rows) {
         out[i*5+3] = e->killers[i].x1; out[i*5+4] = e->killers[i].y1;
     }
     return n;
+}
+
+/* ---- attempt/task reset distinction (docs/action_and_reset_semantics.md) ----
+ * iw_reset      = TASK reset: back to the start room, progression cleared.
+ * iw_attempt_reset = ATTEMPT reset ("R" quick-retry): return to the active
+ *   checkpoint with source retry semantics (pack mode: full room reset,
+ *   exact saved position/facing, flags persist); no death is counted. */
+void iw_attempt_reset(void* h) {
+    IWanna* e = &((Handle*)h)->env;
+    iw_respawn_to_checkpoint(e);
+    e->rewards[0] = 0;
+    e->terminals[0] = 0;
+    e->last_event = 0;
+    compute_observations(e);
+}
+int iw_attempt(void* h)           { return ((Handle*)h)->env.attempt; }
+int iw_save_shoot_mode(void* h)   { return ((Handle*)h)->env.save_shoot_mode; }
+void iw_set_save_mode(void* h, int shoot) {
+    ((Handle*)h)->env.save_shoot_mode = shoot ? 1 : 0;
+}
+int iw_difficulty(void* h)        { return ((Handle*)h)->env.difficulty; }
+double iw_respawn_face(void* h)   { return ((Handle*)h)->env.respawn_face; }
+int iw_num_actions_legacy(void)   { return IW_NUM_ACTIONS_LEGACY; }
+
+/* like iw_bench but sampling from the first n_actions actions */
+double iw_bench_n(void* handle, long steps, unsigned long long seed,
+                  int n_actions) {
+    Handle* h = (Handle*)handle;
+    if (n_actions <= 0 || n_actions > IW_NUM_ACTIONS) n_actions = IW_NUM_ACTIONS;
+    uint64_t r = seed ? seed : 7;
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (long i = 0; i < steps; i++) {
+        r ^= r >> 12; r ^= r << 25; r ^= r >> 27;
+        h->env.actions[0] = (int)((r * 0x2545F4914F6CDD1DULL) % (uint64_t)n_actions);
+        c_step(&h->env);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0.tv_sec) + 1e-9 * (t1.tv_nsec - t0.tv_nsec);
 }
 
 int iw_room(void* h)              { return ((Handle*)h)->env.room_id; }

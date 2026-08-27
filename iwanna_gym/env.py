@@ -21,7 +21,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from .clib import NUM_ACTIONS, OBS_SIZE, CIWanna
+from .clib import NUM_ACTIONS, NUM_ACTIONS_LEGACY, OBS_SIZE, CIWanna
 from .levels import load_level
 from .render import TILE, downsample, render_frame, render_tiles
 
@@ -50,6 +50,8 @@ class IWannaEnv(gym.Env):
         mode: str = "full_game",
         room_id: str | int | None = None,
         difficulty: str | int = 0,
+        action_mode: str | None = None,
+        save_mode: str | None = None,
     ):
         super().__init__()
         # Exact-game construction:
@@ -59,6 +61,20 @@ class IWannaEnv(gym.Env):
         # does ("medium"/"hard"/"very_hard"/"impossible" or 0..3).
         self._start_room: int | None = None
         self._difficulty: int = 0
+        self._game_id = game
+        self._room_names: list[str] | None = None
+        # action_mode: "legacy" = the original 6-action no-shoot space
+        # (default for classic/research levels, keeping old experiments
+        # unchanged); "full" = 12 actions with shoot (default for exact
+        # games). Actions 0..5 mean the same thing in both.
+        # save_mode: "shoot" = source-faithful shot-activated saves
+        # (exact-game default); "touch" = legacy touch saves (research);
+        # None = the mode's default.
+        if action_mode not in (None, "legacy", "full"):
+            raise ValueError(f"unknown action_mode {action_mode!r}")
+        if save_mode not in (None, "shoot", "touch"):
+            raise ValueError(f"unknown save_mode {save_mode!r}")
+        self._save_mode = save_mode
         if game is not None:
             from .games import get_game
             gmod = get_game(game)
@@ -75,6 +91,7 @@ class IWannaEnv(gym.Env):
                 raise ValueError(f"unknown mode {mode!r}")
             self.level_name = f"{game}:{mode}" + (
                 f":{room_id}" if room_id is not None else "")
+            self._room_names = gmod.room_names()
         # pack: a compiled .iwpack game (path or bytes) built offline by
         # `python -m tools.iwimport compile` — see docs/gamepack_format.md.
         # When given, `level` is ignored and the env may span multiple rooms
@@ -103,8 +120,11 @@ class IWannaEnv(gym.Env):
         self.c: CIWanna | None = None
         self._base_img: np.ndarray | None = None
 
+        full = (action_mode == "full") or (action_mode is None and
+                                           self._pack_data is not None)
+        self.n_actions = NUM_ACTIONS if full else NUM_ACTIONS_LEGACY
         self.observation_space = spaces.Box(-1.0, 1.0, (OBS_SIZE,), np.float32)
-        self.action_space = spaces.Discrete(NUM_ACTIONS)
+        self.action_space = spaces.Discrete(self.n_actions)
 
     # -- gym api --
     def reset(self, *, seed: int | None = None, options: dict | None = None):
@@ -118,7 +138,19 @@ class IWannaEnv(gym.Env):
                     difficulty=self._difficulty, **self._cfg)
             else:
                 self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
+            if self._save_mode is not None:
+                self.c.set_save_mode(self._save_mode == "shoot")
         self.c.reset()
+        return self.c.obs.copy(), self._info()
+
+    def attempt_reset(self):
+        """ATTEMPT reset: same task, same active checkpoint — the source
+        "R" quick-retry (pack mode: full room reset, exact saved
+        position/facing restored, progression flags persist, no death
+        counted). Use gym reset() for a TASK reset. Returns (obs, info)."""
+        if self.c is None:
+            return self.reset()
+        self.c.attempt_reset()
         return self.c.obs.copy(), self._info()
 
     def step(self, action: int):
@@ -132,14 +164,26 @@ class IWannaEnv(gym.Env):
 
     def _info(self) -> dict[str, Any]:
         c = self.c
+        room = c.room
+        room_name = (self._room_names[room]
+                     if self._room_names and room < len(self._room_names)
+                     else room)
+        rx, ry = c.respawn
         return {
             "x": c.x, "y": c.y, "vspeed": c.vspeed, "hspeed": c.hspeed,
             "on_ground": c.on_ground, "djump": c.djump, "tick": c.tick,
             "goal": c.goal, "last_event": c.last_event,
             "is_success": c.last_event == 2,
             "deaths": c.deaths,
-            "room": c.room,
+            "room": room,
             "room_transitions": c.room_transitions,
+            # evaluation metadata (no hidden trap/world state is exposed)
+            "game_id": self._game_id,
+            "room_id": room_name,
+            "checkpoint_id": f"{c.respawn_room}:{rx:.2f}:{ry:.2f}",
+            "attempt_id": c.attempt,
+            "death_count": c.deaths,
+            "difficulty": c.difficulty,
         }
 
     def render(self):

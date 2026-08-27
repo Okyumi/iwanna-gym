@@ -214,6 +214,7 @@ def test_room_transition_via_warp_and_edge():
 
 def test_save_respawn_across_rooms():
     c = CIWanna.from_pack(_pack_bytes(), seed=9, checkpoint_respawn=True)
+    c.set_save_mode(False)   # the synthetic fixture uses legacy touch saves
     c.reset()
     _scripted(c, jump_rooms=(0,), max_steps=170)    # touch save, warp to rmB
     assert c.room == 1

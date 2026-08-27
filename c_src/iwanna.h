@@ -59,8 +59,25 @@ enum {
     E_WARP,         /* teleport to params[0..1] (room pixels) on touch */
     E_BOSS,         /* contact-deadly radial-burst shooter (boss scaffold) */
     E_GATE,         /* door: stamps solid tiles while closed (state=1) */
+    E_PBULLET,      /* the Kid's bullet (IWBTGR bullet object semantics) */
     E_NUM_TYPES
 };
+
+/* ---- player shooting (IWBTGR source values; see playerShoot.gml,
+ * objects/bullet.gml, sprites/sprBulletMask) ----
+ *   spawn at (player.x, player.y-2); hspeed = facing * 16; no gravity;
+ *   lifetime alarm[0]=42 frames; at most 4 bullets alive; one shot per
+ *   shoot-key PRESS (autofire is a non-legit setting, not imported);
+ *   mask: origin (5,1), bbox 0..9 x 0..1 => rect [x-5..x+4] x [y-1..y]. */
+#define IW_BULLET_SPEED 16.0f
+#define IW_BULLET_LIFE 42
+#define IW_BULLET_MAX 4
+#define IW_BULLET_SPAWN_DY (-2.0f)
+#define IW_BULLET_L (-5)
+#define IW_BULLET_R (4)
+#define IW_BULLET_T (-1)
+#define IW_BULLET_B (0)
+#define IW_SAVE_TIMER 50   /* per-save cooldown between activations */
 
 /* entity flags */
 #define EF_ACTIVE    1u
@@ -98,8 +115,13 @@ typedef struct {
 
 /* contact half-extents per type (rect hitboxes; traps use spike triangles;
  * gates collide through stamped tiles, extents used for obs/render only) */
-static const float ENT_HW[E_NUM_TYPES] = {0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16, 16};
-static const float ENT_HH[E_NUM_TYPES] = {0,  8, 10, 0, 16, 4, 12, 14, 14, 14, 16, 16};
+static const float ENT_HW[E_NUM_TYPES] = {0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16, 16, 5};
+static const float ENT_HH[E_NUM_TYPES] = {0,  8, 10, 0, 16, 4, 12, 14, 14, 14, 16, 16, 1};
+
+/* observation type normalization is pinned to the pre-shooting type count
+ * so legacy observations are bit-identical; bullets show up as 13/12 capped
+ * to 1.0 */
+#define IW_OBS_TYPE_NORM 12.0f
 
 /* ---------- declarative trigger/event system ----------
  * Level text lines starting with '!' declare events:
@@ -186,7 +208,14 @@ typedef struct {
 #define IW_OBS_K 6         /* nearest visible entities in the observation */
 #define IW_OBS_ENT_F 5     /* features per entity: dx, dy, vx, vy, signed type */
 #define IW_OBS_SIZE (IW_OBS_BASE + IW_LOCAL_W * IW_LOCAL_H + IW_OBS_K * IW_OBS_ENT_F)
-#define IW_NUM_ACTIONS 6 /* {left,none,right} x {jump released, jump held} */
+/* Action encoding: a = shoot_held*6 + 2*(h+1) + jump_held.
+ * Actions 0..5 are EXACTLY the legacy 6-action space (shoot released), so
+ * legacy research environments keep their action semantics unchanged; the
+ * full space adds shoot_held for the exact-game loop. Shoot fires on the
+ * held->pressed EDGE, like the GM key-press event (source default: one
+ * bullet per press; autofire is a non-legit setting, not imported). */
+#define IW_NUM_ACTIONS 12
+#define IW_NUM_ACTIONS_LEGACY 6
 
 /* PufferLib-required log struct: floats only, n last */
 typedef struct {
@@ -274,6 +303,11 @@ typedef struct {
     int djump;                /* jumps used; can air-jump while djump < IW_MAXJUMPS */
     int face;
     int prev_jump_held;
+    int prev_shoot_held;      /* for shoot press-edge detection */
+    int save_shoot_mode;      /* 1 = source-faithful shot-activated saves;
+                                 0 = legacy touch saves (research/debug) */
+    double respawn_face;      /* facing stored by saveGame (savew) */
+    int attempt;              /* attempt counter: respawns + manual retries */
     int tick;
     double prev_goal_dist;
     float ep_return;
@@ -301,6 +335,12 @@ static inline int gm_round(double v) {
 }
 
 static inline int iw_sign(double v) { return (v > 0) - (v < 0); }
+
+/* forward declarations (bullet update runs before these are defined) */
+static int rect_hits_solid(IWanna* env, int l, int r, int t, int b);
+static void iw_activate_save_shot(IWanna* env, IWEntity* e);
+static inline int ent_rect_hit(const IWEntity* e, int l, int r, int t, int b,
+                               float hw, float hh);
 
 static inline uint8_t iw_tile_at(IWanna* env, int tx, int ty) {
     if (tx < 0 || ty < 0 || tx >= env->tw || ty >= env->th) return T_EMPTY;
@@ -488,6 +528,39 @@ static void update_entities(IWanna* env) {
                 e->vy += e->grav;
                 e->x += e->vx; e->y += e->vy;
                 break;
+            case E_PBULLET: {
+                /* GM event order: the lifetime alarm fires BEFORE movement
+                 * (bullet moves on 41 frames), solid collision is evaluated
+                 * after movement */
+                if (--e->timer <= 0) {
+                    e->flags &= ~EF_ACTIVE;
+                    break;
+                }
+                e->x += e->vx;
+                int bx = gm_round(e->x), by = gm_round(e->y);
+                int bl = bx + IW_BULLET_L, br = bx + IW_BULLET_R;
+                int bt = by + IW_BULLET_T, bb = by + IW_BULLET_B;
+                if (rect_hits_solid(env, bl, br, bt, bb)) {
+                    e->flags &= ~EF_ACTIVE;
+                    break;
+                }
+                if (env->save_shoot_mode) {
+                    for (int k = 0; k < env->ent_top; k++) {
+                        IWEntity* s = &env->entities[k];
+                        if (s->type != E_SAVE || !(s->flags & EF_ACTIVE))
+                            continue;
+                        float shw = s->params[3] > 0 ? s->params[3] : ENT_HW[E_SAVE];
+                        float shh = s->params[4] > 0 ? s->params[4] : ENT_HH[E_SAVE];
+                        if (ent_rect_hit(s, bl, br, bt, bb, shw, shh))
+                            iw_activate_save_shot(env, s);
+                        /* the bullet is not consumed by saves (source) */
+                    }
+                }
+                break;
+            }
+            case E_SAVE:
+                if (e->timer > 0) e->timer--;   /* saveTimer cooldown */
+                break;
             case E_SHOOTER:
                 if (--e->timer <= 0) {
                     e->timer = e->params[0] > 0 ? (int)e->params[0] : 60;
@@ -517,6 +590,7 @@ static void update_entities(IWanna* env) {
         }
         /* moving objects despawn well outside the room */
         if ((e->type == E_PROJECTILE || e->type == E_TRAP ||
+             e->type == E_PBULLET ||
              ((e->type == E_SPIKEBALL || e->type == E_ENEMY || e->type == E_PLATFORM) &&
               e->grav != 0)) &&
             (e->x < -64 || e->x > W + 64 || e->y < -64 || e->y > H + 64)) {
@@ -575,6 +649,79 @@ static int entity_killer_hit(IWanna* env) {
     return 0;
 }
 
+/* solid test for an arbitrary rect (tiles + static solid rects) — used by
+ * player bullets; the player's own path keeps the specialized place_free */
+static int rect_hits_solid(IWanna* env, int l, int r, int t, int b) {
+    int tx0 = l >= 0 ? l / IW_TILE : (l - IW_TILE + 1) / IW_TILE;
+    int tx1 = r >= 0 ? r / IW_TILE : (r - IW_TILE + 1) / IW_TILE;
+    int ty0 = t >= 0 ? t / IW_TILE : (t - IW_TILE + 1) / IW_TILE;
+    int ty1 = b >= 0 ? b / IW_TILE : (b - IW_TILE + 1) / IW_TILE;
+    for (int ty = ty0; ty <= ty1; ty++)
+        for (int tx = tx0; tx <= tx1; tx++)
+            if (iw_tile_at(env, tx, ty) == T_BLOCK) return 1;
+    for (int i = 0; i < env->n_solids; i++) {
+        const IWPackSolid* s = &env->solids[i];
+        if (l <= s->x1 && r >= s->x0 && t <= s->y1 && b >= s->y0) return 1;
+    }
+    return 0;
+}
+
+/* Source-faithful save activation (saveVeryHard Other_10 + saveGame):
+ * per-save 50-frame cooldown, then store the PLAYER's exact position and
+ * facing (savex/savey/savew) and the current room as the checkpoint. */
+static void iw_activate_save_shot(IWanna* env, IWEntity* e) {
+    if (e->timer > 0) return;             /* saveTimer */
+    e->timer = IW_SAVE_TIMER;
+    env->respawn_x = env->x;
+    env->respawn_y = env->y;
+    env->respawn_face = env->face;
+    env->respawn_room = env->room_id;
+    if (e->state == 0 && e->tag > 0 && e->tag < 64)
+        env->save_tags |= 1ULL << e->tag;
+    e->state = 1;
+}
+
+/* playerShoot(): at most 4 bullets alive; bullet at (x, y-2) with
+ * hspeed = facing*16, lifetime 42 frames; shooting while overlapping a
+ * save activates it directly (the source's contact-save path). */
+static void iw_player_shoot(IWanna* env) {
+    int alive = 0;
+    for (int i = 0; i < env->ent_top; i++)
+        if (env->entities[i].type == E_PBULLET &&
+            (env->entities[i].flags & EF_ACTIVE)) alive++;
+    if (alive < IW_BULLET_MAX) {
+        for (int k = 0; k < env->ent_cap; k++) {
+            int i = (env->free_hint + k) % env->ent_cap;
+            IWEntity* e = &env->entities[i];
+            if (e->type == E_NONE || !(e->flags & EF_ACTIVE)) {
+                memset(e, 0, sizeof *e);
+                e->type = E_PBULLET;
+                e->flags = EF_ACTIVE;
+                e->collision_mask = CM_TILES;
+                e->x = (float)env->x;
+                e->y = (float)env->y + IW_BULLET_SPAWN_DY;
+                e->vx = env->face >= 0 ? IW_BULLET_SPEED : -IW_BULLET_SPEED;
+                e->timer = IW_BULLET_LIFE;
+                env->free_hint = (i + 1) % env->ent_cap;
+                if (i + 1 > env->ent_top) env->ent_top = i + 1;
+                break;
+            }
+        }
+    }
+    if (env->save_shoot_mode) {
+        int ix = gm_round(env->x), iy = gm_round(env->y);
+        int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+        for (int i = 0; i < env->ent_top; i++) {
+            IWEntity* e = &env->entities[i];
+            if (e->type != E_SAVE || !(e->flags & EF_ACTIVE)) continue;
+            float shw = e->params[3] > 0 ? e->params[3] : ENT_HW[E_SAVE];
+            float shh = e->params[4] > 0 ? e->params[4] : ENT_HH[E_SAVE];
+            if (ent_rect_hit(e, l, r, t, b, shw, shh))
+                iw_activate_save_shot(env, e);
+        }
+    }
+}
+
 static void fire_trigger(IWanna* env, int id) {
     for (int i = 0; i < env->ent_top; i++) {
         IWEntity* f = &env->entities[i];
@@ -603,6 +750,10 @@ static void player_interactions(IWanna* env) {
                 }
                 break;
             case E_SAVE: {
+                /* touch activation is the LEGACY research mode; the
+                 * source-faithful mode (save_shoot_mode, default in exact-
+                 * game packs) activates saves by shooting them instead */
+                if (env->save_shoot_mode) break;
                 /* per-instance extents (params[3],[4]) override defaults
                  * (source save bbox); params[0] = difficulty mask */
                 float shw = e->params[3] > 0 ? e->params[3] : ENT_HW[E_SAVE];
@@ -1099,6 +1250,7 @@ static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
         return -1;
     }
     env->pack = rt;
+    env->save_shoot_mode = 1;  /* exact-game default: shot-activated saves */
     env->start_room = (int)rt->hdr.start_room;
     env->respawn_room = env->start_room;
     env->pending_room = -1;
@@ -1107,6 +1259,36 @@ static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
     env->free_hint = 0;
     iw_pack_copy_room(env, env->start_room);
     return 0;
+}
+
+/* Restore the source checkpoint state (death retry / "R" quick-retry):
+ * in pack mode the room is FULLY reset (source reset_game does
+ * room_goto(saveroom), recreating all room objects; bullets and dynamic
+ * state are cleared) and the player returns to the exact saved position
+ * and facing (load_game_execute: savex/savey/savew) with fresh movement
+ * state (player Create: djump=true, speeds 0). Progression flags
+ * (savedata) and the active save persist. Classic single-room mode keeps
+ * its historical semantics: respawn position only, no room reset. */
+static void iw_respawn_to_checkpoint(IWanna* env) {
+    if (env->pack) {
+        iw_pack_copy_room(env, env->respawn_room);
+        env->face = env->respawn_face >= 0 ? 1 : -1;
+    }
+    env->x = env->respawn_x;
+    env->y = env->respawn_y;
+    env->hspeed = 0; env->vspeed = 0;
+    env->djump = 1;
+    env->prev_jump_held = 0;
+    env->prev_shoot_held = 0;
+    env->on_platform = 0;
+    env->prev_on_platform = 0;
+    env->pending_room = -1;
+    env->pending_use_start = 0;
+    env->attempt += 1;
+    env->prev_x = env->x;
+    env->prev_y = env->y;
+    double rdx = env->goal_x - env->x, rdy = env->goal_y - env->y;
+    env->prev_goal_dist = sqrt(rdx * rdx + rdy * rdy);
 }
 
 /* ---------- observations ---------- */
@@ -1165,7 +1347,7 @@ static void compute_observations(IWanna* env) {
             float f0 = (float)((e->x - env->x) / W);
             float f1 = (float)((e->y - env->y) / H);
             float f2 = e->vx / 10.0f, f3 = e->vy / 10.0f;
-            float f4 = (float)e->type / (float)E_NUM_TYPES;
+            float f4 = (float)e->type / IW_OBS_TYPE_NORM;
             if (e->flags & EF_DEADLY) f4 = -f4;
             float f[5] = { f0, f1, f2, f3, f4 };
             for (int q = 0; q < IW_OBS_ENT_F; q++) {
@@ -1227,6 +1409,9 @@ static void c_reset(IWanna* env) {
     env->djump = 1;               /* engine Create_0: djump=1 (one air jump available) */
     env->face = 1;
     env->prev_jump_held = 0;
+    env->prev_shoot_held = 0;
+    env->respawn_face = 1;
+    env->attempt = 1;             /* task reset starts attempt #1 */
     env->tick = 0;
     env->ep_return = 0;
     env->on_platform = 0;
@@ -1256,15 +1441,22 @@ static void c_step(IWanna* env) {
     int action = env->actions[0];
     if (action < 0) action = 0;
     if (action >= IW_NUM_ACTIONS) action = IW_NUM_ACTIONS - 1;
-    int jump_held = action % 2;
-    int h = (action / 2) - 1;   /* -1, 0, 1 */
+    /* a = shoot_held*6 + 2*(h+1) + jump_held; 0..5 == legacy space */
+    int shoot_held = action / IW_NUM_ACTIONS_LEGACY;
+    int a6 = action % IW_NUM_ACTIONS_LEGACY;
+    int jump_held = a6 % 2;
+    int h = (a6 / 2) - 1;       /* -1, 0, 1 */
     int pressed = jump_held && !env->prev_jump_held;
     int released = !jump_held && env->prev_jump_held;
+    int shoot_pressed = shoot_held && !env->prev_shoot_held;
     env->prev_jump_held = jump_held;
+    env->prev_shoot_held = shoot_held;
 
     /* --- ///movement --- */
     if (h != 0) env->face = h;
     env->hspeed = IW_MAXSPEED * h;
+    /* shoot on the press edge, after facing updates (player Step order) */
+    if (shoot_pressed) iw_player_shoot(env);
     if (env->hspeed == 0) env->x = gm_round(env->x); /* engine: if (hspeed=0) x=round(x) */
     if (env->vspeed > IW_MAXVSPEED) env->vspeed = IW_MAXVSPEED;
 
@@ -1345,17 +1537,8 @@ static void c_step(IWanna* env) {
         if (env->checkpoint_respawn) {
             /* fangame semantics: respawn at last save, episode continues */
             env->ep_return += env->rewards[0];
-            if (env->pack && env->respawn_room != env->room_id)
-                iw_pack_copy_room(env, env->respawn_room);
-            env->x = env->respawn_x;
-            env->y = env->respawn_y;
-            env->hspeed = 0; env->vspeed = 0;
-            env->djump = 1;
-            env->prev_jump_held = 0;
-            env->on_platform = 0;
+            iw_respawn_to_checkpoint(env);
             env->last_event = 1;
-            double rdx = env->goal_x - env->x, rdy = env->goal_y - env->y;
-            env->prev_goal_dist = sqrt(rdx * rdx + rdy * rdy);
             compute_observations(env);
             return;
         }
@@ -1731,6 +1914,7 @@ static int iw_load_level(IWanna* env, const char* text) {
     env->room_ph = 0;
     env->solids = NULL;  env->n_solids = 0;
     env->killers = NULL; env->n_killers = 0;
+    env->save_shoot_mode = 0;     /* classic: legacy touch saves */
     /* pass 1: tile-grid dimensions, entity count ('@' lines) and
      * event/action counts ('!' lines; actions = 1 + number of ';') */
     int tw = 0, th = 0, w = 0, nspawn = 0, line_start = 1, ent_line = 0;
@@ -1994,6 +2178,12 @@ void c_render(IWanna* env) {
             case E_SPIKEBALL:
             case E_PROJECTILE:
                 DrawCircle(ex, ey, hw, (Color){230, 120, 120, 255});
+                break;
+            case E_PBULLET:
+                DrawRectangle(ex + IW_BULLET_L, ey + IW_BULLET_T,
+                              IW_BULLET_R - IW_BULLET_L + 1,
+                              IW_BULLET_B - IW_BULLET_T + 1,
+                              (Color){250, 240, 120, 255});
                 break;
             case E_ENEMY:
             case E_BOSS:

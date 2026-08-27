@@ -76,15 +76,22 @@ def main() -> int:
     args = ap.parse_args()
 
     results = {}
-    for name, c in scenarios().items():
+    scen = scenarios()
+    if "iwbtgr_full" in scen:
+        # same env, sampling the full 12-action space (constant shooting)
+        from iwanna_gym.games import iwbtgr_1_5_3 as G
+        scen["iwbtgr_shoot"] = CIWanna.from_pack(
+            G.load_pack(), seed=1, checkpoint_respawn=True)
+    for name, c in scen.items():
         c.reset()
         steps = args.steps // 10 if name == "heavy" else args.steps
         best = 0.0
         for r in range(args.repeat):
-            dt = c.bench(steps, seed=7 + r)
+            n_act = 12 if name == "iwbtgr_shoot" else 6
+            dt = c.bench_n(steps, seed=7 + r, n_actions=n_act)
             best = max(best, steps / dt)
         results[name] = {"steps": steps, "best_msteps_per_s": best / 1e6}
-        print(f"{name:8s} {best / 1e6:8.3f} M steps/s   (best of {args.repeat})")
+        print(f"{name:12s} {best / 1e6:8.3f} M steps/s   (best of {args.repeat})")
         c.close()
 
     if args.json:

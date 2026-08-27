@@ -67,6 +67,18 @@ def _load() -> ctypes.CDLL:
     lib.iw_set_difficulty.restype = ctypes.c_int
     lib.iw_set_difficulty.argtypes = [ctypes.c_void_p, ctypes.c_int]
     lib.iw_set_gflag.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+    lib.iw_attempt_reset.argtypes = [ctypes.c_void_p]
+    lib.iw_set_save_mode.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    for name in ("iw_attempt", "iw_save_shoot_mode", "iw_difficulty"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
+    lib.iw_respawn_face.restype = ctypes.c_double
+    lib.iw_respawn_face.argtypes = [ctypes.c_void_p]
+    lib.iw_num_actions_legacy.restype = ctypes.c_int
+    lib.iw_bench_n.restype = ctypes.c_double
+    lib.iw_bench_n.argtypes = [ctypes.c_void_p, ctypes.c_long,
+                               ctypes.c_ulonglong, ctypes.c_int]
     for name in ("iw_n_solids", "iw_n_killers", "iw_room_pw", "iw_room_ph"):
         fn = getattr(lib, name)
         fn.restype = ctypes.c_int
@@ -95,7 +107,8 @@ def _load() -> ctypes.CDLL:
 
 LIB = _load()
 OBS_SIZE: int = LIB.iw_obs_size()
-NUM_ACTIONS: int = LIB.iw_num_actions()
+NUM_ACTIONS: int = LIB.iw_num_actions()            # full space: 12 (with shoot)
+NUM_ACTIONS_LEGACY: int = LIB.iw_num_actions_legacy()  # legacy no-shoot: 6
 NUM_BUILTIN_LEVELS: int = LIB.iw_num_levels()
 
 
@@ -166,6 +179,31 @@ class CIWanna:
         """Debug/research: force a global progression flag (not source
         behavior; use to open conditional routes for inspection)."""
         LIB.iw_set_gflag(self._h, int(flag), int(on))
+
+    def attempt_reset(self) -> None:
+        """ATTEMPT reset (source "R" quick-retry): return to the active
+        checkpoint — pack mode fully resets the room and restores the exact
+        saved position/facing; flags persist; no death is counted. Distinct
+        from reset(), the TASK reset (docs/action_and_reset_semantics.md)."""
+        LIB.iw_attempt_reset(self._h)
+
+    def set_save_mode(self, shoot: bool) -> None:
+        """True = source-faithful shot-activated saves (exact-game default);
+        False = legacy touch saves (research/debug)."""
+        LIB.iw_set_save_mode(self._h, int(shoot))
+
+    @property
+    def attempt(self) -> int: return LIB.iw_attempt(self._h)
+    @property
+    def save_shoot_mode(self) -> bool:
+        return bool(LIB.iw_save_shoot_mode(self._h))
+    @property
+    def difficulty(self) -> int: return LIB.iw_difficulty(self._h)
+    @property
+    def respawn_face(self) -> float: return LIB.iw_respawn_face(self._h)
+
+    def bench_n(self, steps: int, seed: int = 7, n_actions: int = 12) -> float:
+        return float(LIB.iw_bench_n(self._h, steps, seed, n_actions))
 
     def reset(self) -> None:
         LIB.iw_reset(self._h)
