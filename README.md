@@ -230,6 +230,29 @@ provenance/checksums in [third_party/SOURCES.md](third_party/SOURCES.md) +
 rooms in this repo remain a separate research family
 (`iwannagym_research_v1`); no third-party game files are committed.
 
+**Import pipeline (implemented).** A reusable offline pipeline converts
+source-game projects into compact native game packs:
+source project → `tools/importers/` extractor → canonical
+`.iwgame.json` IR → validator/compiler (`iwanna_gym/gamepack/`) →
+binary `.iwpack` → the C runtime (multi-room stepping with warps, room
+edges, global flags, cross-room save respawn; still allocation-free and
+callback-free in `step()`):
+
+```bash
+python -m tools.iwimport convert tests/fixtures/synthetic_src -o fq.iwgame.json
+python -m tools.iwimport compile fq.iwgame.json -o fq.iwpack
+python - <<'PY'
+import iwanna_gym as iw
+env = iw.IWannaEnv(pack="fq.iwpack", checkpoint_respawn=True)
+PY
+```
+
+Formats: [docs/gamepack_format.md](docs/gamepack_format.md); pipeline &
+unsupported-content policy:
+[docs/importer_architecture.md](docs/importer_architecture.md); importer
+elements the source can't map are reported and block compilation — never
+silently dropped. Regression benchmark: `python scripts/benchmark_env.py`.
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):
@@ -238,6 +261,7 @@ The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) na
 git clone https://github.com/PufferAI/PufferLib && cd PufferLib
 mkdir pufferlib/ocean/iwanna
 cp <this-repo>/c_src/{iwanna.h,binding.c} pufferlib/ocean/iwanna/
+cp -r <this-repo>/c_src/gamepack pufferlib/ocean/iwanna/gamepack   # iwanna.h includes gamepack/iwpack.h
 cp <this-repo>/c_src/iwanna_demo.c pufferlib/ocean/iwanna/iwanna.c
 cp <this-repo>/config/iwanna.ini config/
 puffer build iwanna && puffer train puffer_iwanna

@@ -1,0 +1,21 @@
+{
+  "name": "rmB",
+  "width": 512,
+  "height": 384,
+  "instances": [
+    {"id": 1,  "object": "sGate",    "x": 256, "y": 256, "tag": 201,
+     "params": {"tx": 8, "ty": 8, "w": 1, "h": 3}},
+    {"id": 2,  "object": "sSpikeUp", "x": 352, "y": 320},
+    {"id": 3,  "object": "sGoal",    "x": 416, "y": 320},
+
+    {"id": 100, "object": "sBlock", "x": 0,   "y": 352, "repeat_x": 16},
+    {"id": 101, "object": "sBlock", "x": 0,   "y": 0,   "repeat_x": 16},
+    {"id": 102, "object": "sBlock", "x": 0,   "y": 32,  "repeat_y": 8},
+    {"id": 103, "object": "sBlock", "x": 480, "y": 32,  "repeat_y": 10}
+  ],
+  "events": [
+    {"id": "evGate", "type": "flag_gate_open",
+     "flag": "door_unlocked", "gate": 201}
+  ],
+  "edges": {"left": "rmA"}
+}

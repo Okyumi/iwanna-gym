@@ -1,0 +1,7 @@
+{
+  "format": "synthsrc/1",
+  "name": "Fixture Quest",
+  "version": "1.0.0",
+  "start_room": "rmA",
+  "flags": {"door_unlocked": 1}
+}

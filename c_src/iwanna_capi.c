@@ -52,6 +52,67 @@ void* iw_new_builtin(int level_idx,
                   random_goal, seed, checkpoint_respawn);
 }
 
+/* ---- game-pack construction (compiled .iwpack blobs) ---- */
+
+static char iw_err_buf[256];
+
+const char* iw_last_error(void) { return iw_err_buf; }
+
+/* returns NULL on pack-load failure; iw_last_error() has the reason */
+void* iw_new_pack(const unsigned char* pack_data, long pack_len,
+                  float* observations, int* actions, float* rewards,
+                  unsigned char* terminals,
+                  int max_steps, int reward_mode, float death_penalty,
+                  int random_goal, unsigned long long seed,
+                  int checkpoint_respawn) {
+    iw_err_buf[0] = 0;
+    Handle* h = (Handle*)calloc(1, sizeof(Handle));
+    if (!h) { snprintf(iw_err_buf, sizeof iw_err_buf, "out of memory"); return NULL; }
+    IWanna* e = &h->env;
+    e->observations = observations;
+    e->actions = actions;
+    e->rewards = rewards;
+    e->terminals = terminals;
+    e->max_steps = max_steps > 0 ? max_steps : 1500;
+    e->reward_mode = reward_mode;
+    e->death_penalty = death_penalty;
+    e->random_goal = random_goal;
+    e->checkpoint_respawn = checkpoint_respawn;
+    e->rng = seed ? seed : 0x9E3779B97F4A7C15ULL;
+    if (iw_load_pack_mem(e, pack_data, (size_t)pack_len,
+                         iw_err_buf, sizeof iw_err_buf) != 0) {
+        free(h);
+        return NULL;
+    }
+    return (void*)h;
+}
+
+int iw_room(void* h)              { return ((Handle*)h)->env.room_id; }
+int iw_respawn_room(void* h)      { return ((Handle*)h)->env.respawn_room; }
+int iw_room_transitions(void* h)  { return ((Handle*)h)->env.room_transitions; }
+int iw_num_rooms(void* h) {
+    IWanna* e = &((Handle*)h)->env;
+    return e->pack ? (int)e->pack->hdr.n_rooms : 1;
+}
+unsigned long long iw_gflags(void* h) { return ((Handle*)h)->env.gflags; }
+
+/* pure-C benchmark: run `steps` frames with xorshift-random actions, no
+ * Python in the loop; returns elapsed seconds */
+#include <time.h>
+double iw_bench(void* handle, long steps, unsigned long long seed) {
+    Handle* h = (Handle*)handle;
+    uint64_t r = seed ? seed : 7;
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (long i = 0; i < steps; i++) {
+        r ^= r >> 12; r ^= r << 25; r ^= r >> 27;
+        h->env.actions[0] = (int)((r * 0x2545F4914F6CDD1DULL) % IW_NUM_ACTIONS);
+        c_step(&h->env);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0.tv_sec) + 1e-9 * (t1.tv_nsec - t0.tv_nsec);
+}
+
 void iw_delete(void* handle) {
     if (!handle) return;
     Handle* h = (Handle*)handle;

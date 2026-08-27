@@ -45,10 +45,25 @@ class IWannaEnv(gym.Env):
         random_goal: bool = False,
         checkpoint_respawn: bool = False,
         render_mode: str | None = None,
+        pack: str | bytes | None = None,
     ):
         super().__init__()
-        self.level_name = level
-        self.level_text = load_level(level) if "\n" not in level else level
+        # pack: a compiled .iwpack game (path or bytes) built offline by
+        # `python -m tools.iwimport compile` — see docs/gamepack_format.md.
+        # When given, `level` is ignored and the env may span multiple rooms
+        # (info["room"], info["room_transitions"]).
+        self._pack_data: bytes | None = None
+        if pack is not None:
+            if isinstance(pack, str):
+                with open(pack, "rb") as f:
+                    self._pack_data = f.read()
+            else:
+                self._pack_data = bytes(pack)
+            self.level_name = "<pack>"
+            self.level_text = ""
+        else:
+            self.level_name = level
+            self.level_text = load_level(level) if "\n" not in level else level
         self._cfg = dict(
             max_steps=max_steps,
             reward_mode={"sparse": 0, "dense": 1}[reward_mode],
@@ -68,7 +83,11 @@ class IWannaEnv(gym.Env):
         super().reset(seed=seed)
         if self.c is None:
             cseed = int(self.np_random.integers(1, 2**63 - 1))
-            self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
+            if self._pack_data is not None:
+                self.c = CIWanna(None, pack_data=self._pack_data,
+                                 seed=cseed, **self._cfg)
+            else:
+                self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
         self.c.reset()
         return self.c.obs.copy(), self._info()
 
@@ -89,6 +108,8 @@ class IWannaEnv(gym.Env):
             "goal": c.goal, "last_event": c.last_event,
             "is_success": c.last_event == 2,
             "deaths": c.deaths,
+            "room": c.room,
+            "room_transitions": c.room_transitions,
         }
 
     def render(self):

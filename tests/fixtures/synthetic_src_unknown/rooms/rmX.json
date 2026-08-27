@@ -1,0 +1,16 @@
+{
+  "name": "rmX",
+  "width": 320,
+  "height": 256,
+  "instances": [
+    {"id": 1, "object": "sPlayerStart", "x": 32,  "y": 192},
+    {"id": 2, "object": "sGoal",        "x": 256, "y": 192},
+    {"id": 3, "object": "sMysteryOrb",  "x": 128, "y": 128,
+     "params": {"strangeness": 11}},
+    {"id": 100, "object": "sBlock", "x": 0, "y": 224, "repeat_x": 10}
+  ],
+  "events": [
+    {"id": "evBoss", "type": "boss_pattern", "pattern": "spiral_of_doom"}
+  ],
+  "edges": {}
+}

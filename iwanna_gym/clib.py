@@ -34,6 +34,14 @@ def _load() -> ctypes.CDLL:
         ctypes.c_int, ctypes.c_int, ctypes.c_float,
         ctypes.c_int, ctypes.c_ulonglong, ctypes.c_int,
     ]
+    lib.iw_new_pack.restype = ctypes.c_void_p
+    lib.iw_new_pack.argtypes = [
+        ctypes.c_char_p, ctypes.c_long, f32p, i32p, f32p, u8p,
+        ctypes.c_int, ctypes.c_int, ctypes.c_float,
+        ctypes.c_int, ctypes.c_ulonglong, ctypes.c_int,
+    ]
+    lib.iw_last_error.restype = ctypes.c_char_p
+    lib.iw_last_error.argtypes = []
     lib.iw_delete.argtypes = [ctypes.c_void_p]
     lib.iw_reset.argtypes = [ctypes.c_void_p]
     lib.iw_step.argtypes = [ctypes.c_void_p]
@@ -42,7 +50,9 @@ def _load() -> ctypes.CDLL:
         fn.restype = ctypes.c_double
         fn.argtypes = [ctypes.c_void_p]
     for name in ("iw_djump", "iw_on_ground", "iw_tick", "iw_tw", "iw_th",
-                  "iw_last_event", "iw_ent_count", "iw_deaths"):
+                  "iw_last_event", "iw_ent_count", "iw_deaths",
+                  "iw_room", "iw_respawn_room", "iw_room_transitions",
+                  "iw_num_rooms"):
         fn = getattr(lib, name)
         fn.restype = ctypes.c_int
         fn.argtypes = [ctypes.c_void_p]
@@ -50,6 +60,10 @@ def _load() -> ctypes.CDLL:
         fn = getattr(lib, name)
         fn.restype = ctypes.c_double
         fn.argtypes = [ctypes.c_void_p]
+    lib.iw_gflags.restype = ctypes.c_ulonglong
+    lib.iw_gflags.argtypes = [ctypes.c_void_p]
+    lib.iw_bench.restype = ctypes.c_double
+    lib.iw_bench.argtypes = [ctypes.c_void_p, ctypes.c_long, ctypes.c_ulonglong]
     lib.iw_entities.restype = ctypes.c_int
     lib.iw_entities.argtypes = [ctypes.c_void_p, f32p, ctypes.c_int]
     lib.iw_set_goal.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]
@@ -81,27 +95,49 @@ class CIWanna:
 
     def __init__(
         self,
-        level_text: str,
+        level_text: str | None,
         max_steps: int = 1500,
         reward_mode: int = 1,
         death_penalty: float = 1.0,
         random_goal: bool = False,
         seed: int = 0,
         checkpoint_respawn: bool = False,
+        pack_data: bytes | None = None,
     ):
         self.obs = np.zeros(OBS_SIZE, dtype=np.float32)
         self.act = np.zeros(1, dtype=np.int32)
         self.rew = np.zeros(1, dtype=np.float32)
         self.term = np.zeros(1, dtype=np.uint8)
-        self._h = LIB.iw_new(
-            level_text.encode(), self.obs, self.act, self.rew, self.term,
-            max_steps, reward_mode, float(death_penalty),
-            int(random_goal), seed, int(checkpoint_respawn),
-        )
-        if not self._h:
-            raise ValueError("failed to parse level text")
+        if pack_data is not None:
+            self._h = LIB.iw_new_pack(
+                pack_data, len(pack_data),
+                self.obs, self.act, self.rew, self.term,
+                max_steps, reward_mode, float(death_penalty),
+                int(random_goal), seed, int(checkpoint_respawn),
+            )
+            if not self._h:
+                raise ValueError(
+                    "failed to load game pack: "
+                    + LIB.iw_last_error().decode(errors="replace")
+                )
+        else:
+            self._h = LIB.iw_new(
+                level_text.encode(), self.obs, self.act, self.rew, self.term,
+                max_steps, reward_mode, float(death_penalty),
+                int(random_goal), seed, int(checkpoint_respawn),
+            )
+            if not self._h:
+                raise ValueError("failed to parse level text")
         self.tw: int = LIB.iw_tw(self._h)
         self.th: int = LIB.iw_th(self._h)
+
+    @classmethod
+    def from_pack(cls, pack: bytes | str, **kw) -> "CIWanna":
+        """Construct from a compiled .iwpack (bytes or file path)."""
+        if isinstance(pack, str):
+            with open(pack, "rb") as f:
+                pack = f.read()
+        return cls(None, pack_data=pack, **kw)
 
     def reset(self) -> None:
         LIB.iw_reset(self._h)
@@ -137,6 +173,20 @@ class CIWanna:
     @property
     def respawn(self) -> tuple[float, float]:
         return LIB.iw_respawn_x(self._h), LIB.iw_respawn_y(self._h)
+    @property
+    def room(self) -> int: return LIB.iw_room(self._h)
+    @property
+    def respawn_room(self) -> int: return LIB.iw_respawn_room(self._h)
+    @property
+    def room_transitions(self) -> int: return LIB.iw_room_transitions(self._h)
+    @property
+    def num_rooms(self) -> int: return LIB.iw_num_rooms(self._h)
+    @property
+    def gflags(self) -> int: return int(LIB.iw_gflags(self._h))
+
+    def bench(self, steps: int, seed: int = 7) -> float:
+        """Run `steps` random-action frames entirely in C; returns seconds."""
+        return float(LIB.iw_bench(self._h, steps, seed))
 
     def entities(self, max_rows: int = 4096) -> np.ndarray:
         """Active entities as rows [type, x, y, vx, vy, state, dormant, p4]."""

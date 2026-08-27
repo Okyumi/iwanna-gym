@@ -1,0 +1,388 @@
+"""Compiler: canonical IR (.iwgame.json) -> compact binary pack (.iwpack).
+
+The output layout mirrors c_src/gamepack/iwpack.h exactly (little-endian,
+fixed-width records, precomputed offsets, per-pack maxima). The runtime
+decodes it once at construction; nothing here ever runs during stepping.
+
+Unsupported/unknown elements are a hard compile error unless
+``allow_unsupported=True``; then they are DROPPED VISIBLY: listed in the
+pack metadata under ``dropped`` with ``incomplete: true``, and echoed in
+the returned CompileResult. Silent discarding is a bug by definition.
+"""
+from __future__ import annotations
+
+import json
+import struct
+from dataclasses import dataclass, field
+from typing import Any
+
+from .schema import (
+    ACTION_PROFILES,
+    CM_PLAYER,
+    EF_ACTIVE,
+    EF_DEADLY,
+    EF_DORMANT,
+    EF_SOLID_TOP,
+    ENTITY_KINDS,
+    EVENT_ACTIONS,
+    EVENT_WHEN,
+    PHYSICS_PROFILES,
+    TILE_CHARS,
+    TILE_PX,
+)
+from .validate import validate
+
+PACK_MAGIC = 0x4B505749  # "IWPK"
+PACK_VERSION = 1
+
+_HDR = struct.Struct("<16I")
+_ROOM = struct.Struct("<IIffffI4i7I")
+_ENT = struct.Struct("<IIiiI fffff ii 6f".replace(" ", ""))
+_EVT = struct.Struct("<IIIiii ffff iiii".replace(" ", ""))
+_ACT = struct.Struct("<Ii6f")
+
+# player hitbox constants (mirror iwanna.h) used for start placement
+_HB_B = 8
+_DIRS = {"up": 0, "down": 1, "left": 2, "right": 3}
+
+
+class CompileError(Exception):
+    pass
+
+
+@dataclass
+class CompileResult:
+    data: bytes
+    dropped: list[str] = field(default_factory=list)
+    n_rooms: int = 0
+    size: int = 0
+
+
+def _f(v: Any, default: float = 0.0) -> float:
+    return float(v) if v is not None else default
+
+
+def _lower_entity(kind: str, inst: dict, room_of: dict[str, int]) -> tuple:
+    """Return the IWPackEnt tuple for one instance (px coordinates)."""
+    p = dict(inst.get("params") or {})
+    x, y = float(inst["x"]), float(inst["y"])
+    tag = int(inst.get("tag") or p.get("tag") or 0)
+    etype = ENTITY_KINDS[kind]
+    flags = EF_ACTIVE
+    trigger_id = int(p.get("id") or 0)
+    state = 0
+    timer = 0
+    params = [0.0] * 6
+    vx, vy = _f(p.get("vx")), _f(p.get("vy"))
+    grav = _f(p.get("grav"))
+
+    if kind == "platform":
+        flags |= EF_SOLID_TOP
+        params[0] = _f(p.get("range"))
+        params[4], params[5] = x, y
+    elif kind in ("spikeball", "enemy"):
+        flags |= EF_DEADLY
+        params[0] = _f(p.get("range"))
+        params[4], params[5] = x, y
+    elif kind == "trap":
+        flags |= EF_DEADLY | EF_DORMANT
+        params[2], params[3] = vx, vy      # launch velocity on trigger
+        vx = vy = 0.0
+        params[4] = float(_DIRS.get(p.get("dir", "up"), 0))
+    elif kind == "trigger_zone":
+        params[0] = _f(p.get("half_w"), TILE_PX / 2)
+        params[1] = _f(p.get("half_h"), TILE_PX / 2)
+    elif kind == "shooter":
+        period = _f(p.get("period"), 60)
+        speed = _f(p.get("speed"), 4)
+        params[0] = period
+        params[1] = speed
+        params[2] = 1.0 if p.get("aimed") else 0.0
+        d = p.get("dir", "up")
+        dvx = -speed if d == "left" else speed if d == "right" else 0.0
+        dvy = -speed if d == "up" else speed if d == "down" else 0.0
+        params[3], params[4] = dvx, dvy
+        timer = int(period)
+    elif kind == "save":
+        pass
+    elif kind == "warp":
+        params[0] = _f(p.get("dest_x"), x)
+        params[1] = _f(p.get("dest_y"), y)
+        dr = p.get("dest_room")
+        if isinstance(dr, str):
+            dr = room_of[dr]
+        params[2] = 0.0 if dr is None else float(int(dr) + 1)
+    elif kind == "boss_radial8":
+        flags |= EF_DEADLY
+        period = _f(p.get("period"), 100)
+        volleys = _f(p.get("volleys"), 0)
+        params[0], params[1] = period, volleys
+        state = int(volleys)
+        timer = int(period)
+    elif kind == "gate":
+        tx = int(p.get("tx", int(x) // TILE_PX))
+        ty = int(p.get("ty", int(y) // TILE_PX))
+        w = int(p.get("w", 1))
+        h = int(p.get("h", 1))
+        params[0], params[1] = float(tx), float(ty)
+        params[2], params[3] = float(w), float(h)
+        params[4] = float(w * 100 + h)
+        x = (tx + w / 2.0) * TILE_PX
+        y = (ty + h / 2.0) * TILE_PX
+        state = 0 if p.get("open") else 1
+    elif kind == "projectile":
+        flags |= EF_DEADLY
+    else:  # pragma: no cover — validated upstream
+        raise CompileError(f"unhandled entity kind {kind!r}")
+
+    if inst.get("active") is False or p.get("active") in (0, False):
+        flags &= ~EF_ACTIVE
+    return (etype, flags, trigger_id, tag, CM_PLAYER,
+            x, y, vx, vy, grav, state, timer, *params)
+
+
+def _lower_action(a: dict) -> tuple:
+    do = a["do"]
+    t = EVENT_ACTIONS[do]
+    tag = -1
+    p = [0.0] * 6
+    if do in ("set_flag", "clear_flag", "start_timer"):
+        tag = int(a.get("id", a.get("flag", 0)))
+    elif do == "spawn":
+        spawn_types = {"platform": 1, "spikeball": 2, "trap": 4,
+                       "projectile": 5, "enemy": 7}
+        p[0] = float(spawn_types.get(a.get("kind", "projectile"), 5))
+        p[1], p[2] = _f(a.get("x")), _f(a.get("y"))
+        p[3], p[4] = _f(a.get("vx")), _f(a.get("vy"))
+        p[5] = _f(a.get("grav"))
+        tag = 1 if a.get("deadly", True) else -1
+    elif do == "teleport" and "tag" not in a:
+        tag = -1                       # player teleport
+        p[0], p[1] = _f(a.get("x")), _f(a.get("y"))
+    else:
+        tag = int(a.get("tag", -1))
+        if do == "launch":
+            p[0], p[1] = _f(a.get("vx")), _f(a.get("vy"))
+            p[2] = _f(a.get("grav"))
+        elif do == "set_gravity":
+            p[0] = _f(a.get("grav"))
+        elif do == "move":
+            p[0], p[1] = _f(a.get("dx")), _f(a.get("dy"))
+        elif do == "teleport":
+            p[0], p[1] = _f(a.get("x")), _f(a.get("y"))
+        elif do == "set_dir":
+            p[0] = float(_DIRS.get(a.get("dir", "up"), 0))
+    return (t, tag, *p)
+
+
+def _lower_event(ev: dict, first_action: int, n_actions: int) -> tuple:
+    when = EVENT_WHEN[ev["when"]]
+    once = 1 if ev.get("once", True) else 0
+    if ev.get("period") and "once" not in ev:
+        once = 0                       # periodic timers refire by default
+    auto = 1 if ev.get("auto", True) else 0
+    dirmap = {"any": 0, "right": 1, "down": 1, "left": -1, "up": -1}
+    d = dirmap.get(ev.get("dir", "any"), 0)
+    x0 = _f(ev.get("x0", ev.get("x")))
+    y0 = _f(ev.get("y0", ev.get("y")))
+    x1 = _f(ev.get("x1"))
+    y1 = _f(ev.get("y1"))
+    if "tag" in ev:
+        subject = int(ev["tag"])
+    elif "flag" in ev:
+        subject = int(ev["flag"])
+    else:
+        subject = -1
+    return (when, once, auto, d, int(ev.get("id", 0)), subject,
+            x0, y0, x1, y1,
+            int(ev.get("delay", 0)), int(ev.get("period", 0)),
+            first_action, n_actions)
+
+
+def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> CompileResult:
+    rep = validate(doc, allow_unsupported=allow_unsupported)
+    if not rep.ok:
+        raise CompileError("IR failed validation:\n" + rep.text())
+    dropped = list(rep.unsupported) if allow_unsupported else []
+    dropped_set = set(dropped)
+
+    objdefs = {od["name"]: od for od in doc.get("object_definitions", [])}
+    rooms = doc["rooms"]
+    room_of = {r["name"]: r["id"] for r in rooms}
+
+    # ---- lower each room ----
+    lowered = []
+    for room in rooms:
+        rn = room.get("name", str(room["id"]))
+        w, h = room["width_tiles"], room["height_tiles"]
+        tiles = bytearray(w * h)
+        start = None
+        goal = None
+        for y, row in enumerate(room["tiles"]):
+            for x, ch in enumerate(row):
+                tiles[y * w + x] = TILE_CHARS[ch]
+                if ch == "S":
+                    start = (x * TILE_PX + TILE_PX / 2.0,
+                             y * TILE_PX + (TILE_PX - 1) - _HB_B)
+                elif ch == "G":
+                    goal = (x * TILE_PX + TILE_PX / 2.0,
+                            y * TILE_PX + TILE_PX / 2.0)
+        if room.get("start"):
+            start = (float(room["start"]["x"]), float(room["start"]["y"]))
+        if room.get("goal"):
+            goal = (float(room["goal"]["x"]), float(room["goal"]["y"]))
+
+        ents: list[tuple] = []
+        for i, inst in enumerate(room.get("instances", [])):
+            where = f"rooms/{rn}/instances[{i}]({inst.get('object')})"
+            if where in dropped_set:
+                continue
+            od = objdefs[inst["object"]]
+            if od.get("mapping_status") in ("unsupported", "unknown"):
+                if f"object_definitions/{od['name']}" in dropped_set:
+                    dropped.append(where)
+                    continue
+            kind = od["kind"]
+            if kind == "player_start":
+                start = (float(inst["x"]), float(inst["y"]))
+                continue
+            if kind.startswith("tile_"):
+                code = {"tile_block": 1, "tile_spike_up": 2,
+                        "tile_spike_down": 3, "tile_spike_left": 4,
+                        "tile_spike_right": 5, "tile_goal": 6}[kind]
+                tx, ty = int(inst["x"]) // TILE_PX, int(inst["y"]) // TILE_PX
+                if 0 <= tx < w and 0 <= ty < h:
+                    tiles[ty * w + tx] = code
+                    if kind == "tile_goal":
+                        goal = (tx * TILE_PX + TILE_PX / 2.0,
+                                ty * TILE_PX + TILE_PX / 2.0)
+                else:
+                    raise CompileError(f"{where}: tile instance outside room")
+                continue
+            ents.append(_lower_entity(kind, inst, room_of))
+
+        for cp in room.get("checkpoints", []):
+            ents.append(_lower_entity("save", {
+                "x": cp["x"], "y": cp["y"], "tag": cp.get("tag", 0),
+                "params": {},
+            }, room_of))
+        for wp in room.get("warps", []):
+            ents.append(_lower_entity("warp", {
+                "x": wp["x"], "y": wp["y"], "tag": wp.get("tag", 0),
+                "params": {"dest_x": wp.get("dest_x"),
+                           "dest_y": wp.get("dest_y"),
+                           "dest_room": wp.get("dest_room")},
+            }, room_of))
+
+        evts: list[tuple] = []
+        acts: list[tuple] = []
+        for i, ev in enumerate(room.get("events", [])):
+            where = f"rooms/{rn}/events[{i}]({ev.get('when')})"
+            if where in dropped_set:
+                continue
+            first = len(acts)
+            for a in ev.get("actions", []):
+                acts.append(_lower_action(a))
+            evts.append(_lower_event(ev, first, len(acts) - first))
+
+        edges = room.get("edges", {})
+        edge = [edges.get(k) if edges.get(k) is not None else -1
+                for k in ("left", "right", "up", "down")]
+        edge = [room_of[e] if isinstance(e, str) else int(e) for e in edge]
+
+        if start is None:
+            start = (TILE_PX * 1.5, TILE_PX * 1.5)
+        has_goal = 1 if goal is not None else 0
+        if goal is None:
+            # shaping objective only: first warp, else linked-edge midpoint,
+            # else room center. has_goal=0 => never terminates the episode.
+            warp_e = next((e for e in ents if e[0] == ENTITY_KINDS["warp"]), None)
+            if warp_e is not None:
+                goal = (warp_e[5], warp_e[6])
+            elif edge[1] >= 0:
+                goal = (w * TILE_PX - TILE_PX / 2.0, start[1])
+            elif edge[0] >= 0:
+                goal = (TILE_PX / 2.0, start[1])
+            else:
+                goal = (w * TILE_PX / 2.0, h * TILE_PX / 2.0)
+
+        lowered.append(dict(w=w, h=h, tiles=bytes(tiles), start=start,
+                            goal=goal, has_goal=has_goal, edge=edge,
+                            ents=ents, evts=evts, acts=acts))
+
+    # ---- metadata blob: provenance survives into the pack ----
+    elements = []
+    from .schema import iter_elements
+    for where, el in iter_elements(doc):
+        elements.append({
+            "where": where,
+            "mapping_status": el.get("mapping_status"),
+            "provenance": el.get("provenance", {}),
+        })
+    meta = {
+        "metadata": doc.get("metadata", {}),
+        "provenance": doc.get("provenance", {}),
+        "global_flags": doc.get("global_flags", []),
+        "physics_profile": doc.get("physics_profile"),
+        "action_profile": doc.get("action_profile"),
+        "rooms": [{"id": r["id"], "name": r.get("name", "")} for r in rooms],
+        "completion": doc.get("completion", {}),
+        "elements": elements,
+        "dropped": sorted(set(dropped)),
+        "incomplete": bool(dropped),
+    }
+    meta_bytes = json.dumps(meta, sort_keys=True).encode("utf-8")
+
+    # ---- serialize ----
+    def pad4(n: int) -> int:
+        return (n + 3) & ~3
+
+    body = bytearray()
+    room_recs = []
+    base = _HDR.size
+    for lr in lowered:
+        tiles_off = base + len(body)
+        body += lr["tiles"]
+        body += b"\0" * (pad4(len(body)) - len(body))
+        spawns_off = base + len(body)
+        for e in lr["ents"]:
+            body += _ENT.pack(*e)
+        events_off = base + len(body)
+        for e in lr["evts"]:
+            body += _EVT.pack(*e)
+        actions_off = base + len(body)
+        for a in lr["acts"]:
+            body += _ACT.pack(*a)
+        room_recs.append((lr, tiles_off, spawns_off, events_off, actions_off))
+
+    rooms_off = base + len(body)
+    for lr, t_off, s_off, e_off, a_off in room_recs:
+        body += _ROOM.pack(
+            lr["w"], lr["h"],
+            lr["start"][0], lr["start"][1],
+            lr["goal"][0], lr["goal"][1],
+            lr["has_goal"],
+            *lr["edge"],
+            t_off,
+            len(lr["ents"]), s_off,
+            len(lr["evts"]), e_off,
+            len(lr["acts"]), a_off,
+        )
+    meta_off = base + len(body)
+    body += meta_bytes
+
+    n_flags = max([f["id"] for f in doc.get("global_flags", [])], default=0) + 1
+    hdr = _HDR.pack(
+        PACK_MAGIC, PACK_VERSION, _HDR.size + len(body),
+        len(lowered), int(doc["room_graph"]["start_room"]), n_flags,
+        PHYSICS_PROFILES[doc["physics_profile"]],
+        ACTION_PROFILES[doc["action_profile"]],
+        max(lr["w"] * lr["h"] for lr in lowered),
+        max((len(lr["ents"]) for lr in lowered), default=0),
+        max((len(lr["evts"]) for lr in lowered), default=0),
+        max((len(lr["acts"]) for lr in lowered), default=0),
+        rooms_off, meta_off, len(meta_bytes), 0,
+    )
+    data = bytes(hdr) + bytes(body)
+    return CompileResult(data=data, dropped=sorted(set(dropped)),
+                         n_rooms=len(lowered), size=len(data))

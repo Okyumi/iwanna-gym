@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "gamepack/iwpack.h"
+
 #define IW_TILE 32
 #define IW_FPS 50
 
@@ -116,6 +118,7 @@ enum {
     W_TIMER,          /* countdown armed at reset (auto=1) or by start_timer */
     W_OBJECT_DESTROYED, /* an entity with tag=N was destroyed or culled */
     W_SAVE_ACTIVATED, /* a save point with tag=N was touched (first time) */
+    W_FLAG_SET,       /* global progression flag (subject=N) is set */
     W_NUM_WHEN
 };
 
@@ -132,6 +135,8 @@ enum {
     ACT_OPEN_GATE, ACT_CLOSE_GATE,
     ACT_START_TIMER,  /* arm timer event with id=N */
     ACT_SET_DIR,      /* rotate a trap spike: dir=up/down/left/right */
+    ACT_SET_FLAG,     /* set global progression flag id=N (persists across rooms) */
+    ACT_CLEAR_FLAG,   /* clear global progression flag id=N */
     ACT_NUM
 };
 
@@ -239,6 +244,23 @@ typedef struct {
     uint64_t destroyed_tags;  /* bitmask of destroyed entity tags (1..63) */
     uint64_t save_tags;       /* bitmask of activated save tags */
     double prev_x, prev_y;    /* player position at frame start (pass_x/pass_y) */
+
+    /* ---- game-pack mode (docs/gamepack_format.md) ----
+     * All zero/NULL when loading classic single-room levels; the classic
+     * paths are untouched. A loaded pack keeps every room's compiled data
+     * in one decoded blob; room switches memcpy into the live buffers
+     * below (sized once, at load, from the pack maxima): no allocation
+     * and no parsing after construction. */
+    IWPackRT* pack;           /* owned decoded pack; NULL = classic mode */
+    int room_id;              /* current room index */
+    int start_room;
+    int respawn_room;         /* room of the active save point */
+    int room_has_goal;        /* pack rooms may have no terminal goal */
+    int pending_room;         /* -1 none; >=0 = switch rooms after this phase */
+    float pending_x, pending_y;
+    int pending_keep_speed;
+    uint64_t gflags;          /* global progression flags (bits 1..63) */
+    int room_transitions;     /* count this episode (introspection) */
 
     /* dynamic state */
     double x, y, hspeed, vspeed;
@@ -532,6 +554,7 @@ static void player_interactions(IWanna* env) {
                 if (ent_rect_hit(e, l, r, t, b, ENT_HW[E_SAVE], ENT_HH[E_SAVE])) {
                     env->respawn_x = e->x;
                     env->respawn_y = e->y + IW_TILE / 2.0 - 1 - HB_B;
+                    env->respawn_room = env->room_id;
                     if (e->state == 0 && e->tag > 0 && e->tag < 64)
                         env->save_tags |= 1ULL << e->tag;
                     e->state = 1;
@@ -539,6 +562,15 @@ static void player_interactions(IWanna* env) {
                 break;
             case E_WARP:
                 if (ent_rect_hit(e, l, r, t, b, ENT_HW[E_WARP], ENT_HH[E_WARP])) {
+                    /* params[2] = destination room + 1 in pack mode
+                     * (0 = same room, the classic single-room behavior) */
+                    if (env->pack && e->params[2] > 0.5f) {
+                        env->pending_room = (int)e->params[2] - 1;
+                        env->pending_x = e->params[0];
+                        env->pending_y = e->params[1];
+                        env->pending_keep_speed = 0;
+                        break;
+                    }
                     env->x = e->params[0];
                     env->y = e->params[1];
                     env->hspeed = 0; env->vspeed = 0;
@@ -612,6 +644,13 @@ static void exec_action(IWanna* env, const IWAction* a) {
                 ev->fired = 0;
                 ev->countdown = ev->delay;
             }
+        }
+        return;
+    }
+    if (a->type == ACT_SET_FLAG || a->type == ACT_CLEAR_FLAG) {
+        if (a->tag > 0 && a->tag < 64) {
+            if (a->type == ACT_SET_FLAG) env->gflags |= 1ULL << a->tag;
+            else                         env->gflags &= ~(1ULL << a->tag);
         }
         return;
     }
@@ -746,6 +785,10 @@ static void update_events(IWanna* env) {
                 hit = ev->subject > 0 && ev->subject < 64 &&
                       (env->save_tags >> ev->subject) & 1ULL;
                 break;
+            case W_FLAG_SET:
+                hit = ev->subject > 0 && ev->subject < 64 &&
+                      (env->gflags >> ev->subject) & 1ULL;
+                break;
             default: break;  /* ROOM_ENTER and TIMER armed at reset */
         }
         if (hit && ev->countdown < 0) {
@@ -778,6 +821,180 @@ static void reset_events(IWanna* env) {
             (ev->when == W_TIMER && ev->auto_arm))
             ev->countdown = ev->delay;
     }
+}
+
+/* ---------- game-pack mode: room loading & transitions ----------
+ * A pack keeps every room compiled in one decoded blob (IWPackRT). The env
+ * owns live buffers sized ONCE at load from the pack-wide maxima; entering
+ * a room is a bounded memcpy of that room's tiles/spawns/events/actions —
+ * no allocation, no parsing. Rooms reset on entry (fangame semantics);
+ * global flags (env->gflags), the active save (respawn_*), and the episode
+ * clock persist across transitions.
+ */
+
+static void iw_pack_copy_room(IWanna* env, int room) {
+    const IWPackRoom* r = &env->pack->rooms[room];
+    env->room_id = room;
+    env->tw = (int)r->tw;
+    env->th = (int)r->th;
+    memcpy(env->tiles0, r->tiles, (size_t)r->tw * r->th);
+    memcpy(env->tiles, env->tiles0, (size_t)r->tw * r->th);
+    env->start_x = r->start_x;
+    env->start_y = r->start_y;
+    env->goal_x = r->goal_x;
+    env->goal_y = r->goal_y;
+    env->room_has_goal = (int)r->has_goal;
+
+    env->spawn_count = (int)r->n_spawns;
+    for (uint32_t i = 0; i < r->n_spawns; i++) {
+        const IWPackEnt* s = &r->spawns[i];
+        IWEntity* e = &env->spawns[i];
+        memset(e, 0, sizeof *e);
+        e->type = (uint8_t)s->type;
+        e->flags = s->flags;
+        e->trigger_id = s->trigger_id;
+        e->tag = s->tag;
+        e->collision_mask = s->collision_mask;
+        e->x = s->x; e->y = s->y; e->vx = s->vx; e->vy = s->vy;
+        e->grav = s->grav;
+        e->state = s->state;
+        e->timer = s->timer;
+        memcpy(e->params, s->params, sizeof e->params);
+    }
+    env->event_count = (int)r->n_events;
+    for (uint32_t i = 0; i < r->n_events; i++) {
+        const IWPackEvt* s = &r->events[i];
+        IWEvent* ev = &env->events[i];
+        memset(ev, 0, sizeof *ev);
+        ev->when = (uint8_t)s->when;
+        ev->once = (uint8_t)s->once;
+        ev->auto_arm = (uint8_t)s->auto_arm;
+        ev->dir = (int8_t)s->dir;
+        ev->id = s->id;
+        ev->subject = s->subject;
+        ev->x0 = s->x0; ev->y0 = s->y0; ev->x1 = s->x1; ev->y1 = s->y1;
+        ev->delay = s->delay;
+        ev->period = s->period;
+        ev->first_action = s->first_action;
+        ev->n_actions = s->n_actions;
+        ev->countdown = -1;
+    }
+    env->ev_action_count = (int)r->n_actions;
+    for (uint32_t i = 0; i < r->n_actions; i++) {
+        const IWPackAct* s = &r->actions[i];
+        IWAction* a = &env->ev_actions[i];
+        a->type = (uint8_t)s->type;
+        a->tag = s->tag;
+        memcpy(a->p, s->p, sizeof a->p);
+    }
+    reset_entities(env);
+    reset_events(env);
+}
+
+/* Mid-episode transition (warp touch, edge exit). The previous room's
+ * transient state is discarded — rooms reset on re-entry, as in the GM8
+ * fangame engines — while gflags, the save point, and tick persist. */
+static void iw_pack_room_switch(IWanna* env, int room, double px, double py,
+                                int keep_speed) {
+    iw_pack_copy_room(env, room);
+    env->x = px;
+    env->y = py;
+    if (!keep_speed) { env->hspeed = 0; env->vspeed = 0; }
+    env->on_platform = 0;
+    env->prev_on_platform = 0;
+    env->prev_x = env->x;
+    env->prev_y = env->y;
+    env->room_transitions += 1;
+    double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
+    env->prev_goal_dist = sqrt(dx * dx + dy * dy);
+}
+
+/* Edge transitions: leaving through a linked room edge enters the adjacent
+ * room at the opposite edge, preserving velocity and the off-axis
+ * coordinate (clamped inside the destination). Unlinked edges keep the
+ * classic behavior (out-of-room death in killer_hit). */
+static void iw_pack_check_edge(IWanna* env) {
+    const IWPackRoom* cur = &env->pack->rooms[env->room_id];
+    double W = env->tw * IW_TILE, H = env->th * IW_TILE;
+    int target = -1;
+    int edge = -1;
+    if (env->x < 0 && cur->edge[IWPACK_EDGE_L] >= 0) {
+        target = cur->edge[IWPACK_EDGE_L]; edge = IWPACK_EDGE_L;
+    } else if (env->x > W && cur->edge[IWPACK_EDGE_R] >= 0) {
+        target = cur->edge[IWPACK_EDGE_R]; edge = IWPACK_EDGE_R;
+    } else if (env->y < 0 && cur->edge[IWPACK_EDGE_U] >= 0) {
+        target = cur->edge[IWPACK_EDGE_U]; edge = IWPACK_EDGE_U;
+    } else if (env->y > H && cur->edge[IWPACK_EDGE_D] >= 0) {
+        target = cur->edge[IWPACK_EDGE_D]; edge = IWPACK_EDGE_D;
+    }
+    if (target < 0) return;
+    const IWPackRoom* dst = &env->pack->rooms[target];
+    double DW = dst->tw * IW_TILE, DH = dst->th * IW_TILE;
+    double nx = env->x, ny = env->y;
+    if (edge == IWPACK_EDGE_L)      nx = DW - 1 + HB_L;   /* enter at right edge */
+    else if (edge == IWPACK_EDGE_R) nx = 1 - HB_L;        /* enter at left edge */
+    else if (edge == IWPACK_EDGE_U) ny = DH - 1 + HB_T;   /* enter at bottom */
+    else                            ny = 1 - HB_T;        /* enter at top */
+    if (nx < -HB_L) nx = -HB_L;
+    if (nx > DW - 1 - HB_R) nx = DW - 1 - HB_R;
+    if (ny < -HB_T) ny = -HB_T;
+    if (ny > DH - 1 - HB_B) ny = DH - 1 - HB_B;
+    env->pending_room = target;
+    env->pending_x = (float)nx;
+    env->pending_y = (float)ny;
+    env->pending_keep_speed = 1;
+}
+
+static int iw_pack_do_pending(IWanna* env) {
+    if (env->pending_room < 0) return 0;
+    int room = env->pending_room;
+    env->pending_room = -1;
+    iw_pack_room_switch(env, room, env->pending_x, env->pending_y,
+                        env->pending_keep_speed);
+    return 1;
+}
+
+/* Load a compiled .iwpack blob: decode once, size the live buffers from the
+ * pack maxima, and enter the start room. Returns 0 on success; on failure
+ * the env is untouched apart from freed classic-level buffers. */
+static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
+                            char* err, size_t errlen) {
+    IWPackRT* rt = iwpack_load(data, len, err, errlen);
+    if (!rt) return -1;
+
+    free(env->tiles);   env->tiles = NULL;
+    free(env->tiles0);  env->tiles0 = NULL;
+    free(env->spawns);  env->spawns = NULL;
+    free(env->entities); env->entities = NULL;
+    free(env->events);  env->events = NULL;
+    free(env->ev_actions); env->ev_actions = NULL;
+
+    uint32_t mt = rt->hdr.max_tiles;
+    uint32_t ms = rt->hdr.max_spawns ? rt->hdr.max_spawns : 1;
+    uint32_t me = rt->hdr.max_events ? rt->hdr.max_events : 1;
+    uint32_t ma = rt->hdr.max_actions ? rt->hdr.max_actions : 1;
+    env->ent_cap = (int)(ms * 2 > 2048 ? ms * 2 : 2048);
+    env->tiles = (uint8_t*)calloc(mt, 1);
+    env->tiles0 = (uint8_t*)calloc(mt, 1);
+    env->spawns = (IWEntity*)calloc(ms, sizeof(IWEntity));
+    env->entities = (IWEntity*)calloc((size_t)env->ent_cap, sizeof(IWEntity));
+    env->events = (IWEvent*)calloc(me, sizeof(IWEvent));
+    env->ev_actions = (IWAction*)calloc(ma, sizeof(IWAction));
+    if (!env->tiles || !env->tiles0 || !env->spawns || !env->entities ||
+        !env->events || !env->ev_actions) {
+        iwpack_free_rt(rt);
+        iwpack_err(err, errlen, "out of memory");
+        return -1;
+    }
+    env->pack = rt;
+    env->start_room = (int)rt->hdr.start_room;
+    env->respawn_room = env->start_room;
+    env->pending_room = -1;
+    env->gflags = 0;
+    env->room_transitions = 0;
+    env->free_hint = 0;
+    iw_pack_copy_room(env, env->start_room);
+    return 0;
 }
 
 /* ---------- observations ---------- */
@@ -880,6 +1097,16 @@ static void sample_goal(IWanna* env) {
 }
 
 static void c_reset(IWanna* env) {
+    if (env->pack) {
+        /* pack mode: every episode starts in the start room with a clean
+         * progression state (flags, save, transition count) */
+        if (env->room_id != env->start_room)
+            iw_pack_copy_room(env, env->start_room);
+        env->gflags = 0;
+        env->respawn_room = env->start_room;
+        env->pending_room = -1;
+        env->room_transitions = 0;
+    }
     env->x = env->start_x;
     env->y = env->start_y;
     env->hspeed = 0; env->vspeed = 0;
@@ -987,6 +1214,16 @@ static void c_step(IWanna* env) {
     update_entities(env);
     resolve_platforms(env);
 
+    /* --- pack mode: room-edge transitions (before out-of-room death) --- */
+    if (env->pack) {
+        iw_pack_check_edge(env);
+        if (iw_pack_do_pending(env)) {
+            env->ep_return += env->rewards[0];
+            compute_observations(env);
+            return;
+        }
+    }
+
     /* --- killer detection: spike tiles + deadly entities --- */
     if (killer_hit(env) || entity_killer_hit(env)) {
         env->rewards[0] = -env->death_penalty;
@@ -994,6 +1231,8 @@ static void c_step(IWanna* env) {
         if (env->checkpoint_respawn) {
             /* fangame semantics: respawn at last save, episode continues */
             env->ep_return += env->rewards[0];
+            if (env->pack && env->respawn_room != env->room_id)
+                iw_pack_copy_room(env, env->respawn_room);
             env->x = env->respawn_x;
             env->y = env->respawn_y;
             env->hspeed = 0; env->vspeed = 0;
@@ -1020,6 +1259,13 @@ static void c_step(IWanna* env) {
     /* --- declarative trigger/event system --- */
     update_events(env);
 
+    /* --- pack mode: warp-requested room transition --- */
+    if (env->pack && iw_pack_do_pending(env)) {
+        env->ep_return += env->rewards[0];
+        compute_observations(env);
+        return;
+    }
+
     /* --- goal / reward --- */
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     double dist = sqrt(dx * dx + dy * dy);
@@ -1028,7 +1274,7 @@ static void c_step(IWanna* env) {
     }
     env->prev_goal_dist = dist;
 
-    if (goal_reached(env)) {
+    if ((!env->pack || env->room_has_goal) && goal_reached(env)) {
         env->rewards[0] += 1.0f;
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;
@@ -1215,6 +1461,8 @@ static int iw_when_from_name(const char* s) {
                                         return W_OBJECT_DESTROYED;
     if (!strcmp(s, "save_activated") || !strcmp(s, "save"))
                                         return W_SAVE_ACTIVATED;
+    if (!strcmp(s, "flag_set") || !strcmp(s, "flag"))
+                                        return W_FLAG_SET;
     return -1;
 }
 
@@ -1236,6 +1484,8 @@ static int iw_act_from_name(const char* s) {
     if (!strcmp(s, "close_gate"))     return ACT_CLOSE_GATE;
     if (!strcmp(s, "start_timer"))    return ACT_START_TIMER;
     if (!strcmp(s, "set_dir"))        return ACT_SET_DIR;
+    if (!strcmp(s, "set_flag"))       return ACT_SET_FLAG;
+    if (!strcmp(s, "clear_flag"))     return ACT_CLEAR_FLAG;
     return -1;
 }
 
@@ -1353,6 +1603,15 @@ static void iw_parse_event(IWanna* env, const char* line, int idx) {
 }
 
 static int iw_load_level(IWanna* env, const char* text) {
+    /* classic single-room mode: no pack */
+    if (env->pack) { iwpack_free_rt(env->pack); env->pack = NULL; }
+    env->room_id = 0;
+    env->start_room = 0;
+    env->respawn_room = 0;
+    env->room_has_goal = 1;
+    env->pending_room = -1;
+    env->gflags = 0;
+    env->room_transitions = 0;
     /* pass 1: tile-grid dimensions, entity count ('@' lines) and
      * event/action counts ('!' lines; actions = 1 + number of ';') */
     int tw = 0, th = 0, w = 0, nspawn = 0, line_start = 1, ent_line = 0;
@@ -1440,6 +1699,7 @@ static int iw_load_level(IWanna* env, const char* text) {
 }
 
 static void iw_free(IWanna* env) {
+    if (env->pack) { iwpack_free_rt(env->pack); env->pack = NULL; }
     free(env->tiles);
     env->tiles = NULL;
     free(env->tiles0);
