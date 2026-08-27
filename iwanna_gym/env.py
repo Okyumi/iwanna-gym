@@ -46,8 +46,35 @@ class IWannaEnv(gym.Env):
         checkpoint_respawn: bool = False,
         render_mode: str | None = None,
         pack: str | bytes | None = None,
+        game: str | None = None,
+        mode: str = "full_game",
+        room_id: str | int | None = None,
+        difficulty: str | int = 0,
     ):
         super().__init__()
+        # Exact-game construction:
+        #   IWannaEnv(game="iwbtgr_1_5_3", mode="full_game")
+        #   IWannaEnv(game="iwbtgr_1_5_3", mode="room", room_id="rGuyLabyrinth")
+        # `difficulty` gates difficulty-specific saves exactly as the source
+        # does ("medium"/"hard"/"very_hard"/"impossible" or 0..3).
+        self._start_room: int | None = None
+        self._difficulty: int = 0
+        if game is not None:
+            from .games import get_game
+            gmod = get_game(game)
+            if pack is None:
+                pack = gmod.load_pack()
+            if isinstance(difficulty, str):
+                difficulty = gmod.DIFFICULTIES[difficulty]
+            self._difficulty = int(difficulty)
+            if mode == "room":
+                if room_id is None:
+                    raise ValueError("mode='room' requires room_id")
+                self._start_room = gmod.room_index(room_id)
+            elif mode != "full_game":
+                raise ValueError(f"unknown mode {mode!r}")
+            self.level_name = f"{game}:{mode}" + (
+                f":{room_id}" if room_id is not None else "")
         # pack: a compiled .iwpack game (path or bytes) built offline by
         # `python -m tools.iwimport compile` — see docs/gamepack_format.md.
         # When given, `level` is ignored and the env may span multiple rooms
@@ -59,7 +86,8 @@ class IWannaEnv(gym.Env):
                     self._pack_data = f.read()
             else:
                 self._pack_data = bytes(pack)
-            self.level_name = "<pack>"
+            if game is None:
+                self.level_name = "<pack>"
             self.level_text = ""
         else:
             self.level_name = level
@@ -84,8 +112,10 @@ class IWannaEnv(gym.Env):
         if self.c is None:
             cseed = int(self.np_random.integers(1, 2**63 - 1))
             if self._pack_data is not None:
-                self.c = CIWanna(None, pack_data=self._pack_data,
-                                 seed=cseed, **self._cfg)
+                self.c = CIWanna.from_pack(
+                    self._pack_data, seed=cseed,
+                    start_room=self._start_room,
+                    difficulty=self._difficulty, **self._cfg)
             else:
                 self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
         self.c.reset()

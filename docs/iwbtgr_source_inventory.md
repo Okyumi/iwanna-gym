@@ -17,10 +17,10 @@ Extraction input: `https://github.com/aut0mat1clol/IWBTGR-Autosplitter-mod.git` 
 ## Mapping status (objects)
 
 - exact: 8 objects, 4554 placed instances
-- equivalent: 42 objects, 1001 placed instances
-- unsupported: 298 objects, 2185 placed instances
+- equivalent: 40 objects, 898 placed instances
+- unsupported: 299 objects, 2259 placed instances
 - irrelevant: 52 objects, 150 placed instances
-- visual_audio_only: 66 objects, 322 placed instances
+- visual_audio_only: 67 objects, 351 placed instances
 
 ## Code coverage
 

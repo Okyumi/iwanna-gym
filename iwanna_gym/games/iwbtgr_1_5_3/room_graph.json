@@ -1,0 +1,1388 @@
+{
+ "game": "iwbtgr_1_5_3",
+ "source_tree_sha256": "b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b",
+ "converter_version": "1.0",
+ "start_room_full_game": "rGuy1",
+ "room_order": [
+  "rInit",
+  "rTitle",
+  "rFiles",
+  "rBossRush",
+  "rGuy1",
+  "rZelda",
+  "rGraveyard",
+  "rMechaBirdoBoss",
+  "rKraidgiefLair",
+  "rKraidgiefBoss",
+  "rMegaman",
+  "rBowserBoss",
+  "rMetroid",
+  "rFactoryOutskirts",
+  "rCastlevania",
+  "rDraculaBoss",
+  "rGuyEntrance",
+  "rGuyRoad",
+  "rGuyFortress1",
+  "rGuyLabyrinth",
+  "rGuyFortress2",
+  "rGuyTower",
+  "rGuyBoss",
+  "rDev",
+  "rEnding",
+  "rCredits",
+  "rUnlocks"
+ ],
+ "rooms": [
+  {
+   "id": 0,
+   "name": "rInit",
+   "px": [
+    327,
+    385
+   ],
+   "tiles": [
+    11,
+    13
+   ],
+   "meta_room": true,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 0,
+   "excluded_instances": 1,
+   "scripted_transitions": []
+  },
+  {
+   "id": 1,
+   "name": "rTitle",
+   "px": [
+    1600,
+    3200
+   ],
+   "tiles": [
+    50,
+    100
+   ],
+   "meta_room": true,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 1,
+   "excluded_instances": 9,
+   "scripted_transitions": [
+    "titleCtrl->rCastlevania",
+    "titleCtrl->rFiles",
+    "titleCtrl->rGraveyard",
+    "titleCtrl->rGuyFortress1",
+    "titleCtrl->rGuyTower",
+    "titleCtrl->rKraidgiefLair",
+    "titleCtrl->rMegaman"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "rFiles",
+   "px": [
+    800,
+    608
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": true,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 0,
+   "excluded_instances": 10,
+   "scripted_transitions": [
+    "FilesDataHolder->rGuy1"
+   ]
+  },
+  {
+   "id": 3,
+   "name": "rBossRush",
+   "px": [
+    800,
+    608
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": true,
+   "start": [
+    401.0,
+    23.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 34,
+   "excluded_instances": 9,
+   "scripted_transitions": []
+  },
+  {
+   "id": 4,
+   "name": "rGuy1",
+   "px": [
+    4800,
+    2432
+   ],
+   "tiles": [
+    150,
+    76
+   ],
+   "meta_room": false,
+   "start": [
+    2577.0,
+    1303.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 8,
+    "hard": 5,
+    "very_hard": 2,
+    "impossible": 0
+   },
+   "imported_instances": 521,
+   "excluded_instances": 603,
+   "scripted_transitions": []
+  },
+  {
+   "id": 5,
+   "name": "rZelda",
+   "px": [
+    800,
+    1216
+   ],
+   "tiles": [
+    25,
+    38
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    1003.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 1,
+    "hard": 1,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 32,
+   "excluded_instances": 11,
+   "scripted_transitions": []
+  },
+  {
+   "id": 6,
+   "name": "rGraveyard",
+   "px": [
+    4000,
+    1216
+   ],
+   "tiles": [
+    125,
+    38
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    951.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 6,
+    "hard": 3,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 289,
+   "excluded_instances": 131,
+   "scripted_transitions": []
+  },
+  {
+   "id": 7,
+   "name": "rMechaBirdoBoss",
+   "px": [
+    800,
+    608
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    689.0,
+    23.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 5,
+   "excluded_instances": 6,
+   "scripted_transitions": [
+    "MechaBirdo->rFactoryOutskirts"
+   ]
+  },
+  {
+   "id": 8,
+   "name": "rKraidgiefLair",
+   "px": [
+    6400,
+    1824
+   ],
+   "tiles": [
+    200,
+    57
+   ],
+   "meta_room": false,
+   "start": [
+    257.0,
+    55.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 5,
+    "hard": 4,
+    "very_hard": 2,
+    "impossible": 0
+   },
+   "imported_instances": 326,
+   "excluded_instances": 354,
+   "scripted_transitions": []
+  },
+  {
+   "id": 9,
+   "name": "rKraidgiefBoss",
+   "px": [
+    1600,
+    1216
+   ],
+   "tiles": [
+    50,
+    38
+   ],
+   "meta_room": false,
+   "start": [
+    87.0,
+    323.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 78,
+   "excluded_instances": 170,
+   "scripted_transitions": []
+  },
+  {
+   "id": 10,
+   "name": "rMegaman",
+   "px": [
+    2400,
+    1824
+   ],
+   "tiles": [
+    75,
+    57
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    407.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 5,
+    "hard": 3,
+    "very_hard": 2,
+    "impossible": 0
+   },
+   "imported_instances": 354,
+   "excluded_instances": 131,
+   "scripted_transitions": []
+  },
+  {
+   "id": 11,
+   "name": "rBowserBoss",
+   "px": [
+    1600,
+    608
+   ],
+   "tiles": [
+    50,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    503.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 79,
+   "excluded_instances": 39,
+   "scripted_transitions": []
+  },
+  {
+   "id": 12,
+   "name": "rMetroid",
+   "px": [
+    3200,
+    2432
+   ],
+   "tiles": [
+    100,
+    76
+   ],
+   "meta_room": false,
+   "start": [
+    2001.0,
+    631.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 2,
+    "hard": 2,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 291,
+   "excluded_instances": 139,
+   "scripted_transitions": []
+  },
+  {
+   "id": 13,
+   "name": "rFactoryOutskirts",
+   "px": [
+    4800,
+    3648
+   ],
+   "tiles": [
+    150,
+    114
+   ],
+   "meta_room": false,
+   "start": [
+    49.0,
+    983.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 15,
+    "hard": 10,
+    "very_hard": 5,
+    "impossible": 0
+   },
+   "imported_instances": 774,
+   "excluded_instances": 330,
+   "scripted_transitions": []
+  },
+  {
+   "id": 14,
+   "name": "rCastlevania",
+   "px": [
+    1600,
+    1216
+   ],
+   "tiles": [
+    50,
+    38
+   ],
+   "meta_room": false,
+   "start": [
+    1521.0,
+    1015.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 3,
+    "hard": 2,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 141,
+   "excluded_instances": 37,
+   "scripted_transitions": []
+  },
+  {
+   "id": 15,
+   "name": "rDraculaBoss",
+   "px": [
+    800,
+    608
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    785.0,
+    534.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 40,
+   "excluded_instances": 5,
+   "scripted_transitions": []
+  },
+  {
+   "id": 16,
+   "name": "rGuyEntrance",
+   "px": [
+    800,
+    608
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    471.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 1,
+    "hard": 1,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 16,
+   "excluded_instances": 13,
+   "scripted_transitions": [
+    "EntranceTele->rGuyRoad"
+   ]
+  },
+  {
+   "id": 17,
+   "name": "rGuyRoad",
+   "px": [
+    30000,
+    608
+   ],
+   "tiles": [
+    938,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    401.0,
+    23.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 6,
+    "hard": 3,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 126,
+   "excluded_instances": 336,
+   "scripted_transitions": [
+    "Dragon->rGuyFortress1"
+   ]
+  },
+  {
+   "id": 18,
+   "name": "rGuyFortress1",
+   "px": [
+    2400,
+    608
+   ],
+   "tiles": [
+    75,
+    19
+   ],
+   "meta_room": false,
+   "start": [
+    49.0,
+    311.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 3,
+    "hard": 2,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 57,
+   "excluded_instances": 157,
+   "scripted_transitions": []
+  },
+  {
+   "id": 19,
+   "name": "rGuyLabyrinth",
+   "px": [
+    3200,
+    2432
+   ],
+   "tiles": [
+    100,
+    76
+   ],
+   "meta_room": false,
+   "start": [
+    881.0,
+    215.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 1,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 404,
+   "excluded_instances": 35,
+   "scripted_transitions": []
+  },
+  {
+   "id": 20,
+   "name": "rGuyFortress2",
+   "px": [
+    5600,
+    1824
+   ],
+   "tiles": [
+    175,
+    57
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    471.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 6,
+    "hard": 4,
+    "very_hard": 2,
+    "impossible": 0
+   },
+   "imported_instances": 334,
+   "excluded_instances": 407,
+   "scripted_transitions": []
+  },
+  {
+   "id": 21,
+   "name": "rGuyTower",
+   "px": [
+    1600,
+    3040
+   ],
+   "tiles": [
+    50,
+    95
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    2871.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 2,
+    "hard": 2,
+    "very_hard": 1,
+    "impossible": 0
+   },
+   "imported_instances": 360,
+   "excluded_instances": 8,
+   "scripted_transitions": []
+  },
+  {
+   "id": 22,
+   "name": "rGuyBoss",
+   "px": [
+    800,
+    1216
+   ],
+   "tiles": [
+    25,
+    38
+   ],
+   "meta_room": false,
+   "start": [
+    17.0,
+    439.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 34,
+   "excluded_instances": 55,
+   "scripted_transitions": [
+    "GuyHead->rEnding"
+   ]
+  },
+  {
+   "id": 23,
+   "name": "rDev",
+   "px": [
+    2400,
+    608
+   ],
+   "tiles": [
+    75,
+    19
+   ],
+   "meta_room": true,
+   "start": [
+    1201.0,
+    55.0
+   ],
+   "saves_by_difficulty": {
+    "medium": 2,
+    "hard": 2,
+    "very_hard": 2,
+    "impossible": 0
+   },
+   "imported_instances": 53,
+   "excluded_instances": 108,
+   "scripted_transitions": []
+  },
+  {
+   "id": 24,
+   "name": "rEnding",
+   "px": [
+    800,
+    4040
+   ],
+   "tiles": [
+    25,
+    127
+   ],
+   "meta_room": false,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 44,
+   "excluded_instances": 65,
+   "scripted_transitions": [
+    "EndingKid2->rCredits"
+   ]
+  },
+  {
+   "id": 25,
+   "name": "rCredits",
+   "px": [
+    4000,
+    6000
+   ],
+   "tiles": [
+    125,
+    188
+   ],
+   "meta_room": true,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 9,
+    "hard": 8,
+    "very_hard": 3,
+    "impossible": 0
+   },
+   "imported_instances": 365,
+   "excluded_instances": 284,
+   "scripted_transitions": [
+    "EndingController->rTitle",
+    "EndingController->rUnlocks"
+   ]
+  },
+  {
+   "id": 26,
+   "name": "rUnlocks",
+   "px": [
+    800,
+    600
+   ],
+   "tiles": [
+    25,
+    19
+   ],
+   "meta_room": true,
+   "start": null,
+   "saves_by_difficulty": {
+    "medium": 0,
+    "hard": 0,
+    "very_hard": 0,
+    "impossible": 0
+   },
+   "imported_instances": 0,
+   "excluded_instances": 1,
+   "scripted_transitions": [
+    "UnlockPrompt->rTitle"
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "from": "rGuy1",
+   "to": "rKraidgiefLair",
+   "via": "warp",
+   "x": 352.0,
+   "y": 1824.0,
+   "half_w": 48.0,
+   "half_h": 16.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00040C76"
+  },
+  {
+   "from": "rGuy1",
+   "to": "rZelda",
+   "via": "warp",
+   "x": 4800.0,
+   "y": 1216.0,
+   "half_w": 16.0,
+   "half_h": 208.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0005E4D0"
+  },
+  {
+   "from": "rGuy1",
+   "to": "rMegaman",
+   "via": "warp",
+   "x": 4000.0,
+   "y": 1824.0,
+   "half_w": 16.0,
+   "half_h": 304.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 144.0,
+    "dest_y": 16.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0031FD1B"
+  },
+  {
+   "from": "rZelda",
+   "to": "rGraveyard",
+   "via": "warp",
+   "x": 800.0,
+   "y": 960.0,
+   "half_w": 16.0,
+   "half_h": 32.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003E5A42"
+  },
+  {
+   "from": "rZelda",
+   "to": "rZelda",
+   "via": "warp",
+   "x": 352.0,
+   "y": 544.0,
+   "half_w": 48.0,
+   "half_h": 16.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 224.0,
+    "dest_y": 880.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0024FAB6"
+  },
+  {
+   "from": "rZelda",
+   "to": "rZelda",
+   "via": "warp",
+   "x": 194.0,
+   "y": 815.0,
+   "half_w": 32.0,
+   "half_h": 16.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 336.0,
+    "dest_y": 480.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "000F27A9"
+  },
+  {
+   "from": "rGraveyard",
+   "to": "rZelda",
+   "via": "warp",
+   "x": -32.0,
+   "y": 608.0,
+   "half_w": 16.0,
+   "half_h": 176.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 784.0,
+    "dest_y": 1005.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003CCB50"
+  },
+  {
+   "from": "rGraveyard",
+   "to": "rMechaBirdoBoss",
+   "via": "warp",
+   "x": 2400.0,
+   "y": 1216.0,
+   "half_w": 400.0,
+   "half_h": 16.0,
+   "mode": "x_off_y_abs",
+   "dest": {
+    "mode": "x_off_y_abs",
+    "dest_x": -2400.0,
+    "dest_y": 16.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "000E65D1"
+  },
+  {
+   "from": "rKraidgiefLair",
+   "to": "rKraidgiefBoss",
+   "via": "warp",
+   "x": 5248.0,
+   "y": 1824.0,
+   "half_w": 80.0,
+   "half_h": 16.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00362D29"
+  },
+  {
+   "from": "rKraidgiefBoss",
+   "to": "rMegaman",
+   "via": "warp",
+   "x": 1600.0,
+   "y": 768.0,
+   "half_w": 16.0,
+   "half_h": 16.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 17.0,
+    "dest_y": 407.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003BAB96"
+  },
+  {
+   "from": "rMegaman",
+   "to": "rMetroid",
+   "via": "warp",
+   "x": 1952.0,
+   "y": 1824.0,
+   "half_w": 48.0,
+   "half_h": 16.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00300F9D"
+  },
+  {
+   "from": "rMegaman",
+   "to": "rBowserBoss",
+   "via": "warp",
+   "x": 2400.0,
+   "y": 960.0,
+   "half_w": 16.0,
+   "half_h": 48.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 16.0,
+    "dest_y": -608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00250548"
+  },
+  {
+   "from": "rBowserBoss",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": 1600.0,
+   "y": 448.0,
+   "half_w": 16.0,
+   "half_h": 32.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 850.0,
+    "dest_y": 3508.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00015AC0"
+  },
+  {
+   "from": "rBowserBoss",
+   "to": "rMegaman",
+   "via": "warp",
+   "x": -35.0,
+   "y": 352.0,
+   "half_w": 16.0,
+   "half_h": 48.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 2384.0,
+    "dest_y": 608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003798FC"
+  },
+  {
+   "from": "rMetroid",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": 2752.0,
+   "y": 64.0,
+   "half_w": 48.0,
+   "half_h": 16.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 928.0,
+    "dest_y": 3600.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "000345EE"
+  },
+  {
+   "from": "rMetroid",
+   "to": "rMegaman",
+   "via": "warp",
+   "x": 1952.0,
+   "y": 576.0,
+   "half_w": 48.0,
+   "half_h": 16.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 2000.0,
+    "dest_y": 1792.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00048C29"
+  },
+  {
+   "from": "rFactoryOutskirts",
+   "to": "rGuyEntrance",
+   "via": "warp",
+   "x": 3968.0,
+   "y": 608.0,
+   "half_w": 16.0,
+   "half_h": 304.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 784.0,
+    "dest_y": -608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00135C7B"
+  },
+  {
+   "from": "rFactoryOutskirts",
+   "to": "rGuyEntrance",
+   "via": "warp",
+   "x": 3200.0,
+   "y": 608.0,
+   "half_w": 16.0,
+   "half_h": 304.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 16.0,
+    "dest_y": -608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0038ED45"
+  },
+  {
+   "from": "rFactoryOutskirts",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": 2720.0,
+   "y": 544.0,
+   "half_w": 96.0,
+   "half_h": 32.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 3040.0,
+    "dest_y": 624.0
+   },
+   "condition": {
+    "savedata": "orb_dracula"
+   },
+   "lowered": true,
+   "source_instance": "002BDFFA"
+  },
+  {
+   "from": "rFactoryOutskirts",
+   "to": "rCastlevania",
+   "via": "warp",
+   "x": 2720.0,
+   "y": 544.0,
+   "half_w": 96.0,
+   "half_h": 32.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "002BDFFA"
+  },
+  {
+   "from": "rCastlevania",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": 1600.0,
+   "y": 800.0,
+   "half_w": 16.0,
+   "half_h": 112.0,
+   "mode": "absolute_keep",
+   "dest": {
+    "mode": "absolute_keep",
+    "dest_x": 2816.0,
+    "dest_y": 624.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003D6E52"
+  },
+  {
+   "from": "rCastlevania",
+   "to": "rDraculaBoss",
+   "via": "warp",
+   "x": -32.0,
+   "y": 224.0,
+   "half_w": 16.0,
+   "half_h": 160.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 768.0,
+    "dest_y": -1.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0034C527"
+  },
+  {
+   "from": "rGuyEntrance",
+   "to": "rGuy1",
+   "via": "warp",
+   "x": 64.0,
+   "y": 512.0,
+   "half_w": 16.0,
+   "half_h": 16.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "002D6F1F"
+  },
+  {
+   "from": "rGuyEntrance",
+   "to": "rGuy1",
+   "via": "warp",
+   "x": 704.0,
+   "y": 512.0,
+   "half_w": 16.0,
+   "half_h": 16.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "001FA94C"
+  },
+  {
+   "from": "rGuyEntrance",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": -32.0,
+   "y": 0.0,
+   "half_w": 16.0,
+   "half_h": 304.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 3184.0,
+    "dest_y": 608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "000D4576"
+  },
+  {
+   "from": "rGuyEntrance",
+   "to": "rFactoryOutskirts",
+   "via": "warp",
+   "x": 800.0,
+   "y": 0.0,
+   "half_w": 16.0,
+   "half_h": 304.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 4016.0,
+    "dest_y": 608.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0039B367"
+  },
+  {
+   "from": "rGuyEntrance",
+   "to": "rGuyRoad",
+   "via": "EntranceTele",
+   "x": 214.0,
+   "y": 473.0,
+   "half_w": 185.0,
+   "half_h": 8.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": {
+    "all_of": [
+     "orb_birdo",
+     "orb_bowser",
+     "orb_dracula",
+     "orb_kraidgief",
+     "orb_mother",
+     "orb_tyson"
+    ]
+   },
+   "lowered": false,
+   "source_instance": "000E067C"
+  },
+  {
+   "from": "rGuyFortress1",
+   "to": "rGuyLabyrinth",
+   "via": "warp",
+   "x": 2400.0,
+   "y": 128.0,
+   "half_w": 16.0,
+   "half_h": 48.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 816.0,
+    "dest_y": 0.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "00326F91"
+  },
+  {
+   "from": "rGuyLabyrinth",
+   "to": "rGuyFortress2",
+   "via": "warp",
+   "x": 2400.0,
+   "y": 1632.0,
+   "half_w": 16.0,
+   "half_h": 32.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 16.0,
+    "dest_y": -1216.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0013A490"
+  },
+  {
+   "from": "rGuyLabyrinth",
+   "to": "rGuyFortress1",
+   "via": "warp",
+   "x": 768.0,
+   "y": 128.0,
+   "half_w": 16.0,
+   "half_h": 48.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 2384.0,
+    "dest_y": 0.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "0038F571"
+  },
+  {
+   "from": "rGuyFortress2",
+   "to": "rGuyLabyrinth",
+   "via": "warp",
+   "x": -32.0,
+   "y": 416.0,
+   "half_w": 16.0,
+   "half_h": 48.0,
+   "mode": "x_abs_y_off",
+   "dest": {
+    "mode": "x_abs_y_off",
+    "dest_x": 2384.0,
+    "dest_y": 1216.0
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003C4309"
+  },
+  {
+   "from": "rGuyFortress2",
+   "to": "rGuyTower",
+   "via": "warp",
+   "x": 4800.0,
+   "y": 1600.0,
+   "half_w": 16.0,
+   "half_h": 64.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003384E5"
+  },
+  {
+   "from": "rGuyTower",
+   "to": "rGuyBoss",
+   "via": "warp",
+   "x": 800.0,
+   "y": 384.0,
+   "half_w": 16.0,
+   "half_h": 32.0,
+   "mode": "target_start",
+   "dest": {
+    "mode": "target_start"
+   },
+   "condition": null,
+   "lowered": true,
+   "source_instance": "003D3B70"
+  }
+ ],
+ "progression_flags": {
+  "orb_tyson": 1,
+  "orb_birdo": 2,
+  "orb_kraidgief": 3,
+  "orb_bowser": 4,
+  "orb_mother": 5,
+  "orb_dracula": 6,
+  "orb_dragon": 7,
+  "orb_guy": 8
+ },
+ "reachable_without_flags": [
+  "rBowserBoss",
+  "rCastlevania",
+  "rDraculaBoss",
+  "rFactoryOutskirts",
+  "rGraveyard",
+  "rGuy1",
+  "rGuyEntrance",
+  "rKraidgiefBoss",
+  "rKraidgiefLair",
+  "rMechaBirdoBoss",
+  "rMegaman",
+  "rMetroid",
+  "rZelda"
+ ],
+ "reachable_with_all_flags_and_scripts": [
+  "rBowserBoss",
+  "rCastlevania",
+  "rCredits",
+  "rDraculaBoss",
+  "rEnding",
+  "rFactoryOutskirts",
+  "rFiles",
+  "rGraveyard",
+  "rGuy1",
+  "rGuyBoss",
+  "rGuyEntrance",
+  "rGuyFortress1",
+  "rGuyFortress2",
+  "rGuyLabyrinth",
+  "rGuyRoad",
+  "rGuyTower",
+  "rKraidgiefBoss",
+  "rKraidgiefLair",
+  "rMechaBirdoBoss",
+  "rMegaman",
+  "rMetroid",
+  "rTitle",
+  "rUnlocks",
+  "rZelda"
+ ],
+ "orphaned_required_rooms": [],
+ "notes": [
+  "edges parsed mechanically from warp creation code (objects/warp.gml per-axis semantics) and EntranceTele's Create/Collision events",
+  "scripted_transitions list room_goto targets of dynamic objects placed in each room (bosses, endings) \u2014 not lowered yet",
+  "player spawn = playerStart + (17,23) per scripts/room_start.gml"
+ ]
+}

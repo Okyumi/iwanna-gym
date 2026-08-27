@@ -119,15 +119,15 @@ def test_wrong_physics_profile_rejected():
 # ----------------------------------------------------------------- compiling
 
 def _meta(data: bytes) -> dict:
-    hdr = struct.unpack("<16I", data[:64])
-    return json.loads(data[hdr[13]:hdr[13] + hdr[14]])
+    hdr = struct.unpack("<20I", data[:80])
+    return json.loads(data[hdr[15]:hdr[15] + hdr[16]])
 
 
 def test_compile_header_and_meta():
     data = _pack_bytes()
-    hdr = struct.unpack("<16I", data[:64])
+    hdr = struct.unpack("<20I", data[:80])
     assert hdr[0] == PACK_MAGIC
-    assert hdr[1] == 1
+    assert hdr[1] == 2          # iwpack format v2
     assert hdr[2] == len(data)
     assert hdr[3] == 2          # rooms
     assert hdr[4] == 0          # start room

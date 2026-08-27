@@ -24,7 +24,7 @@ Statuses: exact / equivalent / unsupported / irrelevant (to gameplay) / visual_a
 | yellowallL | 83 | rGuyFortress1, rGuyFortress2, rGuyRoad | walljump_wall | unsupported | explicit |  |
 | blockKill | 77 | rBowserBoss, rCastlevania, rDev, rDraculaBoss, +8 | killer_block | equivalent | explicit | solid that kills on touch |
 | blockYoku | 75 | rMegaman | yoku_block | unsupported | explicit | timed appear/disappear solid |
-| SoftlockBlocker | 74 | rGraveyard, rGuy1, rGuyEntrance, rGuyFortress1, +3 | barrier | equivalent | explicit | one-way anti-softlock solid |
+| SoftlockBlocker | 74 | rGraveyard, rGuy1, rGuyEntrance, rGuyFortress1, +3 | save_blocker_region | unsupported | explicit | solid=0 in source: region where shooting a save is invalid (save mechanic detail, not geometry) |
 | ArkaBrick | 63 | rGuyFortress2 | solid_block | exact | parent:block | inherited from parent block: 32x32 invisible solid over tiles |
 | metroidPlatform | 60 | rMetroid | platform | equivalent | family:Platform$|^FallStair$|^AscentPla | jump-through platform family |
 | RoadStar | 59 | rGuyRoad | zone_object | unsupported | family:^(Zelda|Entrance|Factory|Fortres | zone-specific scripted object; classify precisely at conversion |
@@ -43,7 +43,7 @@ Statuses: exact / equivalent / unsupported / irrelevant (to gameplay) / visual_a
 | warp | 31 | rBowserBoss, rCastlevania, rFactoryOutskirts, rGraveyard, +11 | warp | equivalent | explicit | teleport/room transition; creation code carries target |
 | CreditsText | 29 | rCredits | credits | irrelevant | family:^Credits | credits sequence |
 | RoadCheep | 29 | rGuyRoad | enemy | unsupported | family:^(BIRD|FlyGuy|Crawler|Spider|Sni | enemy with bespoke GML behavior |
-| blockNise | 29 | rCastlevania, rDev, rEnding, rFactoryOutskirts, +6 | solid_block | equivalent | explicit | variant solid |
+| blockNise | 29 | rCastlevania, rDev, rEnding, rFactoryOutskirts, +6 | fake_block | visual_audio_only | explicit | solid=0 in source: looks like a block, no collision |
 | saveHard | 27 | rCastlevania, rCredits, rFactoryOutskirts, rGraveyard, +9 | save_point | equivalent | explicit | Hard+ save |
 | FallingCave | 26 | rCredits, rKraidgiefLair | trap | unsupported | family:^(Falling|Rolling|Wheel|Grave|co | scripted trap; candidate for event-system lowering at conversion |
 | FallingCeiling | 25 | rBowserBoss | trap | unsupported | family:^(Falling|Rolling|Wheel|Grave|co | scripted trap; candidate for event-system lowering at conversion |

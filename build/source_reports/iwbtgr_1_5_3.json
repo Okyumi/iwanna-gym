@@ -52,18 +52,18 @@
   "fonts": 10,
   "datafiles": 2,
   "objects_by_status": {
-   "unsupported": 298,
-   "equivalent": 42,
+   "unsupported": 299,
+   "equivalent": 40,
    "exact": 8,
-   "visual_audio_only": 66,
+   "visual_audio_only": 67,
    "irrelevant": 52
   },
   "instances_by_status": {
    "irrelevant": 150,
    "exact": 4554,
-   "unsupported": 2185,
-   "visual_audio_only": 322,
-   "equivalent": 1001
+   "unsupported": 2259,
+   "visual_audio_only": 351,
+   "equivalent": 898
   }
  },
  "code_coverage": {
@@ -1392,7 +1392,7 @@
     "TextBlock": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 231,
+   "unsupported_instance_count": 246,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -9396,7 +9396,7 @@
     "AndDownIGo": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 72,
+   "unsupported_instance_count": 77,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -12566,7 +12566,7 @@
     "musicChanger": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 306,
+   "unsupported_instance_count": 309,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -23042,7 +23042,7 @@
     "RunBoshy": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 36,
+   "unsupported_instance_count": 39,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -35334,7 +35334,7 @@
     "EntranceTele": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 8,
+   "unsupported_instance_count": 13,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -35668,7 +35668,7 @@
     "Cart": 1,
     "Dragon": 1
    },
-   "unsupported_instance_count": 297,
+   "unsupported_instance_count": 328,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [
@@ -38679,7 +38679,7 @@
     "JumpRefresher": 1,
     "playerStart": 1
    },
-   "unsupported_instance_count": 132,
+   "unsupported_instance_count": 144,
    "transitions": {
     "room_code_targets": [],
     "instance_code_targets": [],
@@ -71221,9 +71221,9 @@
    "event_count": 0,
    "room_goto_targets": [],
    "semantic": {
-    "semantic": "barrier",
-    "status": "equivalent",
-    "notes": "one-way anti-softlock solid",
+    "semantic": "save_blocker_region",
+    "status": "unsupported",
+    "notes": "solid=0 in source: region where shooting a save is invalid (save mechanic detail, not geometry)",
     "rule": "explicit"
    }
   },
@@ -73889,9 +73889,9 @@
    "event_count": 0,
    "room_goto_targets": [],
    "semantic": {
-    "semantic": "solid_block",
-    "status": "equivalent",
-    "notes": "variant solid",
+    "semantic": "fake_block",
+    "status": "visual_audio_only",
+    "notes": "solid=0 in source: looks like a block, no collision",
     "rule": "explicit"
    }
   },

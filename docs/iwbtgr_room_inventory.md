@@ -10,21 +10,21 @@ Room order is the source resource-tree order. Transition counts are `room_goto` 
 | 1 | rTitle | 1600×3200 | 50 | 706 | 10 | — | 1 | 1 |
 | 2 | rFiles | 800×608 | 50 | 640 | 10 | — | 1 | 0 |
 | 3 | rBossRush | 800×608 | 50 | 262 | 43 | — | 1 | 0 |
-| 4 | rGuy1 | 4800×2432 | 50 | 1587 | 1124 | rKraidgiefLair, rMegaman, rZelda | 2 | 231 |
+| 4 | rGuy1 | 4800×2432 | 50 | 1587 | 1124 | rKraidgiefLair, rMegaman, rZelda | 2 | 246 |
 | 5 | rZelda | 800×1216 | 50 | 1 | 43 | rGraveyard | 1 | 8 |
-| 6 | rGraveyard | 4000×1216 | 50 | 860 | 420 | rMechaBirdoBoss, rZelda | 1 | 72 |
+| 6 | rGraveyard | 4000×1216 | 50 | 860 | 420 | rMechaBirdoBoss, rZelda | 1 | 77 |
 | 7 | rMechaBirdoBoss | 800×608 | 50 | 0 | 11 | — | 1 | 2 |
-| 8 | rKraidgiefLair | 6400×1824 | 50 | 1892 | 680 | rKraidgiefBoss | 1 | 306 |
+| 8 | rKraidgiefLair | 6400×1824 | 50 | 1892 | 680 | rKraidgiefBoss | 1 | 309 |
 | 9 | rKraidgiefBoss | 1600×1216 | 50 | 533 | 248 | rMegaman | 1 | 169 |
 | 10 | rMegaman | 2400×1824 | 50 | 760 | 485 | rBowserBoss, rMetroid | 1 | 81 |
 | 11 | rBowserBoss | 1600×608 | 50 | 300 | 118 | rFactoryOutskirts, rMegaman | 1 | 37 |
-| 12 | rMetroid | 3200×2432 | 30 | 1890 | 430 | rFactoryOutskirts, rMegaman | 1 | 36 |
+| 12 | rMetroid | 3200×2432 | 30 | 1890 | 430 | rFactoryOutskirts, rMegaman | 1 | 39 |
 | 13 | rFactoryOutskirts | 4800×3648 | 50 | 3670 | 1104 | rGuyEntrance | 1 | 273 |
 | 14 | rCastlevania | 1600×1216 | 50 | 452 | 178 | rDraculaBoss, rFactoryOutskirts | 1 | 9 |
 | 15 | rDraculaBoss | 800×608 | 50 | 31 | 45 | — | 0 | 5 |
-| 16 | rGuyEntrance | 800×608 | 50 | 95 | 29 | rFactoryOutskirts, rGuy1 | 2 | 8 |
-| 17 | rGuyRoad | 30000×608 | 30 | 3092 | 462 | rGuyFortress1 | 1 | 297 |
-| 18 | rGuyFortress1 | 2400×608 | 30 | 594 | 214 | rGuyLabyrinth | 1 | 132 |
+| 16 | rGuyEntrance | 800×608 | 50 | 95 | 29 | rFactoryOutskirts, rGuy1 | 2 | 13 |
+| 17 | rGuyRoad | 30000×608 | 30 | 3092 | 462 | rGuyFortress1 | 1 | 328 |
+| 18 | rGuyFortress1 | 2400×608 | 30 | 594 | 214 | rGuyLabyrinth | 1 | 144 |
 | 19 | rGuyLabyrinth | 3200×2432 | 50 | 2696 | 439 | rGuyFortress1, rGuyFortress2 | 1 | 22 |
 | 20 | rGuyFortress2 | 5600×1824 | 30 | 1715 | 741 | rGuyLabyrinth, rGuyTower | 1 | 298 |
 | 21 | rGuyTower | 1600×3040 | 50 | 1631 | 368 | rGuyBoss | 1 | 4 |

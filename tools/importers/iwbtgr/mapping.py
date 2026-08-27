@@ -43,7 +43,8 @@ EXPLICIT: dict[str, tuple[str, str, str]] = {
     "blockMini":    ("solid_block_small", "equivalent", "sub-tile solid; runtime "
                      "tile grid is 32px — needs sub-tile solids or mask entity"),
     "blockNotMerge": ("solid_block", "equivalent", "non-merging solid variant"),
-    "blockNise":    ("solid_block", "equivalent", "variant solid"),
+    "blockNise":    ("fake_block", "visual_audio_only",
+                     "solid=0 in source: looks like a block, no collision"),
     "blockPlatform": ("platform_solid", "equivalent", ""),
     "blockKill":    ("killer_block", "equivalent", "solid that kills on touch"),
     "blockFake":    ("fake_block", "visual_audio_only",
@@ -75,7 +76,9 @@ EXPLICIT: dict[str, tuple[str, str, str]] = {
                      "generic trigger; attached creation code decides effect — "
                      "each placement classified at conversion time"),
     "triggerLockControls": ("trigger_scripted", "unsupported", "cutscene control lock"),
-    "SoftlockBlocker": ("barrier", "equivalent", "one-way anti-softlock solid"),
+    "SoftlockBlocker": ("save_blocker_region", "unsupported",
+                        "solid=0 in source: region where shooting a save is "
+                        "invalid (save mechanic detail, not geometry)"),
     "musicChanger": ("audio_control", "visual_audio_only", ""),
     "TheGun":       ("item_gun", "unsupported",
                      "grants shooting — changes the action space"),

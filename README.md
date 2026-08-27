@@ -265,6 +265,26 @@ every object classified for importability:
 `build/source_reports/iwbtgr_1_5_3.json`. Source files themselves are
 never committed.
 
+**IWBTGR static world (imported).** The complete static world of IWBTG:
+Remastered 1.5.3 — all 27 rooms with exact pixel dimensions, all solid
+geometry (tile-exact + pixel-exact rect solids), every spike, every
+difficulty-gated save, every warp with per-axis source semantics, the
+conditional `orb_dracula` route, and the 6-orb palace gate — is imported
+mechanically into the native runtime (dynamic objects/bosses come later
+and are enumerated in the coverage report):
+
+```python
+env = iw.IWannaEnv(game="iwbtgr_1_5_3", mode="full_game")
+env = iw.IWannaEnv(game="iwbtgr_1_5_3", mode="room",
+                   room_id="rGuyLabyrinth", difficulty="hard")
+```
+
+Build the pack locally first (source never committed):
+`python -m iwanna_gym.games.iwbtgr_1_5_3 build <source_checkout>`.
+Room graph: [docs/iwbtgr_room_graph.md](docs/iwbtgr_room_graph.md) +
+`iwanna_gym/games/iwbtgr_1_5_3/room_graph.json`, inspect/montage via
+`python scripts/inspect_game_graph.py [--montage out.png]`.
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):

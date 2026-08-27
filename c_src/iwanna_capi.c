@@ -87,6 +87,55 @@ void* iw_new_pack(const unsigned char* pack_data, long pack_len,
     return (void*)h;
 }
 
+/* pack-mode configuration; call BEFORE iw_reset. */
+int iw_set_start_room(void* h, int room) {
+    IWanna* e = &((Handle*)h)->env;
+    if (!e->pack || room < 0 || room >= (int)e->pack->hdr.n_rooms) return -1;
+    e->start_room = room;
+    return 0;
+}
+int iw_set_difficulty(void* h, int difficulty) {
+    IWanna* e = &((Handle*)h)->env;
+    if (difficulty < 0 || difficulty > 3) return -1;
+    e->difficulty = difficulty;
+    return 0;
+}
+/* debug/research helper: force a global progression flag (e.g. to open a
+ * source-conditional route whose setter is not imported yet). NOT source
+ * behavior — inspection and experimentation only. */
+void iw_set_gflag(void* h, int flag, int on) {
+    IWanna* e = &((Handle*)h)->env;
+    if (flag > 0 && flag < 64) {
+        if (on) e->gflags |= 1ULL << flag;
+        else    e->gflags &= ~(1ULL << flag);
+    }
+}
+int iw_n_solids(void* h)          { return ((Handle*)h)->env.n_solids; }
+int iw_n_killers(void* h)         { return ((Handle*)h)->env.n_killers; }
+int iw_room_pw(void* h)           { IWanna* e = &((Handle*)h)->env; return e->room_pw > 0 ? e->room_pw : e->tw * IW_TILE; }
+int iw_room_ph(void* h)           { IWanna* e = &((Handle*)h)->env; return e->room_ph > 0 ? e->room_ph : e->th * IW_TILE; }
+/* copy static colliders (for inspection/rendering): solids rows of 4
+ * floats, killers rows of 5 floats [shape,x0,y0,x1,y1] */
+int iw_solids(void* h, float* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    int n = e->n_solids < max_rows ? e->n_solids : max_rows;
+    for (int i = 0; i < n; i++) {
+        out[i*4+0] = e->solids[i].x0; out[i*4+1] = e->solids[i].y0;
+        out[i*4+2] = e->solids[i].x1; out[i*4+3] = e->solids[i].y1;
+    }
+    return n;
+}
+int iw_killers(void* h, float* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    int n = e->n_killers < max_rows ? e->n_killers : max_rows;
+    for (int i = 0; i < n; i++) {
+        out[i*5+0] = (float)e->killers[i].shape;
+        out[i*5+1] = e->killers[i].x0; out[i*5+2] = e->killers[i].y0;
+        out[i*5+3] = e->killers[i].x1; out[i*5+4] = e->killers[i].y1;
+    }
+    return n;
+}
+
 int iw_room(void* h)              { return ((Handle*)h)->env.room_id; }
 int iw_respawn_room(void* h)      { return ((Handle*)h)->env.respawn_room; }
 int iw_room_transitions(void* h)  { return ((Handle*)h)->env.room_transitions; }

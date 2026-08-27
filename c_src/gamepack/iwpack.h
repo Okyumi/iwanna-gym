@@ -30,7 +30,11 @@
 #include <string.h>
 
 #define IWPACK_MAGIC 0x4B505749u /* "IWPK" little-endian */
-#define IWPACK_VERSION 1u
+/* v2: adds per-room static solid rects and killer shapes (exact import of
+ * non-tile-aligned source collision), warp modes/extents, save difficulty
+ * masks, and exact room pixel dimensions. v1 packs are rejected (packs are
+ * build artifacts — recompile from the IR). */
+#define IWPACK_VERSION 2u
 #define IWPACK_MAX_FLAGS 64
 #define IWPACK_EDGE_L 0
 #define IWPACK_EDGE_R 1
@@ -58,15 +62,38 @@ typedef struct {
     uint32_t max_spawns;
     uint32_t max_events;
     uint32_t max_actions;
+    uint32_t max_solids;
+    uint32_t max_killers;
     uint32_t rooms_off;        /* IWPackRoomRec[n_rooms] */
     uint32_t meta_off;         /* UTF-8 JSON metadata/provenance blob */
     uint32_t meta_len;
-    uint32_t reserved;
-} IWPackHeader;                /* 64 bytes */
+    uint32_t reserved0, reserved1, reserved2;
+} IWPackHeader;                /* 80 bytes */
+
+/* Static solid collider (GM-style inclusive integer bbox, stored as f32).
+ * Used for source solids that are not exactly representable on the 32px
+ * tile grid (sub-tile solids, scaled/invisible solids, odd positions). */
+typedef struct {
+    float x0, y0, x1, y1;
+} IWPackSolid;                 /* 16 bytes */
+
+/* Static killer collider. shape 0 = rect (bbox mask); 1..4 = spike
+ * triangle (apex at the top/bottom/left/right edge center of the bbox,
+ * matching the standard fangame spike mask, generalized to any extent). */
+#define IWPACK_KILL_RECT 0
+#define IWPACK_KILL_SPIKE_UP 1
+#define IWPACK_KILL_SPIKE_DOWN 2
+#define IWPACK_KILL_SPIKE_LEFT 3
+#define IWPACK_KILL_SPIKE_RIGHT 4
+typedef struct {
+    uint32_t shape;
+    float x0, y0, x1, y1;
+} IWPackKiller;                /* 20 bytes */
 
 /* Fixed-width room record. Section offsets point at contiguous arrays. */
 typedef struct {
-    uint32_t tw, th;           /* tile grid dims */
+    uint32_t tw, th;           /* tile grid dims (ceil of pixel dims / 32) */
+    uint32_t pw, ph;           /* EXACT room pixel dims from the source */
     float start_x, start_y;    /* default entry position, room px */
     float goal_x, goal_y;      /* completion target (or shaping objective) */
     uint32_t has_goal;         /* 1 = reaching goal terminates with success */
@@ -75,7 +102,9 @@ typedef struct {
     uint32_t n_spawns, spawns_off;   /* IWPackEnt[n_spawns] */
     uint32_t n_events, events_off;   /* IWPackEvt[n_events] */
     uint32_t n_actions, actions_off; /* IWPackAct[n_actions] */
-} IWPackRoomRec;               /* 76 bytes */
+    uint32_t n_solids, solids_off;   /* IWPackSolid[n_solids] */
+    uint32_t n_killers, killers_off; /* IWPackKiller[n_killers] */
+} IWPackRoomRec;               /* 100 bytes */
 
 /* Mirrors the runtime IWEntity spawn template (type widened to u32). */
 typedef struct {
@@ -107,6 +136,7 @@ typedef struct {
 /* Decoded view: typed pointers into one owned blob. */
 typedef struct {
     uint32_t tw, th;
+    uint32_t pw, ph;
     float start_x, start_y, goal_x, goal_y;
     uint32_t has_goal;
     int32_t edge[4];
@@ -114,6 +144,8 @@ typedef struct {
     const IWPackEnt* spawns;   uint32_t n_spawns;
     const IWPackEvt* events;   uint32_t n_events;
     const IWPackAct* actions;  uint32_t n_actions;
+    const IWPackSolid* solids; uint32_t n_solids;
+    const IWPackKiller* killers; uint32_t n_killers;
 } IWPackRoom;
 
 typedef struct IWPackRT {
@@ -188,10 +220,13 @@ static IWPackRT* iwpack_load(const uint8_t* data, size_t len,
         if (rr->tw == 0 || rr->th == 0 || ntiles > hdr.max_tiles ||
             rr->n_spawns > hdr.max_spawns || rr->n_events > hdr.max_events ||
             rr->n_actions > hdr.max_actions ||
+            rr->n_solids > hdr.max_solids || rr->n_killers > hdr.max_killers ||
             !iwpack_range_ok(len, rr->tiles_off, ntiles) ||
             !iwpack_range_ok(len, rr->spawns_off, (size_t)rr->n_spawns * sizeof(IWPackEnt)) ||
             !iwpack_range_ok(len, rr->events_off, (size_t)rr->n_events * sizeof(IWPackEvt)) ||
-            !iwpack_range_ok(len, rr->actions_off, (size_t)rr->n_actions * sizeof(IWPackAct))) {
+            !iwpack_range_ok(len, rr->actions_off, (size_t)rr->n_actions * sizeof(IWPackAct)) ||
+            !iwpack_range_ok(len, rr->solids_off, (size_t)rr->n_solids * sizeof(IWPackSolid)) ||
+            !iwpack_range_ok(len, rr->killers_off, (size_t)rr->n_killers * sizeof(IWPackKiller))) {
             free(rt->blob); free(rt->rooms); free(rt);
             iwpack_err(err, errlen, "room section out of bounds"); return NULL;
         }
@@ -202,6 +237,8 @@ static IWPackRT* iwpack_load(const uint8_t* data, size_t len,
             }
         }
         r->tw = rr->tw; r->th = rr->th;
+        r->pw = rr->pw ? rr->pw : rr->tw * 32u;
+        r->ph = rr->ph ? rr->ph : rr->th * 32u;
         r->start_x = rr->start_x; r->start_y = rr->start_y;
         r->goal_x = rr->goal_x;   r->goal_y = rr->goal_y;
         r->has_goal = rr->has_goal;
@@ -213,6 +250,10 @@ static IWPackRT* iwpack_load(const uint8_t* data, size_t len,
         r->n_events = rr->n_events;
         r->actions = (const IWPackAct*)(rt->blob + rr->actions_off);
         r->n_actions = rr->n_actions;
+        r->solids  = (const IWPackSolid*)(rt->blob + rr->solids_off);
+        r->n_solids = rr->n_solids;
+        r->killers = (const IWPackKiller*)(rt->blob + rr->killers_off);
+        r->n_killers = rr->n_killers;
         /* events must reference actions inside this room's pool */
         for (uint32_t e = 0; e < rr->n_events; e++) {
             const IWPackEvt* ev = &r->events[e];

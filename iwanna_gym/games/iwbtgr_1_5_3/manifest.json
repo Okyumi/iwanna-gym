@@ -1,0 +1,74 @@
+{
+ "game_id": "iwbtgr_1_5_3",
+ "display_name": "I Wanna Be The Guy: Remastered 1.5.3 \u2014 static world",
+ "converter": "iwanna_gym.games.iwbtgr_1_5_3.converter",
+ "converter_version": "1.0",
+ "source_of_record": {
+  "name": "IWBTGR Source 1.5.3.zip",
+  "location": "https://cherry-treehouse.itch.io/iwbtgr",
+  "note": "author-released source package; checksum/diff pending (see third_party/source_manifest.toml)"
+ },
+ "tested_source": {
+  "repo": "https://github.com/aut0mat1clol/IWBTGR-Autosplitter-mod",
+  "commit": "244c325667f12e106b07feaa167572ef97b7a575",
+  "subdir": "IWBTGR Source Files",
+  "tree_sha256": "b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b"
+ },
+ "build": [
+  "git clone https://github.com/aut0mat1clol/IWBTGR-Autosplitter-mod <src>",
+  "python -m iwanna_gym.games.iwbtgr_1_5_3 build <src>"
+ ],
+ "expected_pack": {
+  "path": "build/games/iwbtgr_1_5_3.iwpack",
+  "sha256": "c5dafc88593bedda16d5f639b3ed25fd6ba0677ecf31869225cb79eebd2fd33a",
+  "bytes": 162991,
+  "iwpack_version": 2
+ },
+ "room_order": [
+  "rInit",
+  "rTitle",
+  "rFiles",
+  "rBossRush",
+  "rGuy1",
+  "rZelda",
+  "rGraveyard",
+  "rMechaBirdoBoss",
+  "rKraidgiefLair",
+  "rKraidgiefBoss",
+  "rMegaman",
+  "rBowserBoss",
+  "rMetroid",
+  "rFactoryOutskirts",
+  "rCastlevania",
+  "rDraculaBoss",
+  "rGuyEntrance",
+  "rGuyRoad",
+  "rGuyFortress1",
+  "rGuyLabyrinth",
+  "rGuyFortress2",
+  "rGuyTower",
+  "rGuyBoss",
+  "rDev",
+  "rEnding",
+  "rCredits",
+  "rUnlocks"
+ ],
+ "start_room_full_game": "rGuy1",
+ "difficulties": {
+  "medium": 0,
+  "hard": 1,
+  "very_hard": 2,
+  "impossible": 3
+ },
+ "progression_flags": {
+  "orb_tyson": 1,
+  "orb_birdo": 2,
+  "orb_kraidgief": 3,
+  "orb_bowser": 4,
+  "orb_mother": 5,
+  "orb_dracula": 6,
+  "orb_dragon": 7,
+  "orb_guy": 8
+ },
+ "redistribution": "source tree, IR, and pack are built locally and never committed (third_party/SOURCES.md); this manifest + room_graph.json are derived structural metadata"
+}

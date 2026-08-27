@@ -259,8 +259,15 @@ typedef struct {
     int pending_room;         /* -1 none; >=0 = switch rooms after this phase */
     float pending_x, pending_y;
     int pending_keep_speed;
+    int pending_use_start;    /* 1 = enter at the target room's start point */
     uint64_t gflags;          /* global progression flags (bits 1..63) */
     int room_transitions;     /* count this episode (introspection) */
+    int difficulty;           /* 0=medium 1=hard 2=very hard 3=impossible */
+    int room_pw, room_ph;     /* exact room pixel dims (tw*32/th*32 classic) */
+    /* static source colliders not representable on the tile grid; these
+     * point INTO the decoded pack blob (immutable, no copy, no alloc) */
+    const IWPackSolid* solids;   int n_solids;
+    const IWPackKiller* killers; int n_killers;
 
     /* dynamic state */
     double x, y, hspeed, vspeed;
@@ -312,6 +319,11 @@ static int place_free(IWanna* env, double px, double py) {
     for (int ty = ty0; ty <= ty1; ty++)
         for (int tx = tx0; tx <= tx1; tx++)
             if (iw_tile_at(env, tx, ty) == T_BLOCK) return 0;
+    /* static solid rects imported from source (empty in classic mode) */
+    for (int i = 0; i < env->n_solids; i++) {
+        const IWPackSolid* s = &env->solids[i];
+        if (l <= s->x1 && r >= s->x0 && t <= s->y1 && b >= s->y0) return 0;
+    }
     return 1;
 }
 
@@ -353,6 +365,37 @@ static int spike_hit_px(int l, int r, int t, int b, int x0, int y0, uint8_t kind
     return 0;
 }
 
+/* Rect vs generalized spike triangle over an arbitrary inclusive bbox
+ * [x0..x1]x[y0..y1]: apex at one edge center, base on the opposite edge,
+ * linear widening — reduces exactly to spike_hit_px for a 32x32 bbox. */
+static int spike_hit_rect(int l, int r, int t, int b, uint32_t shape,
+                          float x0, float y0, float x1, float y1) {
+    int cl = l > (int)x0 ? l : (int)x0, cr = r < (int)x1 ? r : (int)x1;
+    int ct = t > (int)y0 ? t : (int)y0, cb = b < (int)y1 ? b : (int)y1;
+    if (cl > cr || ct > cb) return 0;
+    double w = x1 - x0 + 1, h = y1 - y0 + 1;
+    double cx = x0 + (w - 1) / 2.0, cy = y0 + (h - 1) / 2.0;
+    switch (shape) {
+        case IWPACK_KILL_SPIKE_UP: {
+            double d = cb - y0, hw = (w / (2.0 * h)) * (d + 1);
+            return (cl <= cx + hw - 0.5) && (cr >= cx - hw + 0.5);
+        }
+        case IWPACK_KILL_SPIKE_DOWN: {
+            double d = y1 - ct, hw = (w / (2.0 * h)) * (d + 1);
+            return (cl <= cx + hw - 0.5) && (cr >= cx - hw + 0.5);
+        }
+        case IWPACK_KILL_SPIKE_LEFT: {
+            double d = cr - x0, hh = (h / (2.0 * w)) * (d + 1);
+            return (ct <= cy + hh - 0.5) && (cb >= cy - hh + 0.5);
+        }
+        case IWPACK_KILL_SPIKE_RIGHT: {
+            double d = x1 - cl, hh = (h / (2.0 * w)) * (d + 1);
+            return (ct <= cy + hh - 0.5) && (cb >= cy - hh + 0.5);
+        }
+    }
+    return 1; /* IWPACK_KILL_RECT: bbox overlap already established */
+}
+
 /* 1 = dead, checked at integer (rounded) position like instance_place */
 static int killer_hit(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
@@ -367,10 +410,19 @@ static int killer_hit(IWanna* env) {
             if (k >= T_SPIKE_UP && k <= T_SPIKE_RIGHT)
                 if (spike_hit_px(l, r, t, b, tx * IW_TILE, ty * IW_TILE, k)) return 1;
         }
-    /* falling out of the room is death */
-    if (iy + HB_T > env->th * IW_TILE + IW_TILE) return 1;
+    /* static killer colliders imported from source (empty in classic mode) */
+    for (int i = 0; i < env->n_killers; i++) {
+        const IWPackKiller* k = &env->killers[i];
+        if (l <= k->x1 && r >= k->x0 && t <= k->y1 && b >= k->y0)
+            if (spike_hit_rect(l, r, t, b, k->shape, k->x0, k->y0, k->x1, k->y1))
+                return 1;
+    }
+    /* falling out of the room is death (exact source pixel dims in pack mode) */
+    int W = env->room_pw > 0 ? env->room_pw : env->tw * IW_TILE;
+    int H = env->room_ph > 0 ? env->room_ph : env->th * IW_TILE;
+    if (iy + HB_T > H + IW_TILE) return 1;
     if (iy + HB_B < -IW_TILE) return 1;
-    if (ix < -IW_TILE || ix > env->tw * IW_TILE + IW_TILE) return 1;
+    if (ix < -IW_TILE || ix > W + IW_TILE) return 1;
     return 0;
 }
 
@@ -550,34 +602,70 @@ static void player_interactions(IWanna* env) {
                     fire_trigger(env, e->trigger_id);
                 }
                 break;
-            case E_SAVE:
-                if (ent_rect_hit(e, l, r, t, b, ENT_HW[E_SAVE], ENT_HH[E_SAVE])) {
+            case E_SAVE: {
+                /* per-instance extents (params[3],[4]) override defaults
+                 * (source save bbox); params[0] = difficulty mask */
+                float shw = e->params[3] > 0 ? e->params[3] : ENT_HW[E_SAVE];
+                float shh = e->params[4] > 0 ? e->params[4] : ENT_HH[E_SAVE];
+                if (ent_rect_hit(e, l, r, t, b, shw, shh)) {
                     env->respawn_x = e->x;
-                    env->respawn_y = e->y + IW_TILE / 2.0 - 1 - HB_B;
+                    env->respawn_y = e->y +
+                        (e->params[4] > 0 ? shh : IW_TILE / 2.0f) - 1 - HB_B;
                     env->respawn_room = env->room_id;
                     if (e->state == 0 && e->tag > 0 && e->tag < 64)
                         env->save_tags |= 1ULL << e->tag;
                     e->state = 1;
                 }
                 break;
-            case E_WARP:
-                if (ent_rect_hit(e, l, r, t, b, ENT_HW[E_WARP], ENT_HH[E_WARP])) {
+            }
+            case E_WARP: {
+                /* per-instance extents (params[3],[4]) override the default
+                 * warp hitbox — source warps are stretched region strips */
+                float hw = e->params[3] > 0 ? e->params[3] : ENT_HW[E_WARP];
+                float hh = e->params[4] > 0 ? e->params[4] : ENT_HH[E_WARP];
+                if (ent_rect_hit(e, l, r, t, b, hw, hh)) {
                     /* params[2] = destination room + 1 in pack mode
-                     * (0 = same room, the classic single-room behavior) */
+                     * (0 = same room, the classic single-room behavior).
+                     * params[5] = mode: 0 absolute+stop, 1 offset+keep,
+                     * 2 target room start point, 3 absolute+keep,
+                     * 4 x-absolute/y-offset+keep, 5 x-offset/y-absolute+keep
+                     * (source warps set position per axis). */
+                    int mode = (int)e->params[5];
                     if (env->pack && e->params[2] > 0.5f) {
                         env->pending_room = (int)e->params[2] - 1;
-                        env->pending_x = e->params[0];
-                        env->pending_y = e->params[1];
-                        env->pending_keep_speed = 0;
+                        env->pending_use_start = 0;
+                        if (mode == 1) {
+                            env->pending_x = (float)(env->x + e->params[0]);
+                            env->pending_y = (float)(env->y + e->params[1]);
+                            env->pending_keep_speed = 1;
+                        } else if (mode == 2) {
+                            env->pending_keep_speed = 0;
+                            env->pending_use_start = 1;
+                        } else if (mode == 4) {
+                            env->pending_x = e->params[0];
+                            env->pending_y = (float)(env->y + e->params[1]);
+                            env->pending_keep_speed = 1;
+                        } else if (mode == 5) {
+                            env->pending_x = (float)(env->x + e->params[0]);
+                            env->pending_y = e->params[1];
+                            env->pending_keep_speed = 1;
+                        } else {
+                            env->pending_x = e->params[0];
+                            env->pending_y = e->params[1];
+                            env->pending_keep_speed = (mode == 3);
+                        }
                         break;
                     }
-                    env->x = e->params[0];
-                    env->y = e->params[1];
-                    env->hspeed = 0; env->vspeed = 0;
+                    env->x = mode == 5 ? env->x + e->params[0] : e->params[0];
+                    env->y = mode == 4 ? env->y + e->params[1] : e->params[1];
+                    if (!(env->pack && mode >= 3)) {
+                        env->hspeed = 0; env->vspeed = 0;
+                    }
                     double wdx = env->goal_x - env->x, wdy = env->goal_y - env->y;
                     env->prev_goal_dist = sqrt(wdx * wdx + wdy * wdy);
                 }
                 break;
+            }
             default: break;
         }
     }
@@ -837,6 +925,8 @@ static void iw_pack_copy_room(IWanna* env, int room) {
     env->room_id = room;
     env->tw = (int)r->tw;
     env->th = (int)r->th;
+    env->room_pw = (int)r->pw;
+    env->room_ph = (int)r->ph;
     memcpy(env->tiles0, r->tiles, (size_t)r->tw * r->th);
     memcpy(env->tiles, env->tiles0, (size_t)r->tw * r->th);
     env->start_x = r->start_x;
@@ -844,6 +934,11 @@ static void iw_pack_copy_room(IWanna* env, int room) {
     env->goal_x = r->goal_x;
     env->goal_y = r->goal_y;
     env->room_has_goal = (int)r->has_goal;
+    /* static colliders: immutable, referenced in place (no copy) */
+    env->solids = r->solids;
+    env->n_solids = (int)r->n_solids;
+    env->killers = r->killers;
+    env->n_killers = (int)r->n_killers;
 
     env->spawn_count = (int)r->n_spawns;
     for (uint32_t i = 0; i < r->n_spawns; i++) {
@@ -852,6 +947,11 @@ static void iw_pack_copy_room(IWanna* env, int room) {
         memset(e, 0, sizeof *e);
         e->type = (uint8_t)s->type;
         e->flags = s->flags;
+        /* difficulty-gated saves: params[0] = mask of difficulties where
+         * this save exists in the source (bit d set = present on diff d) */
+        if (e->type == E_SAVE && s->params[0] > 0 &&
+            !(((int)s->params[0] >> env->difficulty) & 1))
+            e->flags &= ~EF_ACTIVE;
         e->trigger_id = s->trigger_id;
         e->tag = s->tag;
         e->collision_mask = s->collision_mask;
@@ -915,7 +1015,8 @@ static void iw_pack_room_switch(IWanna* env, int room, double px, double py,
  * classic behavior (out-of-room death in killer_hit). */
 static void iw_pack_check_edge(IWanna* env) {
     const IWPackRoom* cur = &env->pack->rooms[env->room_id];
-    double W = env->tw * IW_TILE, H = env->th * IW_TILE;
+    double W = env->room_pw > 0 ? env->room_pw : env->tw * IW_TILE;
+    double H = env->room_ph > 0 ? env->room_ph : env->th * IW_TILE;
     int target = -1;
     int edge = -1;
     if (env->x < 0 && cur->edge[IWPACK_EDGE_L] >= 0) {
@@ -929,7 +1030,7 @@ static void iw_pack_check_edge(IWanna* env) {
     }
     if (target < 0) return;
     const IWPackRoom* dst = &env->pack->rooms[target];
-    double DW = dst->tw * IW_TILE, DH = dst->th * IW_TILE;
+    double DW = dst->pw, DH = dst->ph;
     double nx = env->x, ny = env->y;
     if (edge == IWPACK_EDGE_L)      nx = DW - 1 + HB_L;   /* enter at right edge */
     else if (edge == IWPACK_EDGE_R) nx = 1 - HB_L;        /* enter at left edge */
@@ -943,12 +1044,23 @@ static void iw_pack_check_edge(IWanna* env) {
     env->pending_x = (float)nx;
     env->pending_y = (float)ny;
     env->pending_keep_speed = 1;
+    env->pending_use_start = 0;
 }
 
 static int iw_pack_do_pending(IWanna* env) {
     if (env->pending_room < 0) return 0;
     int room = env->pending_room;
     env->pending_room = -1;
+    if (env->pending_use_start) {
+        /* source semantics: player is destroyed and respawns fresh at the
+         * destination room's start point (warp with no warpX/warpY) */
+        env->pending_use_start = 0;
+        const IWPackRoom* dst = &env->pack->rooms[room];
+        iw_pack_room_switch(env, room, dst->start_x, dst->start_y, 0);
+        env->djump = 1;
+        env->prev_jump_held = 0;
+        return 1;
+    }
     iw_pack_room_switch(env, room, env->pending_x, env->pending_y,
                         env->pending_keep_speed);
     return 1;
@@ -1099,12 +1211,14 @@ static void sample_goal(IWanna* env) {
 static void c_reset(IWanna* env) {
     if (env->pack) {
         /* pack mode: every episode starts in the start room with a clean
-         * progression state (flags, save, transition count) */
-        if (env->room_id != env->start_room)
-            iw_pack_copy_room(env, env->start_room);
+         * progression state (flags, save, transition count). The room is
+         * re-copied unconditionally so start-room/difficulty changes made
+         * before reset always take effect. */
+        iw_pack_copy_room(env, env->start_room);
         env->gflags = 0;
         env->respawn_room = env->start_room;
         env->pending_room = -1;
+        env->pending_use_start = 0;
         env->room_transitions = 0;
     }
     env->x = env->start_x;
@@ -1610,8 +1724,13 @@ static int iw_load_level(IWanna* env, const char* text) {
     env->respawn_room = 0;
     env->room_has_goal = 1;
     env->pending_room = -1;
+    env->pending_use_start = 0;
     env->gflags = 0;
     env->room_transitions = 0;
+    env->room_pw = 0;             /* classic: derived from tw/th */
+    env->room_ph = 0;
+    env->solids = NULL;  env->n_solids = 0;
+    env->killers = NULL; env->n_killers = 0;
     /* pass 1: tile-grid dimensions, entity count ('@' lines) and
      * event/action counts ('!' lines; actions = 1 + number of ';') */
     int tw = 0, th = 0, w = 0, nspawn = 0, line_start = 1, ent_line = 0;
@@ -1700,6 +1819,8 @@ static int iw_load_level(IWanna* env, const char* text) {
 
 static void iw_free(IWanna* env) {
     if (env->pack) { iwpack_free_rt(env->pack); env->pack = NULL; }
+    env->solids = NULL;  env->n_solids = 0;
+    env->killers = NULL; env->n_killers = 0;
     free(env->tiles);
     env->tiles = NULL;
     free(env->tiles0);

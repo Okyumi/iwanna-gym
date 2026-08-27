@@ -45,12 +45,25 @@ def heavy_level(n: int = 1000) -> str:
 
 def scenarios() -> dict[str, CIWanna]:
     pack = compile_pack(synthetic.extract(FIXTURE)).data
-    return {
+    sc = {
         "empty": CIWanna(load_level("flat"), seed=1),
         "trap": CIWanna(load_level("traps/t20_finale"), seed=1),
         "pack": CIWanna.from_pack(pack, seed=1, checkpoint_respawn=True),
         "heavy": CIWanna(heavy_level(), seed=1),
     }
+    # exact-game scenarios when the locally built pack exists
+    try:
+        from iwanna_gym.games import iwbtgr_1_5_3 as G
+        gp = G.load_pack()
+        names = G.room_names()
+        sc["iwbtgr_full"] = CIWanna.from_pack(
+            gp, seed=1, checkpoint_respawn=True)
+        sc["iwbtgr_room"] = CIWanna.from_pack(
+            gp, seed=1, checkpoint_respawn=True,
+            start_room=names.index("rGuyLabyrinth"))
+    except FileNotFoundError:
+        pass
+    return sc
 
 
 def main() -> int:

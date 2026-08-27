@@ -33,13 +33,22 @@ from .schema import (
 from .validate import validate
 
 PACK_MAGIC = 0x4B505749  # "IWPK"
-PACK_VERSION = 1
+PACK_VERSION = 2
 
-_HDR = struct.Struct("<16I")
-_ROOM = struct.Struct("<IIffffI4i7I")
+_HDR = struct.Struct("<20I")
+_ROOM = struct.Struct("<IIIIffffI4i11I")
 _ENT = struct.Struct("<IIiiI fffff ii 6f".replace(" ", ""))
 _EVT = struct.Struct("<IIIiii ffff iiii".replace(" ", ""))
 _ACT = struct.Struct("<Ii6f")
+_SOLID = struct.Struct("<4f")
+_KILLER = struct.Struct("<I4f")
+
+KILLER_SHAPES = {"rect": 0, "spike_up": 1, "spike_down": 2,
+                 "spike_left": 3, "spike_right": 4}
+
+#: warp destination modes (mirror iwanna.h E_WARP params[5])
+WARP_MODES = {"absolute": 0, "offset": 1, "target_start": 2,
+              "absolute_keep": 3, "x_abs_y_off": 4, "x_off_y_abs": 5}
 
 # player hitbox constants (mirror iwanna.h) used for start placement
 _HB_B = 8
@@ -104,7 +113,9 @@ def _lower_entity(kind: str, inst: dict, room_of: dict[str, int]) -> tuple:
         params[3], params[4] = dvx, dvy
         timer = int(period)
     elif kind == "save":
-        pass
+        params[0] = float(int(p.get("difficulty_mask", 0)))
+        params[3] = _f(p.get("half_w"))
+        params[4] = _f(p.get("half_h"))
     elif kind == "warp":
         params[0] = _f(p.get("dest_x"), x)
         params[1] = _f(p.get("dest_y"), y)
@@ -112,6 +123,9 @@ def _lower_entity(kind: str, inst: dict, room_of: dict[str, int]) -> tuple:
         if isinstance(dr, str):
             dr = room_of[dr]
         params[2] = 0.0 if dr is None else float(int(dr) + 1)
+        params[3] = _f(p.get("half_w"))
+        params[4] = _f(p.get("half_h"))
+        params[5] = float(WARP_MODES.get(p.get("mode", "absolute"), 0))
     elif kind == "boss_radial8":
         flags |= EF_DEADLY
         period = _f(p.get("period"), 100)
@@ -264,15 +278,27 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
         for cp in room.get("checkpoints", []):
             ents.append(_lower_entity("save", {
                 "x": cp["x"], "y": cp["y"], "tag": cp.get("tag", 0),
-                "params": {},
+                "params": {"difficulty_mask": cp.get("difficulty_mask", 0),
+                           "half_w": cp.get("half_w"),
+                           "half_h": cp.get("half_h")},
             }, room_of))
         for wp in room.get("warps", []):
             ents.append(_lower_entity("warp", {
                 "x": wp["x"], "y": wp["y"], "tag": wp.get("tag", 0),
+                "active": wp.get("active", True),
                 "params": {"dest_x": wp.get("dest_x"),
                            "dest_y": wp.get("dest_y"),
-                           "dest_room": wp.get("dest_room")},
+                           "dest_room": wp.get("dest_room"),
+                           "half_w": wp.get("half_w"),
+                           "half_h": wp.get("half_h"),
+                           "mode": wp.get("mode", "absolute")},
             }, room_of))
+
+        solids = [tuple(float(v) for v in s) for s in room.get("solids", [])]
+        killers = [(KILLER_SHAPES[k["shape"]], float(k["x0"]), float(k["y0"]),
+                    float(k["x1"]), float(k["y1"]))
+                   for k in room.get("killers", [])]
+        px = room.get("px_size") or [w * TILE_PX, h * TILE_PX]
 
         evts: list[tuple] = []
         acts: list[tuple] = []
@@ -306,9 +332,11 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
             else:
                 goal = (w * TILE_PX / 2.0, h * TILE_PX / 2.0)
 
-        lowered.append(dict(w=w, h=h, tiles=bytes(tiles), start=start,
+        lowered.append(dict(w=w, h=h, px=(int(px[0]), int(px[1])),
+                            tiles=bytes(tiles), start=start,
                             goal=goal, has_goal=has_goal, edge=edge,
-                            ents=ents, evts=evts, acts=acts))
+                            ents=ents, evts=evts, acts=acts,
+                            solids=solids, killers=killers))
 
     # ---- metadata blob: provenance survives into the pack ----
     elements = []
@@ -353,12 +381,19 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
         actions_off = base + len(body)
         for a in lr["acts"]:
             body += _ACT.pack(*a)
-        room_recs.append((lr, tiles_off, spawns_off, events_off, actions_off))
+        solids_off = base + len(body)
+        for s in lr["solids"]:
+            body += _SOLID.pack(*s)
+        killers_off = base + len(body)
+        for k in lr["killers"]:
+            body += _KILLER.pack(*k)
+        room_recs.append((lr, tiles_off, spawns_off, events_off, actions_off,
+                          solids_off, killers_off))
 
     rooms_off = base + len(body)
-    for lr, t_off, s_off, e_off, a_off in room_recs:
+    for lr, t_off, s_off, e_off, a_off, so_off, k_off in room_recs:
         body += _ROOM.pack(
-            lr["w"], lr["h"],
+            lr["w"], lr["h"], lr["px"][0], lr["px"][1],
             lr["start"][0], lr["start"][1],
             lr["goal"][0], lr["goal"][1],
             lr["has_goal"],
@@ -367,6 +402,8 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
             len(lr["ents"]), s_off,
             len(lr["evts"]), e_off,
             len(lr["acts"]), a_off,
+            len(lr["solids"]), so_off,
+            len(lr["killers"]), k_off,
         )
     meta_off = base + len(body)
     body += meta_bytes
@@ -381,7 +418,9 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
         max((len(lr["ents"]) for lr in lowered), default=0),
         max((len(lr["evts"]) for lr in lowered), default=0),
         max((len(lr["acts"]) for lr in lowered), default=0),
-        rooms_off, meta_off, len(meta_bytes), 0,
+        max((len(lr["solids"]) for lr in lowered), default=0),
+        max((len(lr["killers"]) for lr in lowered), default=0),
+        rooms_off, meta_off, len(meta_bytes), 0, 0, 0,
     )
     data = bytes(hdr) + bytes(body)
     return CompileResult(data=data, dropped=sorted(set(dropped)),

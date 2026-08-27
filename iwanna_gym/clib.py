@@ -62,6 +62,19 @@ def _load() -> ctypes.CDLL:
         fn.argtypes = [ctypes.c_void_p]
     lib.iw_gflags.restype = ctypes.c_ulonglong
     lib.iw_gflags.argtypes = [ctypes.c_void_p]
+    lib.iw_set_start_room.restype = ctypes.c_int
+    lib.iw_set_start_room.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    lib.iw_set_difficulty.restype = ctypes.c_int
+    lib.iw_set_difficulty.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    lib.iw_set_gflag.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+    for name in ("iw_n_solids", "iw_n_killers", "iw_room_pw", "iw_room_ph"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
+    lib.iw_solids.restype = ctypes.c_int
+    lib.iw_solids.argtypes = [ctypes.c_void_p, f32p, ctypes.c_int]
+    lib.iw_killers.restype = ctypes.c_int
+    lib.iw_killers.argtypes = [ctypes.c_void_p, f32p, ctypes.c_int]
     lib.iw_bench.restype = ctypes.c_double
     lib.iw_bench.argtypes = [ctypes.c_void_p, ctypes.c_long, ctypes.c_ulonglong]
     lib.iw_entities.restype = ctypes.c_int
@@ -128,16 +141,31 @@ class CIWanna:
             )
             if not self._h:
                 raise ValueError("failed to parse level text")
-        self.tw: int = LIB.iw_tw(self._h)
-        self.th: int = LIB.iw_th(self._h)
 
     @classmethod
-    def from_pack(cls, pack: bytes | str, **kw) -> "CIWanna":
-        """Construct from a compiled .iwpack (bytes or file path)."""
+    def from_pack(cls, pack: bytes | str, *, start_room: int | None = None,
+                  difficulty: int = 0, **kw) -> "CIWanna":
+        """Construct from a compiled .iwpack (bytes or file path).
+
+        start_room selects the episode start (room mode); difficulty picks
+        the source difficulty tier (0 medium .. 3 impossible), which gates
+        difficulty-specific saves exactly as the source does.
+        """
         if isinstance(pack, str):
             with open(pack, "rb") as f:
                 pack = f.read()
-        return cls(None, pack_data=pack, **kw)
+        c = cls(None, pack_data=pack, **kw)
+        if difficulty:
+            LIB.iw_set_difficulty(c._h, int(difficulty))
+        if start_room is not None:
+            if LIB.iw_set_start_room(c._h, int(start_room)) != 0:
+                raise ValueError(f"invalid start room {start_room}")
+        return c
+
+    def set_gflag(self, flag: int, on: bool = True) -> None:
+        """Debug/research: force a global progression flag (not source
+        behavior; use to open conditional routes for inspection)."""
+        LIB.iw_set_gflag(self._h, int(flag), int(on))
 
     def reset(self) -> None:
         LIB.iw_reset(self._h)
@@ -147,6 +175,12 @@ class CIWanna:
         LIB.iw_step(self._h)
 
     # -- state accessors --
+    # tw/th are live: in game-pack mode the current room (and thus the grid
+    # dims) changes across transitions
+    @property
+    def tw(self) -> int: return LIB.iw_tw(self._h)
+    @property
+    def th(self) -> int: return LIB.iw_th(self._h)
     @property
     def x(self) -> float: return LIB.iw_x(self._h)
     @property
@@ -183,6 +217,22 @@ class CIWanna:
     def num_rooms(self) -> int: return LIB.iw_num_rooms(self._h)
     @property
     def gflags(self) -> int: return int(LIB.iw_gflags(self._h))
+
+    @property
+    def n_solids(self) -> int: return LIB.iw_n_solids(self._h)
+    @property
+    def n_killers(self) -> int: return LIB.iw_n_killers(self._h)
+    @property
+    def room_px(self) -> tuple[int, int]:
+        return LIB.iw_room_pw(self._h), LIB.iw_room_ph(self._h)
+
+    def solids(self, max_rows: int = 8192) -> np.ndarray:
+        out = np.zeros((max_rows, 4), dtype=np.float32)
+        return out[:LIB.iw_solids(self._h, out, max_rows)]
+
+    def killers(self, max_rows: int = 8192) -> np.ndarray:
+        out = np.zeros((max_rows, 5), dtype=np.float32)
+        return out[:LIB.iw_killers(self._h, out, max_rows)]
 
     def bench(self, steps: int, seed: int = 7) -> float:
         """Run `steps` random-action frames entirely in C; returns seconds."""

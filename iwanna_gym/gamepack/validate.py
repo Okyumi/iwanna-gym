@@ -163,6 +163,33 @@ def validate(doc: dict[str, Any], allow_unsupported: bool = False) -> Validation
             dr = wp.get("dest_room")
             if dr is not None and (not isinstance(dr, int) or not 0 <= dr < n_rooms):
                 err(f"room {rn}: warp dest_room {dr!r} is not a valid room id")
+            if wp.get("mode", "absolute") not in (
+                    "absolute", "offset", "target_start", "absolute_keep",
+                    "x_abs_y_off", "x_off_y_abs"):
+                err(f"room {rn}: warp mode {wp.get('mode')!r} unknown")
+        for i, s in enumerate(room.get("solids", [])):
+            if len(s) != 4 or not all(isinstance(v, (int, float)) for v in s) \
+                    or s[0] > s[2] or s[1] > s[3]:
+                err(f"room {rn}: solids[{i}] must be [x0,y0,x1,y1] with "
+                    "x0<=x1, y0<=y1")
+        for i, k in enumerate(room.get("killers", [])):
+            if k.get("shape") not in ("rect", "spike_up", "spike_down",
+                                      "spike_left", "spike_right"):
+                err(f"room {rn}: killers[{i}] shape {k.get('shape')!r} unknown")
+            if not all(isinstance(k.get(f), (int, float))
+                       for f in ("x0", "y0", "x1", "y1")):
+                err(f"room {rn}: killers[{i}] missing numeric bounds")
+        for cp in room.get("checkpoints", []):
+            m = cp.get("difficulty_mask", 0)
+            if not isinstance(m, int) or not 0 <= m <= 15:
+                err(f"room {rn}: checkpoint difficulty_mask {m!r} must be "
+                    "an int in 0..15")
+        px = room.get("px_size")
+        if px is not None:
+            if (len(px) != 2 or px[0] > w * 32 or px[1] > h * 32 or
+                    px[0] <= (w - 1) * 32 or px[1] <= (h - 1) * 32):
+                err(f"room {rn}: px_size {px!r} inconsistent with "
+                    f"{w}x{h} tile grid (grid must be ceil(px/32))")
 
     # room graph
     rg = doc.get("room_graph", {})
@@ -171,11 +198,12 @@ def validate(doc: dict[str, Any], allow_unsupported: bool = False) -> Validation
         err(f"room_graph.start_room {sr!r} is not a valid room id")
 
     completion = doc.get("completion", {})
-    if completion.get("type") not in ("reach_goal",):
+    if completion.get("type") not in ("reach_goal", "none"):
         err(f"completion.type {completion.get('type')!r} is not supported by "
-            "the runtime (supported: reach_goal)")
-    elif not any(r.get("goal") or "G" in "".join(r.get("tiles", []))
-                 for r in rooms):
+            "the runtime (supported: reach_goal, none)")
+    elif completion.get("type") == "reach_goal" and not any(
+            r.get("goal") or "G" in "".join(r.get("tiles", []))
+            for r in rooms):
         err("completion is reach_goal but no room has a goal")
 
     # mapping statuses
