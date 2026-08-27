@@ -1,6 +1,6 @@
 """Gymnasium environments over the IWanna C core.
 
-- IWannaEnv:     flat float32 obs (71,), Discrete(6) actions
+- IWannaEnv:     flat float32 obs (101,), Discrete(6) actions
 - IWannaGoalEnv: goal-conditioned dict obs (observation/achieved_goal/desired_goal)
                  with compute_reward() for HER-style relabeling
 - PixelObsWrapper: RGB pixel observations rendered in numpy
@@ -43,6 +43,7 @@ class IWannaEnv(gym.Env):
         reward_mode: str = "dense",
         death_penalty: float = 1.0,
         random_goal: bool = False,
+        checkpoint_respawn: bool = False,
         render_mode: str | None = None,
     ):
         super().__init__()
@@ -53,6 +54,7 @@ class IWannaEnv(gym.Env):
             reward_mode={"sparse": 0, "dense": 1}[reward_mode],
             death_penalty=death_penalty,
             random_goal=random_goal,
+            checkpoint_respawn=checkpoint_respawn,
         )
         self.render_mode = render_mode
         self.c: CIWanna | None = None
@@ -86,6 +88,7 @@ class IWannaEnv(gym.Env):
             "on_ground": c.on_ground, "djump": c.djump, "tick": c.tick,
             "goal": c.goal, "last_event": c.last_event,
             "is_success": c.last_event == 2,
+            "deaths": c.deaths,
         }
 
     def render(self):
@@ -93,7 +96,8 @@ class IWannaEnv(gym.Env):
             return None
         if self._base_img is None:
             self._base_img = render_tiles(self.c.tiles())
-        return render_frame(self._base_img, self.c.x, self.c.y, goal=self.c.goal)
+        return render_frame(self._base_img, self.c.x, self.c.y, goal=self.c.goal,
+                            entities=self.c.entities())
 
     def close(self):
         if self.c is not None:
@@ -162,7 +166,8 @@ class PixelObsWrapper(gym.ObservationWrapper):
         self.factor = factor
         e: IWannaEnv = env.unwrapped
         text = e.level_text
-        rows = [r for r in text.splitlines() if r.strip()]
+        rows = [r for r in text.splitlines()
+                if r.strip() and not r.lstrip().startswith("@")]
         h, w = len(rows) * TILE, max(len(r) for r in rows) * TILE
         self.observation_space = spaces.Box(
             0, 255, (h // factor, w // factor, 3), np.uint8
@@ -172,5 +177,6 @@ class PixelObsWrapper(gym.ObservationWrapper):
         e: IWannaEnv = self.env.unwrapped
         if e._base_img is None:
             e._base_img = render_tiles(e.c.tiles())
-        img = render_frame(e._base_img, e.c.x, e.c.y, goal=e.c.goal)
+        img = render_frame(e._base_img, e.c.x, e.c.y, goal=e.c.goal,
+                           entities=e.c.entities())
         return downsample(img, self.factor)

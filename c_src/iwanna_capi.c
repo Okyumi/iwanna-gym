@@ -18,7 +18,8 @@ void* iw_new(const char* level_text,
              float* observations, int* actions, float* rewards,
              unsigned char* terminals,
              int max_steps, int reward_mode, float death_penalty,
-             int random_goal, unsigned long long seed) {
+             int random_goal, unsigned long long seed,
+             int checkpoint_respawn) {
     Handle* h = (Handle*)calloc(1, sizeof(Handle));
     if (!h) return NULL;
     IWanna* e = &h->env;
@@ -30,6 +31,7 @@ void* iw_new(const char* level_text,
     e->reward_mode = reward_mode;
     e->death_penalty = death_penalty;
     e->random_goal = random_goal;
+    e->checkpoint_respawn = checkpoint_respawn;
     e->rng = seed ? seed : 0x9E3779B97F4A7C15ULL;
     if (iw_load_level(e, level_text) != 0) {
         free(h);
@@ -42,11 +44,12 @@ void* iw_new_builtin(int level_idx,
                      float* observations, int* actions, float* rewards,
                      unsigned char* terminals,
                      int max_steps, int reward_mode, float death_penalty,
-                     int random_goal, unsigned long long seed) {
+                     int random_goal, unsigned long long seed,
+                     int checkpoint_respawn) {
     if (level_idx < 0 || level_idx >= IW_NUM_LEVELS) return NULL;
     return iw_new(IW_LEVELS[level_idx], observations, actions, rewards,
                   terminals, max_steps, reward_mode, death_penalty,
-                  random_goal, seed);
+                  random_goal, seed, checkpoint_respawn);
 }
 
 void iw_delete(void* handle) {
@@ -91,6 +94,41 @@ void iw_set_state(void* h, double x, double y, double hs, double vs, int djump) 
     e->x = x; e->y = y; e->hspeed = hs; e->vspeed = vs; e->djump = djump;
     compute_observations(e);
 }
+
+/* ---- entity introspection for rendering / analysis ----
+ * Writes up to max_rows rows of 8 floats:
+ *   [type, x, y, vx, vy, state, dormant, p4]
+ * Returns the number of rows written (active entities only; triggers
+ * included so debuggers can see them; render layer may skip them). */
+int iw_entities(void* h, float* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    int n = 0;
+    for (int i = 0; i < e->ent_cap && n < max_rows; i++) {
+        IWEntity* en = &e->entities[i];
+        if (en->type == E_NONE || !(en->flags & EF_ACTIVE)) continue;
+        float* r = out + n * 8;
+        r[0] = (float)en->type;
+        r[1] = en->x; r[2] = en->y;
+        r[3] = en->vx; r[4] = en->vy;
+        r[5] = (float)en->state;
+        r[6] = (en->flags & EF_DORMANT) ? 1.0f : 0.0f;
+        r[7] = en->params[4];
+        n++;
+    }
+    return n;
+}
+
+int iw_ent_count(void* h) {
+    IWanna* e = &((Handle*)h)->env;
+    int n = 0;
+    for (int i = 0; i < e->ent_cap; i++)
+        if (e->entities[i].type != E_NONE && (e->entities[i].flags & EF_ACTIVE)) n++;
+    return n;
+}
+
+int iw_deaths(void* h)      { return ((Handle*)h)->env.deaths; }
+double iw_respawn_x(void* h){ return ((Handle*)h)->env.respawn_x; }
+double iw_respawn_y(void* h){ return ((Handle*)h)->env.respawn_y; }
 
 int iw_obs_size(void)    { return IW_OBS_SIZE; }
 int iw_num_actions(void) { return IW_NUM_ACTIONS; }

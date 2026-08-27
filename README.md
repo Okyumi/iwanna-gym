@@ -23,8 +23,8 @@ iwanna-gym/
 │   ├── env.py          # IWannaEnv, IWannaGoalEnv, PixelObsWrapper
 │   ├── levels.py       # level loading + procedural needle generator
 │   ├── render.py       # numpy RGB renderer (800x608, 32 px tiles)
-│   └── levels/         # text tilemaps (10 named levels + generated needles)
-├── tests/test_physics.py
+│   └── levels/         # text tilemaps (12 named levels + generated needles)
+├── tests/              # test_physics.py (engine values), test_entities.py (entity system)
 ├── train_ppo.py        # SB3 PPO baseline (dense shaping)
 ├── train_her.py        # SB3 DQN + HER baseline (sparse goals)
 ├── train_gcppo.py      # goal-conditioned PPO baseline (random goals)
@@ -54,7 +54,7 @@ frame = env.render()                       # (608, 800, 3) uint8
 
 | id | observation | notes |
 |---|---|---|
-| `IWanna-v0` / `IWannaEnv` | `Box(-1, 1, (71,))` | position, velocity, djump, on_ground, goal delta, 9×7 local tile window |
+| `IWanna-v0` / `IWannaEnv` | `Box(-1, 1, (101,))` | position, velocity, djump, on_ground, goal delta, 9×7 local tile window, 6 nearest dynamic entities (dx, dy, vx, vy, signed type) |
 | `IWannaGoal-v0` / `IWannaGoalEnv` | `Dict(observation, achieved_goal, desired_goal)` | HER-ready `compute_reward`, random reachable goals, per-episode goal override |
 | `PixelObsWrapper(env, factor=8)` | `Box(0, 255, (76, 100, 3))` | numpy-rendered RGB frames |
 
@@ -62,7 +62,42 @@ frame = env.render()                       # (608, 800, 3) uint8
 
 **Rewards** — sparse (`+1` goal) or dense (distance-delta shaping, `0.01/px`), with a configurable death penalty. The core auto-resets on terminal (PufferLib convention); the Gymnasium wrapper stays API-correct.
 
-**Levels** — text tilemaps, one char per 32 px tile: `#` block, `^ v < >` spikes, `S` start, `G` goal. Four built-ins (`flat`, `gaps`, `needle`, `tower`) plus `generate_needle(difficulty, seed)` for procedural single-screen needle levels.
+**Levels** — text tilemaps, one char per 32 px tile: `#` block, `^ v < >` spikes, `S` start, `G` goal. Four built-ins (`flat`, `gaps`, `needle`, `tower`) plus `generate_needle(difficulty, seed)` for procedural single-screen needle levels. Lines starting with `@` spawn dynamic entities (see below).
+
+## Entity system
+
+Static tile geometry and dynamic objects are separate: tiles stay a flat `uint8` grid, while every moving or interactive object is an `IWEntity` (`type, x, y, vx, vy, state, timer, flags, trigger_id, collision_mask, params[6]`) in a fixed-capacity pool. Everything runs inside the C `step()` — no Python callbacks, no allocation after load, and deterministic replay from seed + action sequence is preserved (asserted in `tests/test_entities.py`).
+
+| type | behavior |
+|---|---|
+| `platform` | jump-through moving platform; lands, carries, restores the air jump |
+| `spikeball` / `enemy` | deadly oscillator (`vx/vy` + `range` around the spawn point) |
+| `trigger` | invisible zone; on first touch fires all dormant entities with matching `id` |
+| `trap` | dormant spike (deadly even while parked, fangame-style); launches with `vx/vy` when its trigger fires |
+| `shooter` | spawns projectiles every `period` frames, fixed direction (`dir`) or `aimed=1` at the player |
+| `projectile` | ballistic hazard (optional `grav`); culled outside the room |
+| `save` | touching it moves the respawn point (checkpoint mode) |
+| `warp` | teleports the player to `gx, gy` |
+| `boss` | scaffold: fires radial 8-way bursts every `period`, `volleys` times (no player shooting yet) |
+
+Spawn syntax in level text (`x y` in tiles, keys optional):
+
+```text
+@platform 8 13 vy=1 range=64
+@trap 8 2 dir=down vy=7 id=1
+@trigger 6 14 id=1 w=1 h=8
+@shooter 23 8 dir=left period=90 speed=3
+@save 4 16
+@warp 4 6 gx=8 gy=2
+```
+
+Two showcase levels ship with the repo: `trap` (magnanimity-style triggered ceiling spikes — see the GIF below) and `factory` (moving platforms over a spike pit, an oscillating spikeball, and a wall shooter).
+
+![trap level](docs/agent_trap.gif)
+
+**Checkpoint mode** — `IWannaEnv(..., checkpoint_respawn=True)` switches death from episode-terminal to fangame semantics: the player respawns at the last touched save point, the episode continues, and `info["deaths"]` counts attempts. Default is off, preserving standard RL episode boundaries.
+
+**Scale** — the acceptance benchmark in `tests/test_entities.py` steps a room with 1,050 simultaneously active entities at ~120k steps/s on one core (tiles-only stepping is unaffected at ~5M steps/s).
 
 ## Fangame-homage levels
 
@@ -93,7 +128,7 @@ Six additional levels pay homage to well-known fangames — drawn from the commu
 
 ## Speed
 
-Single core, random actions, headless: **~5.8M steps/sec** (~115,000× real time at 50 fps).
+Single core, random actions, headless: **~5.1M steps/sec** (~100,000× real time at 50 fps) on tile-only levels; ~120k steps/s with 1,000+ active entities.
 
 ```bash
 cd c_src && gcc -O2 -DIW_NO_RAYLIB -o bench iwanna_demo.c -lm && ./bench 2

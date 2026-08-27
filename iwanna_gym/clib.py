@@ -32,7 +32,7 @@ def _load() -> ctypes.CDLL:
     lib.iw_new.argtypes = [
         ctypes.c_char_p, f32p, i32p, f32p, u8p,
         ctypes.c_int, ctypes.c_int, ctypes.c_float,
-        ctypes.c_int, ctypes.c_ulonglong,
+        ctypes.c_int, ctypes.c_ulonglong, ctypes.c_int,
     ]
     lib.iw_delete.argtypes = [ctypes.c_void_p]
     lib.iw_reset.argtypes = [ctypes.c_void_p]
@@ -41,10 +41,17 @@ def _load() -> ctypes.CDLL:
         fn = getattr(lib, name)
         fn.restype = ctypes.c_double
         fn.argtypes = [ctypes.c_void_p]
-    for name in ("iw_djump", "iw_on_ground", "iw_tick", "iw_tw", "iw_th", "iw_last_event"):
+    for name in ("iw_djump", "iw_on_ground", "iw_tick", "iw_tw", "iw_th",
+                  "iw_last_event", "iw_ent_count", "iw_deaths"):
         fn = getattr(lib, name)
         fn.restype = ctypes.c_int
         fn.argtypes = [ctypes.c_void_p]
+    for name in ("iw_respawn_x", "iw_respawn_y"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_double
+        fn.argtypes = [ctypes.c_void_p]
+    lib.iw_entities.restype = ctypes.c_int
+    lib.iw_entities.argtypes = [ctypes.c_void_p, f32p, ctypes.c_int]
     lib.iw_set_goal.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]
     lib.iw_tiles.argtypes = [ctypes.c_void_p, u8p]
     lib.iw_set_state.argtypes = [
@@ -80,6 +87,7 @@ class CIWanna:
         death_penalty: float = 1.0,
         random_goal: bool = False,
         seed: int = 0,
+        checkpoint_respawn: bool = False,
     ):
         self.obs = np.zeros(OBS_SIZE, dtype=np.float32)
         self.act = np.zeros(1, dtype=np.int32)
@@ -88,7 +96,7 @@ class CIWanna:
         self._h = LIB.iw_new(
             level_text.encode(), self.obs, self.act, self.rew, self.term,
             max_steps, reward_mode, float(death_penalty),
-            int(random_goal), seed,
+            int(random_goal), seed, int(checkpoint_respawn),
         )
         if not self._h:
             raise ValueError("failed to parse level text")
@@ -122,6 +130,19 @@ class CIWanna:
         return LIB.iw_goal_x(self._h), LIB.iw_goal_y(self._h)
     @property
     def last_event(self) -> int: return LIB.iw_last_event(self._h)
+    @property
+    def deaths(self) -> int: return LIB.iw_deaths(self._h)
+    @property
+    def ent_count(self) -> int: return LIB.iw_ent_count(self._h)
+    @property
+    def respawn(self) -> tuple[float, float]:
+        return LIB.iw_respawn_x(self._h), LIB.iw_respawn_y(self._h)
+
+    def entities(self, max_rows: int = 4096) -> np.ndarray:
+        """Active entities as rows [type, x, y, vx, vy, state, dormant, p4]."""
+        out = np.zeros((max_rows, 8), dtype=np.float32)
+        n = LIB.iw_entities(self._h, out, max_rows)
+        return out[:n]
 
     def set_goal(self, gx: float, gy: float) -> None:
         LIB.iw_set_goal(self._h, gx, gy)
