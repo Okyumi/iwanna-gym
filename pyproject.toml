@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iwanna-gym"
+version = "0.1.0"
+description = "RL environment with exact I Wanna Be The Guy fangame physics (C core, Gymnasium + PufferLib)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = ["numpy", "gymnasium"]
+
+[project.optional-dependencies]
+train = ["stable-baselines3"]
+
+[tool.setuptools]
+packages = ["iwanna_gym"]
+
+[tool.setuptools.package-data]
+iwanna_gym = ["levels/*.txt"]
