@@ -214,6 +214,22 @@ Single core, random actions, headless: **~5.1M steps/sec** (~100,000× real time
 cd c_src && gcc -O2 -DIW_NO_RAYLIB -o bench iwanna_demo.c -lm && ./bench 2
 ```
 
+## Exact-game roadmap
+
+The benchmark is being prepared to import **complete games by existing
+I-Wanna creators** (no manual redesign), starting with *I Wanna Be The Guy*.
+The exactness contract — including why the original 2007 MMF2 game
+(`iwbtg_original_2007`) and *IWBTG: Remastered* 1.5.3 (`iwbtgr_1_5_3`,
+GM8.2/Yuuutu, the recommended first target) are never conflated — is in
+[docs/fidelity_contract.md](docs/fidelity_contract.md). The source audit is
+in [docs/exact_game_source_audit.md](docs/exact_game_source_audit.md),
+classic-fangame candidates in
+[docs/classic_game_candidates.md](docs/classic_game_candidates.md), and
+provenance/checksums in [third_party/SOURCES.md](third_party/SOURCES.md) +
+[third_party/source_manifest.toml](third_party/source_manifest.toml). The
+rooms in this repo remain a separate research family
+(`iwannagym_research_v1`); no third-party game files are committed.
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):
