@@ -102,6 +102,21 @@ contains = "historically foundational fangame (hub/keys structure; ancestor of t
 proposed_importer = "confirm GM version -> user-provided exe -> GM8Decompiler -> gmk2pack"
 known_limitations = "engine version unconfirmed; no author source release"
 
+[[source]]
+name = "iwbtgr_autosplitter_mod"
+display_name = "IWBTGR Autosplitter Mod (redistribution of the 1.5.3 source tree)"
+exact_version = "commit 244c325667f12e106b07feaa167572ef97b7a575; 'IWBTGR Source Files/' tree_sha256 b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b; project exe_version=1.5.3.0"
+author = "aut0mat1clol (mod); underlying source by Cherry Treehouse, Renko, renex, Floogle"
+original_format = "GameMaker 8.2 gm82save text tree (per-resource .txt/.gml files) + patched exe + LiveSplit .asl"
+source_location = "https://github.com/aut0mat1clol/IWBTGR-Autosplitter-mod (found via speedrun.com/iwbtgremastered/resources)"
+source_availability = "public git repository (verified 2026-08-27)"
+license_status = "no license file; community redistribution of the author-released source with autosplitter modifications - never committed to this repo; used as locally supplied extraction input only"
+checksum_sha256 = "b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b"
+checksum_status = "computed (tree_sha256 of 'IWBTGR Source Files/', recipe in SOURCES.md)"
+contains = "complete IWBTGR 1.5.3 source: 27 rooms, 466 objects, 8212 instances, 28492 tiles, 147 scripts, sprite/background metadata; marker-detected mod delta limited to scripts autosplitter_state/new_game/room_start/savedata (writes save/autosplitter.txt)"
+proposed_importer = "tools/importers/iwbtgr (implemented: inventory/coverage; IR conversion next milestone)"
+known_limitations = "modified build of the source, not the official zip: diff against IWBTGR Source 1.5.3.zip (itch) pending; treat mod-delta files as excluded from gameplay"
+
 # ---------------------------------------------------- engines (references)
 
 [[source]]

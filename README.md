@@ -253,6 +253,18 @@ unsupported-content policy:
 elements the source can't map are reported and block compilation — never
 silently dropped. Regression benchmark: `python scripts/benchmark_env.py`.
 
+**IWBTGR source inventory (extracted).** The complete IWBTG: Remastered
+1.5.3 GM8.2 source has been inventoried from a locally supplied source
+tree — 27 rooms, 466 objects, 8,212 placed instances, 28,492 tiles, the
+warp room-graph, difficulty saves, and global progression variables, with
+every object classified for importability:
+`python -m tools.iwimport inventory <source_dir>` →
+[docs/iwbtgr_source_inventory.md](docs/iwbtgr_source_inventory.md),
+[docs/iwbtgr_object_mapping.md](docs/iwbtgr_object_mapping.md),
+[docs/iwbtgr_room_inventory.md](docs/iwbtgr_room_inventory.md),
+`build/source_reports/iwbtgr_1_5_3.json`. Source files themselves are
+never committed.
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):

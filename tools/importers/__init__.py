@@ -14,8 +14,9 @@ from __future__ import annotations
 
 from . import synthetic
 from . import gm82
+from . import iwbtgr
 
-_IMPORTERS = {m.NAME: m for m in (synthetic, gm82)}
+_IMPORTERS = {m.NAME: m for m in (synthetic, gm82, iwbtgr)}
 
 
 def get_importer(name: str):

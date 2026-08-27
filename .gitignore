@@ -3,3 +3,4 @@ __pycache__/
 *.so
 .pytest_cache/
 *.egg-info/
+build/source_reports/*_code.json

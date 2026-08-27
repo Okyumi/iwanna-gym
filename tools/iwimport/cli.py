@@ -91,6 +91,34 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_inventory(args) -> int:
+    """Source coverage inventory (currently: iwbtgr gm82save trees)."""
+    from tools.importers import iwbtgr
+
+    src = args.source
+    if not iwbtgr.detect(src):
+        sys.exit(f"error: {src!r} is not an IWBTGR gm82save source tree")
+    root = iwbtgr.resolve_root(src)
+    rep = iwbtgr.build_inventory(root, with_code=args.with_code)
+    out = args.output or "build/source_reports/iwbtgr_1_5_3.json"
+    iwbtgr.save_report(rep, out)
+    c = rep["counts"]
+    print(f"wrote {out}: {c['rooms']} rooms, "
+          f"{c['object_definitions']} objects, "
+          f"{c['object_instances']} instances, {c['tiles']} tiles")
+    if args.docs:
+        import os
+        pairs = [("iwbtgr_source_inventory.md", iwbtgr.doc_source_inventory),
+                 ("iwbtgr_object_mapping.md", iwbtgr.doc_object_mapping),
+                 ("iwbtgr_room_inventory.md", iwbtgr.doc_room_inventory)]
+        for fn, gen in pairs:
+            p = os.path.join(args.docs, fn)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(gen(rep))
+            print(f"wrote {p}")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="iwimport", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -125,6 +153,16 @@ def main(argv=None) -> int:
     p = sub.add_parser("report", help="mapping/provenance report for a .iwgame.json")
     p.add_argument("iwgame")
     p.set_defaults(fn=cmd_report)
+
+    p = sub.add_parser("inventory",
+                       help="machine-readable source inventory (iwbtgr)")
+    p.add_argument("source", help="path to the source tree (user-supplied)")
+    p.add_argument("-o", "--output")
+    p.add_argument("--docs", help="also write the generated docs into this dir")
+    p.add_argument("--with-code", action="store_true",
+                   help="embed GML bodies (LOCAL inspection only — do not "
+                        "commit the resulting file)")
+    p.set_defaults(fn=cmd_inventory)
 
     args = ap.parse_args(argv)
     return args.fn(args)
