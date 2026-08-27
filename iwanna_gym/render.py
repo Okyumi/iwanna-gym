@@ -20,9 +20,9 @@ HB_L, HB_R, HB_T, HB_B = -5, 5, -11, 8
 
 # entity types + half-extents (must match iwanna.h)
 (E_NONE, E_PLATFORM, E_SPIKEBALL, E_TRIGGER, E_TRAP, E_PROJECTILE,
- E_SHOOTER, E_ENEMY, E_SAVE, E_WARP, E_BOSS) = range(11)
-ENT_HW = [0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16]
-ENT_HH = [0, 8, 10, 0, 16, 4, 12, 14, 14, 14, 16]
+ E_SHOOTER, E_ENEMY, E_SAVE, E_WARP, E_BOSS, E_GATE) = range(12)
+ENT_HW = [0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16, 16]
+ENT_HH = [0, 8, 10, 0, 16, 4, 12, 14, 14, 14, 16, 16]
 
 PLATFORM_C = np.array([150, 110, 60], np.uint8)
 TRAP_DORMANT = np.array([170, 170, 185], np.uint8)
@@ -32,6 +32,8 @@ ENEMY_C = np.array([190, 80, 190], np.uint8)
 SAVE_C = np.array([90, 160, 220], np.uint8)
 SAVE_USED = np.array([120, 220, 120], np.uint8)
 WARP_C = np.array([170, 120, 240], np.uint8)
+GATE_C = np.array([120, 96, 70], np.uint8)
+GATE_OPEN = np.array([80, 76, 90], np.uint8)
 
 _iy, _ix = np.mgrid[0:TILE, 0:TILE]
 _MASKS = {
@@ -112,6 +114,17 @@ def _draw_entities(img: np.ndarray, entities: np.ndarray) -> None:
             _blit_rect(img, ex, ey, hw, hh, SAVE_USED if row[5] > 0 else SAVE_C)
         elif t == E_WARP:
             _blit_rect(img, ex, ey, hw, hh, WARP_C, outline=True)
+        elif t == E_GATE:
+            # p4 packs the size: w*100 + h (tiles)
+            p4 = int(row[7])
+            gw, gh = max(p4 // 100, 1), max(p4 % 100, 1)
+            ghw, ghh = gw * TILE // 2, gh * TILE // 2
+            if row[5] > 0:                      # closed: solid door
+                _blit_rect(img, ex, ey, ghw, ghh, GATE_C)
+                _blit_rect(img, ex, ey, ghw, ghh, np.array([60, 48, 35], np.uint8),
+                           outline=True)
+            else:                               # open: faint frame
+                _blit_rect(img, ex, ey, ghw, ghh, GATE_OPEN, outline=True)
 
 
 def render_frame(

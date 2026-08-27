@@ -19,11 +19,13 @@ BUILTIN_NAMES = ["flat", "gaps", "needle", "tower"]
 def list_levels() -> list[str]:
     names = list(BUILTIN_NAMES)
     if os.path.isdir(_LEVEL_DIR):
-        for f in sorted(os.listdir(_LEVEL_DIR)):
-            if f.endswith(".txt"):
-                name = f[:-4]
-                if name not in names:
-                    names.append(name)
+        for root, _dirs, files in sorted(os.walk(_LEVEL_DIR)):
+            rel = os.path.relpath(root, _LEVEL_DIR)
+            for f in sorted(files):
+                if f.endswith(".txt"):
+                    name = f[:-4] if rel == "." else os.path.join(rel, f[:-4])
+                    if name not in names:
+                        names.append(name)
     return names
 
 

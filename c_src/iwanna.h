@@ -56,6 +56,7 @@ enum {
     E_SAVE,         /* save point: updates the respawn position on touch */
     E_WARP,         /* teleport to params[0..1] (room pixels) on touch */
     E_BOSS,         /* contact-deadly radial-burst shooter (boss scaffold) */
+    E_GATE,         /* door: stamps solid tiles while closed (state=1) */
     E_NUM_TYPES
 };
 
@@ -73,9 +74,11 @@ typedef struct {
     uint8_t type;
     uint32_t flags;
     int32_t trigger_id;
+    int32_t tag;            /* event-system handle; actions target all entities with a tag */
     uint32_t collision_mask;
     float x, y;             /* center, room pixels */
     float vx, vy;
+    float grav;             /* per-frame vy increment (falling platforms, arcing fruit) */
     int32_t state;
     int32_t timer;
     float params[IW_ENT_PARAMS];
@@ -83,16 +86,78 @@ typedef struct {
      *  PLATFORM/SPIKEBALL/ENEMY: [0]=oscillation range px, [4],[5]=origin
      *  TRIGGER:    [0]=half w px, [1]=half h px
      *  TRAP:       [2],[3]=launch vx,vy, [4]=orientation 0=^ 1=v 2=< 3=>
-     *  PROJECTILE: [0]=gravity per frame
+     *  PROJECTILE: (grav field)
      *  SHOOTER:    [0]=period, [1]=speed, [2]=aimed(1)/fixed(0), [3],[4]=fixed dir
      *  WARP:       [0],[1]=destination px
      *  BOSS:       [0]=period, [1]=volleys (0 = endless), state=volleys left
+     *  GATE:       [0],[1]=tile x,y of top-left, [2],[3]=w,h tiles, [4]=w*100+h (export)
      */
 } IWEntity;
 
-/* contact half-extents per type (rect hitboxes; traps use spike triangles) */
-static const float ENT_HW[E_NUM_TYPES] = {0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16};
-static const float ENT_HH[E_NUM_TYPES] = {0,  8, 10, 0, 16, 4, 12, 14, 14, 14, 16};
+/* contact half-extents per type (rect hitboxes; traps use spike triangles;
+ * gates collide through stamped tiles, extents used for obs/render only) */
+static const float ENT_HW[E_NUM_TYPES] = {0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16, 16};
+static const float ENT_HH[E_NUM_TYPES] = {0,  8, 10, 0, 16, 4, 12, 14, 14, 14, 16, 16};
+
+/* ---------- declarative trigger/event system ----------
+ * Level text lines starting with '!' declare events:
+ *   !when=<cond> [subject keys] [once=0/1] [delay=N] -> action [key=val ...] ; action ...
+ * All conditions and actions run inside c_step (no callbacks, no allocation
+ * after load). Coordinates are in tiles (floats allowed).
+ */
+enum {
+    W_ROOM_ENTER = 0, /* fires on every episode reset */
+    W_ENTER_REGION,   /* player origin enters [x0,y0]..[x1,y1] (edge) */
+    W_LEAVE_REGION,   /* player origin leaves the region (edge) */
+    W_TOUCH_OBJECT,   /* player rect overlaps any entity with tag=N */
+    W_LAND_ON_OBJECT, /* player lands on a solid-top entity with tag=N */
+    W_PASS_X,         /* player crosses vertical line x=N (dir=any/left/right) */
+    W_PASS_Y,         /* player crosses horizontal line y=N (dir=any/up/down) */
+    W_TIMER,          /* countdown armed at reset (auto=1) or by start_timer */
+    W_OBJECT_DESTROYED, /* an entity with tag=N was destroyed or culled */
+    W_SAVE_ACTIVATED, /* a save point with tag=N was touched (first time) */
+    W_NUM_WHEN
+};
+
+enum {
+    ACT_ACTIVATE = 0, ACT_DEACTIVATE,
+    ACT_LAUNCH,       /* set velocity + wake from dormant (alias set_velocity) */
+    ACT_SET_GRAVITY,
+    ACT_MOVE,         /* relative teleport of entities by dx,dy px */
+    ACT_TELEPORT,     /* absolute: entity (tag) or player (no tag) to gx,gy tiles */
+    ACT_SPAWN,        /* create a new entity at runtime */
+    ACT_DESTROY,      /* deactivate + emit OBJECT_DESTROYED */
+    ACT_MAKE_KILLER, ACT_MAKE_HARMLESS,
+    ACT_MAKE_SOLID, ACT_MAKE_UNSOLID,   /* jump-through solidity (EF_SOLID_TOP) */
+    ACT_OPEN_GATE, ACT_CLOSE_GATE,
+    ACT_START_TIMER,  /* arm timer event with id=N */
+    ACT_SET_DIR,      /* rotate a trap spike: dir=up/down/left/right */
+    ACT_NUM
+};
+
+#define IW_ACT_PARAMS 6
+typedef struct {
+    uint8_t type;
+    int32_t tag;              /* target entity tag (or event id for start_timer); -1 = player */
+    float p[IW_ACT_PARAMS];   /* per-action params, see exec_action */
+} IWAction;
+
+typedef struct {
+    uint8_t when;
+    uint8_t once;             /* default 1: fire a single time per episode */
+    uint8_t auto_arm;         /* timers: armed at reset (default 1) */
+    int8_t  dir;              /* pass_x/pass_y direction: 0 any, -1 neg, +1 pos */
+    int32_t id;               /* handle for start_timer */
+    int32_t subject;          /* entity tag for touch/land/destroyed/save */
+    float x0, y0, x1, y1;     /* region px (converted from tiles at parse) */
+    int32_t delay;            /* frames between condition and actions */
+    int32_t period;           /* timers: refire interval (0 = one-shot) */
+    int32_t first_action, n_actions;  /* slice of the action pool */
+    /* runtime state (reset each episode) */
+    uint8_t fired;
+    uint8_t inside;
+    int32_t countdown;        /* -1 idle, >=0 frames until actions run */
+} IWEvent;
 
 /* Physics constants (from Renex engine Player.gml Create_0) */
 #define IW_MAXSPEED 3.0
@@ -162,6 +227,18 @@ typedef struct {
     double respawn_x, respawn_y;
     int on_platform;          /* standing on a moving platform last frame */
     int deaths;               /* deaths this episode (checkpoint mode) */
+
+    /* trigger/event system (immutable after load except runtime fields) */
+    IWEvent* events;
+    int event_count;
+    IWAction* ev_actions;     /* flat pool; events own slices */
+    int ev_action_count;
+    uint8_t* tiles0;          /* pristine tile copy for gate stamping */
+    int prev_on_platform;     /* for land_on_object edge detection */
+    int landed_tag;           /* tag of platform landed on this frame (-1 none) */
+    uint64_t destroyed_tags;  /* bitmask of destroyed entity tags (1..63) */
+    uint64_t save_tags;       /* bitmask of activated save tags */
+    double prev_x, prev_y;    /* player position at frame start (pass_x/pass_y) */
 
     /* dynamic state */
     double x, y, hspeed, vspeed;
@@ -300,7 +377,7 @@ static void ent_spawn_projectile(IWanna* env, float x, float y,
             e->flags = EF_ACTIVE | EF_DEADLY;
             e->collision_mask = CM_PLAYER;
             e->x = x; e->y = y; e->vx = vx; e->vy = vy;
-            e->params[0] = grav;
+            e->grav = grav;
             env->free_hint = (i + 1) % env->ent_cap;
             if (i + 1 > env->ent_top) env->ent_top = i + 1;
             return;
@@ -318,19 +395,23 @@ static void update_entities(IWanna* env) {
             case E_PLATFORM:
             case E_SPIKEBALL:
             case E_ENEMY: {
+                e->vy += e->grav;
                 e->x += e->vx; e->y += e->vy;
                 float range = e->params[0];
-                if (range > 0) {
+                if (range > 0 && e->grav == 0) {
                     if (e->vx != 0 && fabsf(e->x - e->params[4]) >= range) e->vx = -e->vx;
                     if (e->vy != 0 && fabsf(e->y - e->params[5]) >= range) e->vy = -e->vy;
                 }
                 break;
             }
             case E_TRAP:
-                if (!(e->flags & EF_DORMANT)) { e->x += e->vx; e->y += e->vy; }
+                if (!(e->flags & EF_DORMANT)) {
+                    e->vy += e->grav;
+                    e->x += e->vx; e->y += e->vy;
+                }
                 break;
             case E_PROJECTILE:
-                e->vy += e->params[0];
+                e->vy += e->grav;
                 e->x += e->vx; e->y += e->vy;
                 break;
             case E_SHOOTER:
@@ -360,23 +441,29 @@ static void update_entities(IWanna* env) {
                 break;
             default: break;
         }
-        /* free-flying objects despawn well outside the room */
-        if ((e->type == E_PROJECTILE || e->type == E_TRAP) &&
-            (e->x < -64 || e->x > W + 64 || e->y < -64 || e->y > H + 64))
+        /* moving objects despawn well outside the room */
+        if ((e->type == E_PROJECTILE || e->type == E_TRAP ||
+             ((e->type == E_SPIKEBALL || e->type == E_ENEMY || e->type == E_PLATFORM) &&
+              e->grav != 0)) &&
+            (e->x < -64 || e->x > W + 64 || e->y < -64 || e->y > H + 64)) {
             e->flags &= ~EF_ACTIVE;
+            if (e->tag > 0 && e->tag < 64)
+                env->destroyed_tags |= 1ULL << e->tag;
+        }
     }
 }
 
 /* Jump-through platforms: land on top, get carried, keep the double jump. */
 static void resolve_platforms(IWanna* env) {
     env->on_platform = 0;
+    env->landed_tag = -1;
     int ix = gm_round(env->x), iy = gm_round(env->y);
     int l = ix + HB_L, r = ix + HB_R, b = iy + HB_B;
     for (int i = 0; i < env->ent_top; i++) {
         IWEntity* e = &env->entities[i];
-        if (e->type != E_PLATFORM || !(e->flags & EF_ACTIVE)) continue;
-        float ptop = e->y - ENT_HH[E_PLATFORM];
-        float pl = e->x - ENT_HW[E_PLATFORM], pr = e->x + ENT_HW[E_PLATFORM] - 1;
+        if (!(e->flags & EF_SOLID_TOP) || !(e->flags & EF_ACTIVE)) continue;
+        float ptop = e->y - ENT_HH[e->type];
+        float pl = e->x - ENT_HW[e->type], pr = e->x + ENT_HW[e->type] - 1;
         if (r < pl || l > pr) continue;
         if (env->vspeed >= e->vy - 0.001 &&
             b >= ptop - 1 && b <= ptop + 8 + env->vspeed) {
@@ -385,6 +472,7 @@ static void resolve_platforms(IWanna* env) {
             env->djump = 1;           /* landing restores the air jump */
             env->x += e->vx;          /* carried horizontally */
             env->on_platform = 1;
+            if (e->tag > 0) env->landed_tag = e->tag;
         }
     }
 }
@@ -444,6 +532,8 @@ static void player_interactions(IWanna* env) {
                 if (ent_rect_hit(e, l, r, t, b, ENT_HW[E_SAVE], ENT_HH[E_SAVE])) {
                     env->respawn_x = e->x;
                     env->respawn_y = e->y + IW_TILE / 2.0 - 1 - HB_B;
+                    if (e->state == 0 && e->tag > 0 && e->tag < 64)
+                        env->save_tags |= 1ULL << e->tag;
                     e->state = 1;
                 }
                 break;
@@ -467,6 +557,227 @@ static void reset_entities(IWanna* env) {
     for (int i = 0; i < env->spawn_count; i++) env->entities[i] = env->spawns[i];
     env->free_hint = env->spawn_count;
     env->ent_top = env->spawn_count;
+}
+
+/* ---------- trigger/event system (all in C; no callbacks) ---------- */
+
+/* Gates block movement by stamping solid tiles into the live tile grid.
+ * Opening restores the pristine tiles copied at reset. */
+static void gate_stamp(IWanna* env, IWEntity* e, int closed) {
+    int tx = (int)e->params[0], ty = (int)e->params[1];
+    int w = (int)e->params[2], h = (int)e->params[3];
+    for (int dy = 0; dy < h; dy++)
+        for (int dx = 0; dx < w; dx++) {
+            int x = tx + dx, y = ty + dy;
+            if (x < 0 || y < 0 || x >= env->tw || y >= env->th) continue;
+            env->tiles[y * env->tw + x] =
+                closed ? T_BLOCK : (env->tiles0 ? env->tiles0[y * env->tw + x]
+                                                : T_EMPTY);
+        }
+    e->state = closed;
+}
+
+static void ent_spawn_generic(IWanna* env, int type, float x, float y,
+                              float vx, float vy, float grav, int deadly) {
+    for (int k = 0; k < env->ent_cap; k++) {
+        int i = (env->free_hint + k) % env->ent_cap;
+        IWEntity* e = &env->entities[i];
+        if (e->type == E_NONE || !(e->flags & EF_ACTIVE)) {
+            memset(e, 0, sizeof *e);
+            e->type = (uint8_t)type;
+            e->flags = EF_ACTIVE | (deadly ? EF_DEADLY : 0) |
+                       (type == E_PLATFORM ? EF_SOLID_TOP : 0);
+            e->collision_mask = CM_PLAYER;
+            e->x = x; e->y = y; e->vx = vx; e->vy = vy; e->grav = grav;
+            e->timer = 1;
+            env->free_hint = (i + 1) % env->ent_cap;
+            if (i + 1 > env->ent_top) env->ent_top = i + 1;
+            return;
+        }
+    }
+}
+
+static void exec_action(IWanna* env, const IWAction* a) {
+    if (a->type == ACT_SPAWN) {
+        /* p[0]=type p[1]=x px p[2]=y px p[3]=vx p[4]=vy p[5]=grav;
+         * tag>=0 means deadly (parser encodes deadly=0 as tag=-1) */
+        ent_spawn_generic(env, (int)a->p[0], a->p[1], a->p[2],
+                          a->p[3], a->p[4], a->p[5], a->tag >= 0 ? 1 : 0);
+        return;
+    }
+    if (a->type == ACT_START_TIMER) {
+        for (int i = 0; i < env->event_count; i++) {
+            IWEvent* ev = &env->events[i];
+            if (ev->when == W_TIMER && ev->id == a->tag) {
+                ev->fired = 0;
+                ev->countdown = ev->delay;
+            }
+        }
+        return;
+    }
+    if (a->type == ACT_TELEPORT && a->tag < 0) {   /* player teleport */
+        env->x = a->p[0]; env->y = a->p[1];
+        env->hspeed = 0; env->vspeed = 0;
+        double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
+        env->prev_goal_dist = sqrt(dx * dx + dy * dy);
+        return;
+    }
+    /* entity-targeted actions apply to every entity with the tag */
+    for (int i = 0; i < env->ent_top; i++) {
+        IWEntity* e = &env->entities[i];
+        if (e->type == E_NONE || e->tag != a->tag) continue;
+        switch (a->type) {
+            case ACT_ACTIVATE:
+                e->flags |= EF_ACTIVE;
+                if (e->type == E_GATE) gate_stamp(env, e, e->state);
+                break;
+            case ACT_DEACTIVATE: e->flags &= ~EF_ACTIVE; break;
+            case ACT_LAUNCH:
+                e->vx = a->p[0]; e->vy = a->p[1];
+                e->flags &= ~EF_DORMANT;
+                e->flags |= EF_ACTIVE;
+                if (a->p[2] != 0) e->grav = a->p[2];
+                break;
+            case ACT_SET_GRAVITY: e->grav = a->p[0]; break;
+            case ACT_MOVE: e->x += a->p[0]; e->y += a->p[1]; break;
+            case ACT_TELEPORT: e->x = a->p[0]; e->y = a->p[1]; break;
+            case ACT_DESTROY:
+                e->flags &= ~EF_ACTIVE;
+                if (e->type == E_GATE && e->state) gate_stamp(env, e, 0);
+                if (e->tag > 0 && e->tag < 64)
+                    env->destroyed_tags |= 1ULL << e->tag;
+                break;
+            case ACT_MAKE_KILLER:
+                e->flags |= EF_DEADLY;
+                e->flags &= ~EF_DORMANT;
+                break;
+            case ACT_MAKE_HARMLESS: e->flags &= ~EF_DEADLY; break;
+            case ACT_MAKE_SOLID: e->flags |= EF_SOLID_TOP; break;
+            case ACT_MAKE_UNSOLID: e->flags &= ~EF_SOLID_TOP; break;
+            case ACT_OPEN_GATE:
+                if (e->type == E_GATE && e->state) gate_stamp(env, e, 0);
+                break;
+            case ACT_CLOSE_GATE:
+                if (e->type == E_GATE && !e->state) gate_stamp(env, e, 1);
+                break;
+            case ACT_SET_DIR:
+                if (e->type == E_TRAP) e->params[4] = a->p[0];
+                break;
+            default: break;
+        }
+    }
+}
+
+static void run_event_actions(IWanna* env, IWEvent* ev) {
+    for (int k = 0; k < ev->n_actions; k++)
+        exec_action(env, &env->ev_actions[ev->first_action + k]);
+}
+
+/* Player "origin" for region tests: the GM8 sprite origin (x, y). */
+static int point_in_region(const IWEvent* ev, double x, double y) {
+    return x >= ev->x0 && x <= ev->x1 && y >= ev->y0 && y <= ev->y1;
+}
+
+static void update_events(IWanna* env) {
+    int ix = gm_round(env->x), iy = gm_round(env->y);
+    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    for (int i = 0; i < env->event_count; i++) {
+        IWEvent* ev = &env->events[i];
+
+        /* 1. pending delayed actions */
+        if (ev->countdown >= 0) {
+            if (ev->countdown == 0) {
+                run_event_actions(env, ev);
+                if (ev->when == W_TIMER && ev->period > 0 && !ev->once)
+                    ev->countdown = ev->period;
+                else
+                    ev->countdown = -1;
+            } else {
+                ev->countdown--;
+            }
+            if (ev->when == W_TIMER) continue;
+        }
+
+        /* 2. condition check (edge-triggered where it matters) */
+        if (ev->once && ev->fired) continue;
+        int hit = 0;
+        switch (ev->when) {
+            case W_ENTER_REGION: {
+                int in = point_in_region(ev, env->x, env->y);
+                hit = in && !ev->inside;
+                ev->inside = (uint8_t)in;
+                break;
+            }
+            case W_LEAVE_REGION: {
+                int in = point_in_region(ev, env->x, env->y);
+                hit = !in && ev->inside;
+                ev->inside = (uint8_t)in;
+                break;
+            }
+            case W_TOUCH_OBJECT:
+                for (int k = 0; k < env->ent_top && !hit; k++) {
+                    IWEntity* e = &env->entities[k];
+                    if (e->tag != ev->subject || !(e->flags & EF_ACTIVE)) continue;
+                    float hw = ENT_HW[e->type] > 0 ? ENT_HW[e->type] : 16;
+                    float hh = ENT_HH[e->type] > 0 ? ENT_HH[e->type] : 16;
+                    if (e->type == E_TRIGGER) { hw = e->params[0]; hh = e->params[1]; }
+                    hit = ent_rect_hit(e, l, r, t, b, hw, hh);
+                }
+                break;
+            case W_LAND_ON_OBJECT:
+                hit = env->on_platform && !env->prev_on_platform &&
+                      env->landed_tag == ev->subject;
+                break;
+            case W_PASS_X:
+                hit = (env->prev_x < ev->x0) != (env->x < ev->x0);
+                if (hit && ev->dir > 0) hit = env->x > env->prev_x;
+                if (hit && ev->dir < 0) hit = env->x < env->prev_x;
+                break;
+            case W_PASS_Y:
+                hit = (env->prev_y < ev->y0) != (env->y < ev->y0);
+                if (hit && ev->dir > 0) hit = env->y > env->prev_y;
+                if (hit && ev->dir < 0) hit = env->y < env->prev_y;
+                break;
+            case W_OBJECT_DESTROYED:
+                hit = ev->subject > 0 && ev->subject < 64 &&
+                      (env->destroyed_tags >> ev->subject) & 1ULL;
+                break;
+            case W_SAVE_ACTIVATED:
+                hit = ev->subject > 0 && ev->subject < 64 &&
+                      (env->save_tags >> ev->subject) & 1ULL;
+                break;
+            default: break;  /* ROOM_ENTER and TIMER armed at reset */
+        }
+        if (hit && ev->countdown < 0) {
+            ev->fired = 1;
+            ev->countdown = ev->delay;
+        }
+    }
+}
+
+/* Arm events at episode start: restore pristine tiles, stamp closed gates,
+ * schedule room_enter and auto timers. */
+static void reset_events(IWanna* env) {
+    env->destroyed_tags = 0;
+    env->save_tags = 0;
+    env->landed_tag = -1;
+    env->prev_on_platform = 0;
+    if (env->tiles0)
+        memcpy(env->tiles, env->tiles0, (size_t)(env->tw * env->th));
+    for (int i = 0; i < env->ent_top; i++) {
+        IWEntity* e = &env->entities[i];
+        if (e->type == E_GATE && (e->flags & EF_ACTIVE) && e->state)
+            gate_stamp(env, e, 1);
+    }
+    for (int i = 0; i < env->event_count; i++) {
+        IWEvent* ev = &env->events[i];
+        ev->fired = 0;
+        ev->inside = 0;
+        ev->countdown = -1;
+        if (ev->when == W_ROOM_ENTER ||
+            (ev->when == W_TIMER && ev->auto_arm))
+            ev->countdown = ev->delay;
+    }
 }
 
 /* ---------- observations ---------- */
@@ -581,7 +892,10 @@ static void c_reset(IWanna* env) {
     env->deaths = 0;
     env->respawn_x = env->start_x;
     env->respawn_y = env->start_y;
+    env->prev_x = env->x;
+    env->prev_y = env->y;
     reset_entities(env);
+    reset_events(env);
     sample_goal(env);
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(dx * dx + dy * dy);
@@ -593,6 +907,10 @@ static void c_step(IWanna* env) {
     env->rewards[0] = 0;
     env->terminals[0] = 0;
     env->last_event = 0;
+
+    env->prev_x = env->x;            /* for pass_x / pass_y events */
+    env->prev_y = env->y;
+    env->prev_on_platform = env->on_platform;  /* for land_on_object */
 
     int action = env->actions[0];
     if (action < 0) action = 0;
@@ -699,6 +1017,9 @@ static void c_step(IWanna* env) {
     /* --- touch interactions: triggers, saves, warps --- */
     player_interactions(env);
 
+    /* --- declarative trigger/event system --- */
+    update_events(env);
+
     /* --- goal / reward --- */
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     double dist = sqrt(dx * dx + dy * dy);
@@ -746,8 +1067,15 @@ static void c_step(IWanna* env) {
  *        period      frames between shots / volleys
  *        aimed       1 = shooter aims at the player
  *        gx gy       warp destination in tiles
- *        grav        projectile gravity per frame
+ *        grav        per-frame vy increment (any moving type)
  *        volleys     boss volley count (0 = endless)
+ *        tag         event-system handle (actions target all ents with tag)
+ *        active      0 = start deactivated (enable with an activate action)
+ *        open        gates: 1 = start open (default closed)
+ *
+ * Event lines start with '!' (also skipped for the tile grid):
+ *   !when=<cond> [keys] -> <action> [key=val ...] [; <action> ...]
+ * See the IWEvent comment block for conditions and actions.
  */
 static int iw_parse_dir(const char* v) {
     if (v[0] == 'd') return 1;      /* down  */
@@ -772,7 +1100,7 @@ static void iw_parse_entity(IWanna* env, const char* line, int idx) {
     /* defaults collected from key=value pairs */
     float vx = 0, vy = 0, range = 0, speed = 4, period = 60, grav = 0;
     float w = 1, h = 1, gx = 1, gy = 1, volleys = 0;
-    int id = 0, aimed = 0, dir = 0;
+    int id = 0, aimed = 0, dir = 0, tag = 0, active = 1, open = 0;
     const char* p = line + off;
     char key[32], val[32];
     while (sscanf(p, " %31[a-z]=%31s%n", key, val, &off) >= 2) {
@@ -791,6 +1119,9 @@ static void iw_parse_entity(IWanna* env, const char* line, int idx) {
         else if (!strcmp(key, "gy"))      gy = f;
         else if (!strcmp(key, "grav"))    grav = f;
         else if (!strcmp(key, "volleys")) volleys = f;
+        else if (!strcmp(key, "tag"))     tag = atoi(val);
+        else if (!strcmp(key, "active"))  active = atoi(val);
+        else if (!strcmp(key, "open"))    open = atoi(val);
         p += off;
     }
 
@@ -800,7 +1131,8 @@ static void iw_parse_entity(IWanna* env, const char* line, int idx) {
         e->vx = vx; e->vy = vy;
         e->params[0] = range;
         e->params[4] = e->x; e->params[5] = e->y;
-    } else if (!strcmp(type, "spikeball") || !strcmp(type, "enemy")) {
+    } else if (!strcmp(type, "spikeball") || !strcmp(type, "fruit") ||
+               !strcmp(type, "enemy")) {
         e->type = strcmp(type, "enemy") ? E_SPIKEBALL : E_ENEMY;
         e->flags |= EF_DEADLY;
         e->vx = vx; e->vy = vy;
@@ -847,19 +1179,189 @@ static void iw_parse_entity(IWanna* env, const char* line, int idx) {
         e->type = E_PROJECTILE;
         e->flags |= EF_DEADLY;
         e->vx = vx; e->vy = vy;
-        e->params[0] = grav;
+    } else if (!strcmp(type, "gate")) {
+        e->type = E_GATE;
+        e->params[0] = tx; e->params[1] = ty;   /* tile top-left */
+        e->params[2] = w;  e->params[3] = h;    /* size in tiles */
+        e->params[4] = w * 100 + h;             /* packed for the 8-float export */
+        e->x = (tx + w / 2.0f) * IW_TILE;       /* center for obs/render */
+        e->y = (ty + h / 2.0f) * IW_TILE;
+        e->state = open ? 0 : 1;                /* default: closed */
     } else {
         e->type = E_NONE;
         e->flags = 0;
     }
+    e->tag = tag;
+    e->grav = grav;
+    if (!active) e->flags &= ~EF_ACTIVE;
+}
+
+/* ---------- event-line parsing ---------- */
+
+static int iw_when_from_name(const char* s) {
+    if (!strcmp(s, "room_enter"))       return W_ROOM_ENTER;
+    if (!strcmp(s, "enter_region") || !strcmp(s, "player_enter"))
+                                        return W_ENTER_REGION;
+    if (!strcmp(s, "leave_region") || !strcmp(s, "player_leave"))
+                                        return W_LEAVE_REGION;
+    if (!strcmp(s, "touch_object") || !strcmp(s, "touch"))
+                                        return W_TOUCH_OBJECT;
+    if (!strcmp(s, "land_on_object") || !strcmp(s, "land"))
+                                        return W_LAND_ON_OBJECT;
+    if (!strcmp(s, "pass_x"))           return W_PASS_X;
+    if (!strcmp(s, "pass_y"))           return W_PASS_Y;
+    if (!strcmp(s, "timer"))            return W_TIMER;
+    if (!strcmp(s, "object_destroyed") || !strcmp(s, "destroyed"))
+                                        return W_OBJECT_DESTROYED;
+    if (!strcmp(s, "save_activated") || !strcmp(s, "save"))
+                                        return W_SAVE_ACTIVATED;
+    return -1;
+}
+
+static int iw_act_from_name(const char* s) {
+    if (!strcmp(s, "activate"))       return ACT_ACTIVATE;
+    if (!strcmp(s, "deactivate"))     return ACT_DEACTIVATE;
+    if (!strcmp(s, "launch") || !strcmp(s, "set_velocity"))
+                                      return ACT_LAUNCH;
+    if (!strcmp(s, "set_gravity"))    return ACT_SET_GRAVITY;
+    if (!strcmp(s, "move"))           return ACT_MOVE;
+    if (!strcmp(s, "teleport"))       return ACT_TELEPORT;
+    if (!strcmp(s, "spawn"))          return ACT_SPAWN;
+    if (!strcmp(s, "destroy"))        return ACT_DESTROY;
+    if (!strcmp(s, "make_killer"))    return ACT_MAKE_KILLER;
+    if (!strcmp(s, "make_harmless"))  return ACT_MAKE_HARMLESS;
+    if (!strcmp(s, "make_solid"))     return ACT_MAKE_SOLID;
+    if (!strcmp(s, "make_unsolid"))   return ACT_MAKE_UNSOLID;
+    if (!strcmp(s, "open_gate"))      return ACT_OPEN_GATE;
+    if (!strcmp(s, "close_gate"))     return ACT_CLOSE_GATE;
+    if (!strcmp(s, "start_timer"))    return ACT_START_TIMER;
+    if (!strcmp(s, "set_dir"))        return ACT_SET_DIR;
+    return -1;
+}
+
+static int iw_type_from_name(const char* s) {
+    if (!strcmp(s, "platform"))   return E_PLATFORM;
+    if (!strcmp(s, "spikeball") || !strcmp(s, "fruit")) return E_SPIKEBALL;
+    if (!strcmp(s, "trap"))       return E_TRAP;
+    if (!strcmp(s, "projectile") || !strcmp(s, "bullet")) return E_PROJECTILE;
+    if (!strcmp(s, "enemy"))      return E_ENEMY;
+    return E_PROJECTILE;
+}
+
+/* dir for pass_x / pass_y: right/down = +1, left/up = -1, any = 0 */
+static int iw_pass_dir(const char* v) {
+    if (v[0] == 'r' || v[0] == 'd') return 1;
+    if (v[0] == 'l' || v[0] == 'u') return -1;
+    return 0;
+}
+
+static void iw_parse_one_action(const char* seg, IWAction* a) {
+    char name[32] = {0};
+    int off = 0;
+    memset(a, 0, sizeof *a);
+    a->tag = -1;                       /* -1 = player (teleport) / no target */
+    if (sscanf(seg, " %31[a-z_]%n", name, &off) < 1) { a->type = 255; return; }
+    int t = iw_act_from_name(name);
+    if (t < 0) { a->type = 255; return; }
+    a->type = (uint8_t)t;
+    float deadly = 1;
+    const char* p = seg + off;
+    char key[32], val[32];
+    while (sscanf(p, " %31[a-z_0-9]=%31s%n", key, val, &off) >= 2) {
+        float f = (float)atof(val);
+        if      (!strcmp(key, "tag") || !strcmp(key, "id")) a->tag = atoi(val);
+        else if (!strcmp(key, "vx"))   a->p[t == ACT_SPAWN ? 3 : 0] = f;
+        else if (!strcmp(key, "vy"))   a->p[t == ACT_SPAWN ? 4 : 1] = f;
+        else if (!strcmp(key, "grav")) {
+            if      (t == ACT_SPAWN)  a->p[5] = f;
+            else if (t == ACT_LAUNCH) a->p[2] = f;
+            else                      a->p[0] = f;
+        }
+        else if (!strcmp(key, "dx"))   a->p[0] = f;   /* move: px */
+        else if (!strcmp(key, "dy"))   a->p[1] = f;
+        else if (!strcmp(key, "gx"))   a->p[0] = f * IW_TILE + IW_TILE / 2.0f;
+        else if (!strcmp(key, "gy"))   a->p[1] = f * IW_TILE + IW_TILE / 2.0f;
+        else if (!strcmp(key, "x"))    a->p[1] = f * IW_TILE + IW_TILE / 2.0f;
+        else if (!strcmp(key, "y"))    a->p[2] = f * IW_TILE + IW_TILE / 2.0f;
+        else if (!strcmp(key, "type")) a->p[0] = (float)iw_type_from_name(val);
+        else if (!strcmp(key, "deadly")) deadly = f;
+        else if (!strcmp(key, "dir"))  a->p[0] = (float)iw_parse_dir(val);
+        p += off;
+    }
+    if (t == ACT_SPAWN) a->tag = deadly > 0 ? 1 : -1;
+}
+
+/* Parse one '!' event line; appends its actions to the flat pool. */
+static void iw_parse_event(IWanna* env, const char* line, int idx) {
+    char buf[512];
+    int n = 0;
+    for (const char* p = line + 1; *p && *p != '\n' && n < 511; p++) buf[n++] = *p;
+    buf[n] = 0;
+
+    IWEvent* ev = &env->events[idx];
+    memset(ev, 0, sizeof *ev);
+    ev->once = 1;
+    ev->auto_arm = 1;
+    ev->countdown = -1;
+    ev->subject = -1;
+
+    char* arrow = strstr(buf, "->");
+    char* acts = NULL;
+    if (arrow) { *arrow = 0; acts = arrow + 2; }
+
+    int once_set = 0;
+    const char* p = buf;
+    char key[32], val[32];
+    int off = 0;
+    while (sscanf(p, " %31[a-z_0-9]=%31s%n", key, val, &off) >= 2) {
+        float f = (float)atof(val);
+        if      (!strcmp(key, "when")) {
+            int w = iw_when_from_name(val);
+            ev->when = (uint8_t)(w < 0 ? 255 : w);
+        }
+        else if (!strcmp(key, "once"))   { ev->once = (uint8_t)atoi(val); once_set = 1; }
+        else if (!strcmp(key, "delay"))  ev->delay = atoi(val);
+        else if (!strcmp(key, "period")) ev->period = atoi(val);
+        else if (!strcmp(key, "auto"))   ev->auto_arm = (uint8_t)atoi(val);
+        else if (!strcmp(key, "id"))     ev->id = atoi(val);
+        else if (!strcmp(key, "tag"))    ev->subject = atoi(val);
+        else if (!strcmp(key, "x0"))     ev->x0 = f * IW_TILE;
+        else if (!strcmp(key, "y0"))     ev->y0 = f * IW_TILE;
+        else if (!strcmp(key, "x1"))     ev->x1 = f * IW_TILE;
+        else if (!strcmp(key, "y1"))     ev->y1 = f * IW_TILE;
+        else if (!strcmp(key, "x"))      ev->x0 = f * IW_TILE;   /* pass_x */
+        else if (!strcmp(key, "y"))      ev->y0 = f * IW_TILE;   /* pass_y */
+        else if (!strcmp(key, "dir"))    ev->dir = (int8_t)iw_pass_dir(val);
+        p += off;
+    }
+    /* a periodic timer refires by default */
+    if (ev->period > 0 && !once_set) ev->once = 0;
+
+    ev->first_action = env->ev_action_count;
+    if (acts) {
+        char* seg = acts;
+        while (seg) {
+            char* semi = strchr(seg, ';');
+            if (semi) *semi = 0;
+            IWAction* a = &env->ev_actions[env->ev_action_count];
+            iw_parse_one_action(seg, a);
+            if (a->type != 255) env->ev_action_count++;
+            seg = semi ? semi + 1 : NULL;
+        }
+    }
+    ev->n_actions = env->ev_action_count - ev->first_action;
 }
 
 static int iw_load_level(IWanna* env, const char* text) {
-    /* pass 1: tile-grid dimensions and entity count ('@' lines are spawns) */
+    /* pass 1: tile-grid dimensions, entity count ('@' lines) and
+     * event/action counts ('!' lines; actions = 1 + number of ';') */
     int tw = 0, th = 0, w = 0, nspawn = 0, line_start = 1, ent_line = 0;
+    int nevent = 0, naction = 0;
     for (const char* p = text; *p; p++) {
         if (line_start && *p == '@') { ent_line = 1; nspawn++; }
+        if (line_start && *p == '!') { ent_line = 1; nevent++; naction++; }
         line_start = 0;
+        if (*p == ';' && ent_line) naction++;
         if (*p == '\n') {
             if (!ent_line && w > 0) { if (w > tw) tw = w; th++; }
             w = 0; ent_line = 0; line_start = 1;
@@ -868,8 +1370,9 @@ static int iw_load_level(IWanna* env, const char* text) {
     if (!ent_line && w > 0) { if (w > tw) tw = w; th++; }
     if (tw <= 0 || th <= 0) return -1;
 
-    free(env->tiles);
+    free(env->tiles); free(env->tiles0);
     env->tiles = (uint8_t*)calloc((size_t)(tw * th), 1);
+    env->tiles0 = (uint8_t*)calloc((size_t)(tw * th), 1);
     env->tw = tw; env->th = th;
     env->start_x = IW_TILE * 1.5; env->start_y = IW_TILE * 1.5;
     env->goal_x = IW_TILE * (tw - 1.5); env->goal_y = IW_TILE * 1.5;
@@ -883,12 +1386,23 @@ static int iw_load_level(IWanna* env, const char* text) {
     env->entities = (IWEntity*)calloc((size_t)env->ent_cap, sizeof(IWEntity));
     env->free_hint = 0;
 
-    /* pass 2: fill tiles and parse '@' entity lines */
-    int tx = 0, ty = 0, si = 0;
+    /* event storage (fixed at load; no allocation during step) */
+    free(env->events); free(env->ev_actions);
+    env->events = (IWEvent*)calloc((size_t)(nevent > 0 ? nevent : 1), sizeof(IWEvent));
+    env->ev_actions = (IWAction*)calloc((size_t)(naction > 0 ? naction : 1), sizeof(IWAction));
+    env->event_count = nevent;
+    env->ev_action_count = 0;   /* cursor advanced by iw_parse_event */
+
+    /* pass 2: fill tiles, parse '@' entity and '!' event lines */
+    int tx = 0, ty = 0, si = 0, ei = 0;
     line_start = 1; ent_line = 0;
     for (const char* p = text; *p; p++) {
         if (line_start && *p == '@') {
             iw_parse_entity(env, p, si++);
+            ent_line = 1;
+        }
+        if (line_start && *p == '!') {
+            iw_parse_event(env, p, ei++);
             ent_line = 1;
         }
         line_start = 0;
@@ -919,19 +1433,29 @@ static int iw_load_level(IWanna* env, const char* text) {
         if (ty < th && tx < tw) env->tiles[ty * tw + tx] = t;
         tx++;
     }
+    memcpy(env->tiles0, env->tiles, (size_t)(tw * th));
     reset_entities(env);
+    reset_events(env);
     return 0;
 }
 
 static void iw_free(IWanna* env) {
     free(env->tiles);
     env->tiles = NULL;
+    free(env->tiles0);
+    env->tiles0 = NULL;
     free(env->spawns);
     env->spawns = NULL;
     free(env->entities);
     env->entities = NULL;
+    free(env->events);
+    env->events = NULL;
+    free(env->ev_actions);
+    env->ev_actions = NULL;
     env->spawn_count = 0;
     env->ent_cap = 0;
+    env->event_count = 0;
+    env->ev_action_count = 0;
 }
 
 /* ---------- built-in levels (25x19 tiles = 800x608 rooms) ---------- */

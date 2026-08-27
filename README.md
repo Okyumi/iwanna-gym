@@ -23,12 +23,12 @@ iwanna-gym/
 │   ├── env.py          # IWannaEnv, IWannaGoalEnv, PixelObsWrapper
 │   ├── levels.py       # level loading + procedural needle generator
 │   ├── render.py       # numpy RGB renderer (800x608, 32 px tiles)
-│   └── levels/         # text tilemaps (12 named levels + generated needles)
-├── tests/              # test_physics.py (engine values), test_entities.py (entity system)
+│   └── levels/         # text tilemaps (12 named levels + traps/ 20 event rooms)
+├── tests/              # test_physics.py, test_entities.py, test_events.py (64 tests)
 ├── train_ppo.py        # SB3 PPO baseline (dense shaping)
 ├── train_her.py        # SB3 DQN + HER baseline (sparse goals)
 ├── train_gcppo.py      # goal-conditioned PPO baseline (random goals)
-├── scripts/record_gif.py
+├── scripts/            # record_gif.py, make_trap_rooms.py, probe_traps.py
 └── docs/               # level montage + agent GIFs
 ```
 
@@ -79,6 +79,7 @@ Static tile geometry and dynamic objects are separate: tiles stay a flat `uint8`
 | `save` | touching it moves the respawn point (checkpoint mode) |
 | `warp` | teleports the player to `gx, gy` |
 | `boss` | scaffold: fires radial 8-way bursts every `period`, `volleys` times (no player shooting yet) |
+| `gate` | tile-aligned door; stamps solid tiles closed, restores originals open (see event system) |
 
 Spawn syntax in level text (`x y` in tiles, keys optional):
 
@@ -98,6 +99,85 @@ Two showcase levels ship with the repo: `trap` (magnanimity-style triggered ceil
 **Checkpoint mode** — `IWannaEnv(..., checkpoint_respawn=True)` switches death from episode-terminal to fangame semantics: the player respawns at the last touched save point, the episode continues, and `info["deaths"]` counts attempts. Default is off, preserving standard RL episode boundaries.
 
 **Scale** — the acceptance benchmark in `tests/test_entities.py` steps a room with 1,050 simultaneously active entities at ~120k steps/s on one core (tiles-only stepping is unaffected at ~5M steps/s).
+
+## Trigger/event system
+
+Rooms are scripted with declarative `!` event lines — **conditions** that watch the player or world, firing **actions** on entities. The whole event engine runs inside the C `step()`: events and actions are counted and allocated once at load, so stepping stays allocation-free and replays stay deterministic (asserted in `tests/test_events.py`).
+
+```text
+!when=<condition> [keys] [delay=N] [once=0|1] -> <action> [keys] ; <action> ... 
+```
+
+Coordinates in event lines are tiles; `delay` is in frames (50 fps); `once=1` is the default (timers with `period` default to repeating). Example — the classic apple gotcha, exactly as in fangames:
+
+```text
+@fruit 13 17 tag=17
+!when=pass_x x=11 dir=right -> launch tag=17 vx=1.1 vy=-8 grav=0.4
+```
+
+### Conditions
+
+| condition | fires when | keys |
+|---|---|---|
+| `room_enter` | episode start (after reset) | `delay` |
+| `enter_region` / `leave_region` | player origin enters / leaves a rectangle | `x0 y0 x1 y1` |
+| `pass_x` / `pass_y` | player crosses a line | `x` or `y`, `dir=left\|right\|up\|down\|any` |
+| `touch tag=N` | player rect touches the tagged entity | `tag` |
+| `land tag=N` | player lands on the tagged platform this frame | `tag` |
+| `timer` | countdown elapses; `period` re-fires | `id delay period auto` |
+| `destroyed tag=N` | tagged entity was destroyed or culled offscreen | `tag` |
+| `save tag=N` | tagged save point first activated | `tag` |
+
+### Actions
+
+| action | effect | keys |
+|---|---|---|
+| `activate` / `deactivate` | enable / disable tagged entities (gates re-stamp) | `tag` |
+| `launch` / `set_velocity` | set `vx vy` (optional `grav`), wake dormant entities | `tag vx vy grav` |
+| `set_gravity` | give a tagged entity gravity (e.g. collapsing platform) | `tag grav` |
+| `move` / `teleport` | displace by `dx dy` px / place at `gx gy` tiles (`tag=-1` = player) | `tag dx dy` / `tag gx gy` |
+| `spawn` | create an entity at runtime (`deadly=0` for harmless) | `type x y vx vy grav deadly` |
+| `destroy` | remove entity, set its destroyed bit, open a destroyed gate | `tag` |
+| `make_killer` / `make_harmless` | toggle deadliness | `tag` |
+| `make_solid` / `make_unsolid` | toggle jump-through solidity | `tag` |
+| `open_gate` / `close_gate` | retract / stamp a tile-aligned gate | `tag` |
+| `start_timer` | arm a `timer id=N auto=0` event | `id` |
+| `set_dir` | reorient a trap spike | `tag dir` |
+
+A new `gate` entity supports doors: `@gate 12 14 w=1 h=4 tag=2 [open=1]` stamps solid tiles when closed and restores the original tiles when opened.
+
+**Honest mapping notes.** Three primitives from the original design sketch are intentionally absent. `SHOT` (player fires a gun) is deferred: the agent has no gun, and adding one changes the action space — that is an environment-version decision, not a room-scripting one. `CHANGE_SPRITE` is meaningless in a rect renderer (the closest equivalents, `make_killer`/`make_harmless` and open/closed gate colors, exist). `CAMERA_EVENT` is meaningless in single-screen rooms.
+
+### 20 trap rooms
+
+`iwanna_gym/levels/traps/` ships 20 qualitatively different trap rooms, all built from the primitives above — **zero per-room C code** (acceptance criterion for the event system). Load with `IWannaEnv(level="traps/t01_apple")`.
+
+| room | trap |
+|---|---|
+| `t01_apple` | fruit ahead launches in an arc that lands exactly on a constant-speed runner |
+| `t02_volley` | ceiling fruits drop as you enter their column band |
+| `t03_riser` | spike rises from the floor, freezes mid-air as a wall to jump |
+| `t04_fall` | platforms collapse 15 frames after you land on them |
+| `t05_door` | door slams shut behind you; the exit gate opens only at the save |
+| `t06_crusher` | region-triggered ceiling crusher punishes steady walking |
+| `t07_bullets` | periodic head-height bullets; hop each one |
+| `t08_chase` | same-speed chaser launches when you leave the start (or on a timer if you camp) |
+| `t09_fakesave` | fake save drops fruit on the save and ahead of it — touch and retreat |
+| `t10_chain` | arcing fruit intercepts runners; its offscreen cull opens the exit gate |
+| `t11_teleport` | invisible ground field teleports you back to the start; jump over it |
+| `t12_gauntlet` | three timed fruit drops tuned to kill constant speed, plus a reoriented ceiling trap |
+| `t13_floorgate` | the gate bridge over spikes opens mid-crossing — jump it |
+| `t14_race` | after 3 s the whole floor floods with rising fruit, start column included |
+| `t15_rain` | lobbed fruit arcs rain across the room on a timer |
+| `t16_bridge` | platforms over a pit activate ahead of you and deactivate behind you |
+| `t17_wall` | three-height bullet wall with one safe hop gap, then a fruit pops out of the floor |
+| `t18_ladder` | every landing on the platform ladder calls a bullet at that height |
+| `t19_speedgate` | the save opens the exit gate and starts a 110-frame timer that closes it |
+| `t20_finale` | combo: door closes behind, apple arc, collapsing platform over spikes, save-keyed gate, bullet rain |
+
+Every room is verified solvable by a **scripted rule policy** (`scripts/probe_traps.py` — x-threshold rules, timed waits, steered jumps; the same style of policy a careful human would follow), and 19 of 20 kill at least one of three naive baselines (blind sprint, camp-then-sprint, periodic hop-sprint; `t19` is a timing-window room where sprinting is the intended play). `tests/test_events.py` locks all of this in: every condition and action primitive, per-room load checks, probe solvability, sprint-punishment on the signature room, and bit-exact deterministic replay of the event-heavy finale.
+
+![t20 finale](docs/agent_t20_finale.gif)
 
 ## Fangame-homage levels
 
