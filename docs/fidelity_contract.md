@@ -203,9 +203,48 @@ extraction time rather than assumed to be a clean fixed-rate loop.
 - Every fidelity claim in READMEs, docs, or papers must be traceable to a
   test, a committed importer, or a cited source inspection — otherwise it is
   not made.
-- Current honest summary (2026-08-27): the repository is **runtime-exact and
+- Current honest summary (2026-08-28): the repository is **runtime-exact and
   physics-exact to the renex² GM8.2 engine** (verified constants, analytic
-  tests), **content-original** (research rooms; six levels are homages, not
-  reproductions), and contains **no exact-game content yet**. The recommended
-  first exact-game target is `iwbtgr_1_5_3` — see
-  `docs/exact_game_source_audit.md`.
+  tests) and now carries its first exact-game content: all 14 **non-boss
+  gameplay rooms of `iwbtgr_1_5_3` are content-exact and semantically
+  playable** under the documented deviations in §7 — every placed instance
+  imported, implemented, or excluded with a recorded justification
+  (`docs/iwbtgr_nonboss_coverage.md`), with per-class source semantics in
+  `docs/iwbtgr_nonboss_mechanics.md`. Boss fights are not yet imported
+  (explicit milestone boundary). The original research rooms remain a
+  separate, content-original family. Visual fidelity is explicitly not
+  claimed (schematic renderer only).
+
+---
+
+## 7. `iwbtgr_1_5_3` non-boss import: status per axis and documented deviations
+
+Status (non-boss gameplay rooms only): **content-exact** (mechanical
+importer, coverage-gated), **physics-exact** (player movement transliterated
+from the source `player.gml`/scripts, constants verified by analytic tests in
+`tests/test_exact_player.py`), **runtime-exact under the deviations below**
+(50 Hz loop, deterministic replay asserted per room), **visual: not
+claimed**.
+
+The full modeling notes live in `docs/iwbtgr_nonboss_mechanics.md`
+("Known modeling notes"); the deviations table required by §2 is summarized
+here. Each entry is deliberate, bounded, and tested:
+
+| # | deviation | source behavior | engine behavior | why |
+|---|---|---|---|---|
+| 1 | RNG stream | GM8 global RNG, shared sequence across objects | the environment's seeded RNG, same call sites and distributions | benchmark determinism requires env-seeded randomness; per-call distributions (`random(n)`, `choose(...)`) match, the sequence does not |
+| 2 | death timing | kill event → `gameOver` object → fade/music, ~1 s before retry is accepted | death registers the same frame; respawn is immediate on the next step | the delay is pure presentation; deaths/attempt counters and restored state are source-faithful |
+| 3 | post-motion death check | GM order: step events → motion → collision events | one combined pass: motion, then kill checks, same frame | frame-identical outcomes for every reachable case; avoids double-stepping entities |
+| 4 | `ErrorTrap` | fake GM error dialog dismissed with the mouse | trap fires, dialog auto-dismisses after the source delay | mouse input is outside the 12-action space; recorded as a deviation, not emulated UI |
+| 5 | Metroid latch | latched metroid drains health while attached | latch kills after 100 contact frames (the source drain time) | the env has no health meter; the latch's lethal deadline is preserved |
+| 6 | GM path motion | runtime evaluates smooth paths per frame | paths sampled offline at GM's precision-4 corner-cutting, baked into the pack keys pool | offline translation rule (no runtime source interpretation); sampled trajectories match the runtime evaluator |
+| 7 | boss content | 20 boss classes / 145 instances in the gameplay rooms belong to boss fights | excluded, listed with counts in the coverage report; boss teleporters and their defeat-flag gating ARE implemented | milestone boundary: "stop before the boss catalogue" |
+
+Two earlier engine-level approximations were **removed** in this milestone
+rather than documented: the player hitbox is now the source `sprMask`
+rectangle (11×21: x−5..+5, y−12..+8 from origin — the legacy −11 top is
+gone for exact packs), and save/shoot/death semantics follow the source GML
+(previous milestone). Claims above are enforced by
+`tests/test_exact_player.py`, `tests/test_exact_mechanics.py`, and
+`tests/test_exact_rooms.py` (coverage gates + per-room determinism + a
+pinned reference trace).

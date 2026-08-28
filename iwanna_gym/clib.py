@@ -75,6 +75,18 @@ def _load() -> ctypes.CDLL:
         fn.argtypes = [ctypes.c_void_p]
     lib.iw_respawn_face.restype = ctypes.c_double
     lib.iw_respawn_face.argtypes = [ctypes.c_void_p]
+    for name in ("iw_exact", "iw_xent_count"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
+    lib.iw_xents.restype = ctypes.c_int
+    lib.iw_xents.argtypes = [ctypes.c_void_p,
+                             ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+    lib.iw_view.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float)]
+    lib.iw_player_ext.argtypes = [ctypes.c_void_p,
+                                  ctypes.POINTER(ctypes.c_float)]
+    lib.iw_hb.restype = ctypes.c_int
+    lib.iw_hb.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
     lib.iw_num_actions_legacy.restype = ctypes.c_int
     lib.iw_bench_n.restype = ctypes.c_double
     lib.iw_bench_n.argtypes = [ctypes.c_void_p, ctypes.c_long,
@@ -186,6 +198,43 @@ class CIWanna:
         saved position/facing; flags persist; no death is counted. Distinct
         from reset(), the TASK reset (docs/action_and_reset_semantics.md)."""
         LIB.iw_attempt_reset(self._h)
+
+    @property
+    def exact(self) -> bool:
+        """True when the pack carries the exact-behavior layer (v3)."""
+        return bool(LIB.iw_exact(self._h))
+
+    def xents(self, max_rows: int = 4096) -> "np.ndarray":
+        """Exact-layer entities: rows [cls,x,y,vx,vy,state,alive,active,
+        frame,tag,on+2*armed,xscale] (see c_src/exact.h)."""
+        buf = np.zeros((max_rows, 12), dtype=np.float32)
+        n = LIB.iw_xents(self._h,
+                         buf.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+                         max_rows)
+        return buf[:n]
+
+    @property
+    def view(self) -> tuple[float, float]:
+        """Camera view origin (exact mode; (0,0) otherwise)."""
+        out = (ctypes.c_float * 2)()
+        LIB.iw_view(self._h, out)
+        return float(out[0]), float(out[1])
+
+    def player_ext(self) -> dict:
+        """Exact-layer player state (frozen/stoned/birded/fished/carted/
+        walljumpboost/hang/fire)."""
+        out = (ctypes.c_float * 8)()
+        LIB.iw_player_ext(self._h, out)
+        keys = ("frozen", "stoned", "birded", "fished", "carted",
+                "walljumpboost", "hang", "fire")
+        return {k: float(out[i]) for i, k in enumerate(keys)}
+
+    @property
+    def hitbox(self) -> tuple[int, int, int, int]:
+        """Player hitbox offsets (l, t, r, b) relative to the origin."""
+        out = (ctypes.c_int * 4)()
+        LIB.iw_hb(self._h, out)
+        return tuple(int(v) for v in out)
 
     def set_save_mode(self, shoot: bool) -> None:
         """True = source-faithful shot-activated saves (exact-game default);

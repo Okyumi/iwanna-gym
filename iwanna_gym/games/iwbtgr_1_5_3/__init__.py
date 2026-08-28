@@ -86,6 +86,12 @@ def build(source_root: str, out_dir: str | None = None,
     if os.path.isdir(sub):
         root = sub
     res = convert(root)
+    # exact-behavior layer (milestone: non-boss room completion)
+    from tools.importers.iwbtgr.gm82 import load_project
+    from . import exact as exact_mod
+    proj = load_project(root)
+    exact_cov = exact_mod.build_exact(root, proj, res)
+    res["coverage"]["exact"] = exact_cov
     out_dir = out_dir or BUILD_DIR
     os.makedirs(out_dir, exist_ok=True)
 

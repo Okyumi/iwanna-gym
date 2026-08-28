@@ -285,6 +285,44 @@ Room graph: [docs/iwbtgr_room_graph.md](docs/iwbtgr_room_graph.md) +
 `iwanna_gym/games/iwbtgr_1_5_3/room_graph.json`, inspect/montage via
 `python scripts/inspect_game_graph.py [--montage out.png]`.
 
+**IWBTGR non-boss rooms (semantically playable).** Every non-boss gameplay
+room of IWBTG: Remastered 1.5.3 now runs with its full source behavior —
+2,203 dynamic-object instances across 143 classes compiled from the
+source GML into native behaviors (pack v3 "exact" layer):
+
+| rGuy1 (traps, saves, shooting) | rGuyFortress1 (fire gauntlet) |
+| --- | --- |
+| ![rGuy1](docs/iwbtgr_rguy1.gif) | ![fortress](docs/iwbtgr_fortress_fire.gif) |
+
+| rKraidgiefLair (scripted tetris terrain) | rGuyRoad (the cart ride) |
+| --- | --- |
+| ![tetris](docs/iwbtgr_tetris.gif) | ![cart](docs/iwbtgr_cart.gif) |
+
+What that means concretely, all with source constants
+([docs/iwbtgr_nonboss_mechanics.md](docs/iwbtgr_nonboss_mechanics.md)
+cites the GML for every number): sprite-mask collision decoded from the
+source PNG alpha (per-frame masks for animated hazards, the source 11×21
+player box); the trigger system with all 135 creation-code programs
+compiled to native ops (an unrecognized code string fails the build);
+walljumps (plain/yellow/Weird, with the guy-road decay), water,
+couch-trap deceleration and control locks; moving/falling/appearing
+platforms (FactoryYoku chains, RealYoku sequences, kumo clouds, the
+Ascent); enemies (Ghouls, Medusa heads, hover gunners, Tourian turrets,
+Skwees, Crawlers, the Witch, Lonk, road cheeps); shootable buttons,
+barriers and destructible blocks; screen-snap / cart / tower cameras
+with the source activation regions; the minecart with speed pickups,
+dump gaps and the crash launch; the offline-simulated tetris timeline;
+QuickLaser schedules; orbs, secrets and the flag-gated boss teleporters;
+and the six-orb palace gate that kills without the orbs. Boss and
+secret-battle objects (Tyson, Dragon, Gradius/VicViper, Mecha-Birdo
+aftermath bosses, MommyThinker/Samus escape, Sinistar, Arkanoid) are the
+recorded exceptions this milestone — their rooms are playable up to the
+boss encounters. Coverage is enforced at build time and in
+`tests/test_exact_rooms.py` (zero unaccounted instances) and reported
+per class in
+[docs/iwbtgr_nonboss_coverage.md](docs/iwbtgr_nonboss_coverage.md);
+per-room GIFs come from `python scripts/record_room_gif.py --all`.
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):

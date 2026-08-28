@@ -34,6 +34,7 @@ void* iw_new(const char* level_text,
     e->random_goal = random_goal;
     e->checkpoint_respawn = checkpoint_respawn;
     e->rng = seed ? seed : 0x9E3779B97F4A7C15ULL;
+    e->hb_l = HB_L; e->hb_t = HB_T; e->hb_r = HB_R; e->hb_b = HB_B;
     if (iw_load_level(e, level_text) != 0) {
         free(h);
         return NULL;
@@ -80,6 +81,7 @@ void* iw_new_pack(const unsigned char* pack_data, long pack_len,
     e->random_goal = random_goal;
     e->checkpoint_respawn = checkpoint_respawn;
     e->rng = seed ? seed : 0x9E3779B97F4A7C15ULL;
+    e->hb_l = HB_L; e->hb_t = HB_T; e->hb_r = HB_R; e->hb_b = HB_B;
     if (iw_load_pack_mem(e, pack_data, (size_t)pack_len,
                          iw_err_buf, sizeof iw_err_buf) != 0) {
         free(h);
@@ -286,4 +288,58 @@ int iw_num_levels(void)  { return IW_NUM_LEVELS; }
 const char* iw_level_text(int idx) {
     if (idx < 0 || idx >= IW_NUM_LEVELS) return "";
     return IW_LEVELS[idx];
+}
+
+/* ---- exact-layer introspection (tests / rendering) ---- */
+int iw_exact(void* h) { return ((Handle*)h)->env.xs != NULL; }
+int iw_xent_count(void* h) {
+    IWanna* e = &((Handle*)h)->env;
+    return e->xs ? e->xs->n_ents : 0;
+}
+/* rows of 12 floats: cls, x, y, vx, vy, state, alive, active, frame, tag,
+ * on/armed composite (on + 2*armed), xscale */
+int iw_xents(void* h, float* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    if (!e->xs) return 0;
+    int n = 0;
+    for (int i = 0; i < e->xs->n_ents && n < max_rows; i++) {
+        IWXEnt* x = &e->xs->ents[i];
+        out[n * 12 + 0] = (float)x->cls;
+        out[n * 12 + 1] = x->x;
+        out[n * 12 + 2] = x->y;
+        out[n * 12 + 3] = x->vx;
+        out[n * 12 + 4] = x->vy;
+        out[n * 12 + 5] = (float)x->state;
+        out[n * 12 + 6] = (float)x->alive;
+        out[n * 12 + 7] = (float)x->active;
+        out[n * 12 + 8] = x->frame;
+        out[n * 12 + 9] = (float)x->tag;
+        out[n * 12 + 10] = (float)(x->on + 2 * x->armed);
+        out[n * 12 + 11] = x->xs;
+        n++;
+    }
+    return n;
+}
+void iw_view(void* h, float* out2) {
+    IWanna* e = &((Handle*)h)->env;
+    out2[0] = e->xs ? (float)e->xs->view_x : 0.0f;
+    out2[1] = e->xs ? (float)e->xs->view_y : 0.0f;
+}
+/* 8 floats: frozen, stoned, birded, fished, carted, walljumpboost, hang, fire */
+void iw_player_ext(void* h, float* out8) {
+    IWanna* e = &((Handle*)h)->env;
+    IWXState* xs = e->xs;
+    out8[0] = xs ? (float)xs->frozen : 0.0f;
+    out8[1] = xs ? (float)xs->stoned : 0.0f;
+    out8[2] = xs ? (float)xs->birded : 0.0f;
+    out8[3] = xs ? (float)xs->fished : 0.0f;
+    out8[4] = xs ? (float)xs->carted : 0.0f;
+    out8[5] = xs ? (float)xs->walljumpboost : 0.0f;
+    out8[6] = xs ? (float)xs->hang : 0.0f;
+    out8[7] = xs ? (float)xs->fire : 0.0f;
+}
+int iw_hb(void* h, int* out4) {
+    IWanna* e = &((Handle*)h)->env;
+    out4[0] = e->hb_l; out4[1] = e->hb_t; out4[2] = e->hb_r; out4[3] = e->hb_b;
+    return 0;
 }

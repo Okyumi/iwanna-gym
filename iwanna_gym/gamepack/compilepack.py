@@ -213,6 +213,103 @@ def _lower_event(ev: dict, first_action: int, n_actions: int) -> tuple:
             first_action, n_actions)
 
 
+_XHDR = struct.Struct("<14I4i4I")
+_XMASK = struct.Struct("<8h2HI")
+_XOP = struct.Struct("<2i3f")
+_XENT = struct.Struct("<2H4fiIi10f")
+_XROOM = struct.Struct("<8I")
+
+
+def _pack_exact_section(x: dict, section_base: int) -> bytes:
+    """Serialize the exact-behavior section (see c_src/exact.h)."""
+    body = bytearray()
+
+    def pad4():
+        while len(body) % 4:
+            body.append(0)
+
+    # mask bitmap pool
+    bits: list[int] = []
+    mask_recs = []
+    for m in x["masks"]:
+        w, h = int(m["w"]), int(m["h"])
+        words_per_row = (w + 31) // 32
+        word0 = len(bits)
+        frames = m.get("rows") or []
+        for fr in frames:
+            for row_hex in fr:
+                row = int(row_hex, 16) if row_hex else 0
+                for j in range(words_per_row):
+                    bits.append((row >> (32 * j)) & 0xFFFFFFFF)
+        nfr = max(1, len(frames))
+        mask_recs.append((w, h, int(m["ox"]), int(m["oy"]),
+                          int(m["bl"]), int(m["bt"]), int(m["br"]),
+                          int(m["bb"]), int(m["shape"]), nfr, word0))
+
+    off_hdr = len(body)
+    body += b"\0" * _XHDR.size
+
+    masks_off = section_base + len(body)
+    for r in mask_recs:
+        body += _XMASK.pack(*r)
+    bits_off = section_base + len(body)
+    for wdd in bits:
+        body += struct.pack("<I", wdd)
+    ops_off = section_base + len(body)
+    for op in x["ops"]:
+        body += _XOP.pack(int(op[0]), int(op[1]),
+                          float(op[2]), float(op[3]), float(op[4]))
+    tmpl_off = section_base + len(body)
+    for t in x["templates"]:
+        body += _XENT.pack(int(t["cls"]), int(t["mask"]), 0.0, 0.0,
+                           float(t["xs"]), float(t["ys"]), -1,
+                           int(t["flags"]), -1,
+                           *[float(v) for v in t["p"]])
+    keys_off = section_base + len(body)
+    for k in x["keys"]:
+        body += struct.pack("<f", float(k))
+    xrooms_off = section_base + len(body)
+    ent_blocks = []
+    max_xents = 0
+    for rm in x["rooms"]:
+        max_xents = max(max_xents, len(rm["xents"]))
+    # per-room entity arrays FOLLOW the room table; record placeholders
+    room_tbl_off = len(body)
+    body += b"\0" * (_XROOM.size * len(x["rooms"]))
+    for rm in x["rooms"]:
+        pad4()
+        e_off = section_base + len(body)
+        for e in rm["xents"]:
+            body += _XENT.pack(int(e["cls"]), int(e["mask"]),
+                               float(e["x"]), float(e["y"]),
+                               float(e["xs"]), float(e["ys"]),
+                               int(e["tag"]), int(e["flags"]),
+                               int(e.get("link", -1)),
+                               *[float(v) for v in e["p"]])
+        ent_blocks.append((len(rm["xents"]), e_off))
+    for i, rm in enumerate(x["rooms"]):
+        n, off = ent_blocks[i]
+        eo = rm.get("enter_ops", [0, 0])
+        struct.pack_into(_XROOM.format, body,
+                         room_tbl_off + i * _XROOM.size,
+                         n, off, int(rm["camera"]),
+                         int(rm["always_active"]),
+                         int(eo[0]), int(eo[1]), 0, 0)
+    hb = x.get("hb", [-5, -12, 5, 8])
+    struct.pack_into(_XHDR.format, body, off_hdr,
+                     0x33544358,
+                     len(mask_recs), masks_off,
+                     bits_off, len(bits),
+                     len(x["ops"]), ops_off,
+                     len(x["templates"]), tmpl_off,
+                     len(x["keys"]), keys_off,
+                     len(x["rooms"]), xrooms_off,
+                     max_xents,
+                     int(hb[0]), int(hb[1]), int(hb[2]), int(hb[3]),
+                     int(x.get("flags", 1)), 0, 0, 0)
+    return bytes(body)
+
+
 def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> CompileResult:
     rep = validate(doc, allow_unsupported=allow_unsupported)
     if not rep.ok:
@@ -283,7 +380,7 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
                            "half_h": cp.get("half_h")},
             }, room_of))
         for wp in room.get("warps", []):
-            ents.append(_lower_entity("warp", {
+            went = _lower_entity("warp", {
                 "x": wp["x"], "y": wp["y"], "tag": wp.get("tag", 0),
                 "active": wp.get("active", True),
                 "params": {"dest_x": wp.get("dest_x"),
@@ -292,7 +389,13 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
                            "half_w": wp.get("half_w"),
                            "half_h": wp.get("half_h"),
                            "mode": wp.get("mode", "absolute")},
-            }, room_of))
+            }, room_of)
+            if wp.get("xnops"):
+                # exact-layer side-effect ops ride in trigger_id/state
+                went = (went[0], went[1], int(wp["xop0"]), went[3], went[4],
+                        went[5], went[6], went[7], went[8], went[9],
+                        int(wp["xnops"]), went[11], *went[12:])
+            ents.append(went)
 
         solids = [tuple(float(v) for v in s) for s in room.get("solids", [])]
         killers = [(KILLER_SHAPES[k["shape"]], float(k["x0"]), float(k["y0"]),
@@ -408,9 +511,19 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
     meta_off = base + len(body)
     body += meta_bytes
 
+    x_off = x_len = 0
+    version = PACK_VERSION
+    if doc.get("exact"):
+        body += b"\0" * (pad4(len(body)) - len(body))
+        x_off = base + len(body)
+        body += _pack_exact_section(doc["exact"], base + len(body))
+        x_len = base + len(body) - x_off
+        version = 3
+
     n_flags = max([f["id"] for f in doc.get("global_flags", [])], default=0) + 1
+    n_flags = max(n_flags, 27)   # secret flags use bits 20..25
     hdr = _HDR.pack(
-        PACK_MAGIC, PACK_VERSION, _HDR.size + len(body),
+        PACK_MAGIC, version, _HDR.size + len(body),
         len(lowered), int(doc["room_graph"]["start_room"]), n_flags,
         PHYSICS_PROFILES[doc["physics_profile"]],
         ACTION_PROFILES[doc["action_profile"]],
@@ -420,7 +533,7 @@ def compile_pack(doc: dict[str, Any], allow_unsupported: bool = False) -> Compil
         max((len(lr["acts"]) for lr in lowered), default=0),
         max((len(lr["solids"]) for lr in lowered), default=0),
         max((len(lr["killers"]) for lr in lowered), default=0),
-        rooms_off, meta_off, len(meta_bytes), 0, 0, 0,
+        rooms_off, meta_off, len(meta_bytes), x_off, x_len, 0,
     )
     data = bytes(hdr) + bytes(body)
     return CompileResult(data=data, dropped=sorted(set(dropped)),

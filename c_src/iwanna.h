@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include "gamepack/iwpack.h"
+#include "exact.h"
 
 #define IW_TILE 32
 #define IW_FPS 50
@@ -195,7 +196,10 @@ typedef struct {
 #define IW_RELEASE_MULT 0.45
 #define IW_MAXJUMPS 2
 
-/* Player hitbox offsets from origin (sprMaskPlayer: origin 17,23; bbox 12..22 x 12..31) */
+/* Player hitbox offsets from origin. Legacy engine value (research levels):
+ * 11x20 box with top at -11. Exact-game packs override via env->hb_* from
+ * the pack header (IWBTGR sprMask: rectangle, origin (17,23), bbox
+ * 12..22 x 11..31 => -5..+5 x -12..+8, 11x21). */
 #define HB_L (-5)
 #define HB_R (5)
 #define HB_T (-11)
@@ -289,6 +293,7 @@ typedef struct {
     float pending_x, pending_y;
     int pending_keep_speed;
     int pending_use_start;    /* 1 = enter at the target room's start point */
+    int pending_xop0, pending_xnops;  /* warp side-effect ops (exact layer) */
     uint64_t gflags;          /* global progression flags (bits 1..63) */
     int room_transitions;     /* count this episode (introspection) */
     int difficulty;           /* 0=medium 1=hard 2=very hard 3=impossible */
@@ -298,11 +303,17 @@ typedef struct {
     const IWPackSolid* solids;   int n_solids;
     const IWPackKiller* killers; int n_killers;
 
+    /* ---- exact-behavior layer (pack v3; NULL otherwise) ---- */
+    IWXState* xs;
+    int hb_l, hb_t, hb_r, hb_b;  /* player hitbox (legacy default; packs
+                                    with an exact section override) */
+
     /* dynamic state */
     double x, y, hspeed, vspeed;
     int djump;                /* jumps used; can air-jump while djump < IW_MAXJUMPS */
     int face;
     int prev_jump_held;
+    int prev_h;               /* previous h input (walljump press edges) */
     int prev_shoot_held;      /* for shoot press-edge detection */
     int save_shoot_mode;      /* 1 = source-faithful shot-activated saves;
                                  0 = legacy touch saves (research/debug) */
@@ -341,6 +352,22 @@ static int rect_hits_solid(IWanna* env, int l, int r, int t, int b);
 static void iw_activate_save_shot(IWanna* env, IWEntity* e);
 static inline int ent_rect_hit(const IWEntity* e, int l, int r, int t, int b,
                                float hw, float hh);
+/* exact-layer hooks (exact_impl.h); all no-ops when env->xs == NULL */
+static int iwx_solid_hit(IWanna* env, int l, int r, int t, int b);
+static int iwx_killer_hit(IWanna* env);
+static int iwx_bullet_hit(IWanna* env, float bx, float by,
+                          int bl, int br, int bt, int bb);
+static void iwx_frame_begin(IWanna* env);
+static void iwx_frame_end(IWanna* env);
+static void iwx_load_room(IWanna* env, int room);
+static void iwx_after_spawn(IWanna* env);
+static void iwx_free(IWanna* env);
+static int iwx_load_section(IWanna* env, char* err, size_t errlen);
+static void iwx_run_ops(IWanna* env, int op0, int nops, int self);
+static int iwx_touch_water(IWanna* env, double px, double py, int kind);
+static int iwx_touch_platform(IWanna* env, double px, double py);
+static void iwx_walljump(IWanna* env, int h, int jump_held, int h_pressed_r,
+                         int h_pressed_l, int jump_pressed);
 
 static inline uint8_t iw_tile_at(IWanna* env, int tx, int ty) {
     if (tx < 0 || ty < 0 || tx >= env->tw || ty >= env->th) return T_EMPTY;
@@ -351,7 +378,7 @@ static inline uint8_t iw_tile_at(IWanna* env, int tx, int ty) {
  * GM8 instance_place/place_free round the instance position. */
 static int place_free(IWanna* env, double px, double py) {
     int ix = gm_round(px), iy = gm_round(py);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     int tx0 = l >= 0 ? l / IW_TILE : (l - IW_TILE + 1) / IW_TILE;
     int tx1 = r >= 0 ? r / IW_TILE : (r - IW_TILE + 1) / IW_TILE;
     int ty0 = t >= 0 ? t / IW_TILE : (t - IW_TILE + 1) / IW_TILE;
@@ -364,6 +391,7 @@ static int place_free(IWanna* env, double px, double py) {
         const IWPackSolid* s = &env->solids[i];
         if (l <= s->x1 && r >= s->x0 && t <= s->y1 && b >= s->y0) return 0;
     }
+    if (env->xs && iwx_solid_hit(env, l, r, t, b)) return 0;
     return 1;
 }
 
@@ -439,7 +467,7 @@ static int spike_hit_rect(int l, int r, int t, int b, uint32_t shape,
 /* 1 = dead, checked at integer (rounded) position like instance_place */
 static int killer_hit(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     int tx0 = l >= 0 ? l / IW_TILE : (l - IW_TILE + 1) / IW_TILE;
     int tx1 = r >= 0 ? r / IW_TILE : (r - IW_TILE + 1) / IW_TILE;
     int ty0 = t >= 0 ? t / IW_TILE : (t - IW_TILE + 1) / IW_TILE;
@@ -460,15 +488,15 @@ static int killer_hit(IWanna* env) {
     /* falling out of the room is death (exact source pixel dims in pack mode) */
     int W = env->room_pw > 0 ? env->room_pw : env->tw * IW_TILE;
     int H = env->room_ph > 0 ? env->room_ph : env->th * IW_TILE;
-    if (iy + HB_T > H + IW_TILE) return 1;
-    if (iy + HB_B < -IW_TILE) return 1;
+    if (iy + env->hb_t > H + IW_TILE) return 1;
+    if (iy + env->hb_b < -IW_TILE) return 1;
     if (ix < -IW_TILE || ix > W + IW_TILE) return 1;
     return 0;
 }
 
 static int goal_reached(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     int gl = (int)(env->goal_x - IW_TILE / 2), gr = (int)(env->goal_x + IW_TILE / 2 - 1);
     int gt = (int)(env->goal_y - IW_TILE / 2), gb = (int)(env->goal_y + IW_TILE / 2 - 1);
     return (l <= gr && r >= gl && t <= gb && b >= gt);
@@ -540,6 +568,14 @@ static void update_entities(IWanna* env) {
                 int bx = gm_round(e->x), by = gm_round(e->y);
                 int bl = bx + IW_BULLET_L, br = bx + IW_BULLET_R;
                 int bt = by + IW_BULLET_T, bb = by + IW_BULLET_B;
+                /* shootable exact entities first: GM fires both the
+                 * bullet's Collision_block and the target's
+                 * Collision_bullet in the same frame */
+                if (env->xs &&
+                    iwx_bullet_hit(env, e->x, e->y, bl, br, bt, bb)) {
+                    e->flags &= ~EF_ACTIVE;
+                    break;
+                }
                 if (rect_hits_solid(env, bl, br, bt, bb)) {
                     e->flags &= ~EF_ACTIVE;
                     break;
@@ -606,7 +642,7 @@ static void resolve_platforms(IWanna* env) {
     env->on_platform = 0;
     env->landed_tag = -1;
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, b = iy + env->hb_b;
     for (int i = 0; i < env->ent_top; i++) {
         IWEntity* e = &env->entities[i];
         if (!(e->flags & EF_SOLID_TOP) || !(e->flags & EF_ACTIVE)) continue;
@@ -615,7 +651,7 @@ static void resolve_platforms(IWanna* env) {
         if (r < pl || l > pr) continue;
         if (env->vspeed >= e->vy - 0.001 &&
             b >= ptop - 1 && b <= ptop + 8 + env->vspeed) {
-            env->y = ptop - 1 - HB_B;
+            env->y = ptop - 1 - env->hb_b;
             env->vspeed = e->vy > 0 ? e->vy : 0;
             env->djump = 1;           /* landing restores the air jump */
             env->x += e->vx;          /* carried horizontally */
@@ -633,7 +669,7 @@ static inline int ent_rect_hit(const IWEntity* e, int l, int r, int t, int b,
 
 static int entity_killer_hit(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     for (int i = 0; i < env->ent_top; i++) {
         IWEntity* e = &env->entities[i];
         if (!(e->flags & EF_ACTIVE) || !(e->flags & EF_DEADLY)) continue;
@@ -663,6 +699,7 @@ static int rect_hits_solid(IWanna* env, int l, int r, int t, int b) {
         const IWPackSolid* s = &env->solids[i];
         if (l <= s->x1 && r >= s->x0 && t <= s->y1 && b >= s->y0) return 1;
     }
+    if (env->xs && iwx_solid_hit(env, l, r, t, b)) return 1;
     return 0;
 }
 
@@ -710,7 +747,7 @@ static void iw_player_shoot(IWanna* env) {
     }
     if (env->save_shoot_mode) {
         int ix = gm_round(env->x), iy = gm_round(env->y);
-        int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+        int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
         for (int i = 0; i < env->ent_top; i++) {
             IWEntity* e = &env->entities[i];
             if (e->type != E_SAVE || !(e->flags & EF_ACTIVE)) continue;
@@ -737,7 +774,7 @@ static void fire_trigger(IWanna* env, int id) {
 /* Non-deadly touch interactions: triggers, save points, warps. */
 static void player_interactions(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     for (int i = 0; i < env->ent_top; i++) {
         IWEntity* e = &env->entities[i];
         if (!(e->flags & EF_ACTIVE)) continue;
@@ -761,7 +798,7 @@ static void player_interactions(IWanna* env) {
                 if (ent_rect_hit(e, l, r, t, b, shw, shh)) {
                     env->respawn_x = e->x;
                     env->respawn_y = e->y +
-                        (e->params[4] > 0 ? shh : IW_TILE / 2.0f) - 1 - HB_B;
+                        (e->params[4] > 0 ? shh : IW_TILE / 2.0f) - 1 - env->hb_b;
                     env->respawn_room = env->room_id;
                     if (e->state == 0 && e->tag > 0 && e->tag < 64)
                         env->save_tags |= 1ULL << e->tag;
@@ -785,6 +822,8 @@ static void player_interactions(IWanna* env) {
                     if (env->pack && e->params[2] > 0.5f) {
                         env->pending_room = (int)e->params[2] - 1;
                         env->pending_use_start = 0;
+                        env->pending_xop0 = e->trigger_id;
+                        env->pending_xnops = e->state;
                         if (mode == 1) {
                             env->pending_x = (float)(env->x + e->params[0]);
                             env->pending_y = (float)(env->y + e->params[1]);
@@ -812,6 +851,8 @@ static void player_interactions(IWanna* env) {
                     if (!(env->pack && mode >= 3)) {
                         env->hspeed = 0; env->vspeed = 0;
                     }
+                    if (env->xs && e->state > 0)
+                        iwx_run_ops(env, e->trigger_id, e->state, -1);
                     double wdx = env->goal_x - env->x, wdy = env->goal_y - env->y;
                     env->prev_goal_dist = sqrt(wdx * wdx + wdy * wdy);
                 }
@@ -821,6 +862,8 @@ static void player_interactions(IWanna* env) {
         }
     }
 }
+
+#include "exact_impl.h"
 
 static void reset_entities(IWanna* env) {
     if (!env->entities) return;
@@ -958,7 +1001,7 @@ static int point_in_region(const IWEvent* ev, double x, double y) {
 
 static void update_events(IWanna* env) {
     int ix = gm_round(env->x), iy = gm_round(env->y);
-    int l = ix + HB_L, r = ix + HB_R, t = iy + HB_T, b = iy + HB_B;
+    int l = ix + env->hb_l, r = ix + env->hb_r, t = iy + env->hb_t, b = iy + env->hb_b;
     for (int i = 0; i < env->event_count; i++) {
         IWEvent* ev = &env->events[i];
 
@@ -1140,6 +1183,7 @@ static void iw_pack_copy_room(IWanna* env, int room) {
     }
     reset_entities(env);
     reset_events(env);
+    if (env->xs) iwx_load_room(env, room);
 }
 
 /* Mid-episode transition (warp touch, edge exit). The previous room's
@@ -1158,6 +1202,7 @@ static void iw_pack_room_switch(IWanna* env, int room, double px, double py,
     env->room_transitions += 1;
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(dx * dx + dy * dy);
+    if (env->xs) iwx_after_spawn(env);
 }
 
 /* Edge transitions: leaving through a linked room edge enters the adjacent
@@ -1183,14 +1228,14 @@ static void iw_pack_check_edge(IWanna* env) {
     const IWPackRoom* dst = &env->pack->rooms[target];
     double DW = dst->pw, DH = dst->ph;
     double nx = env->x, ny = env->y;
-    if (edge == IWPACK_EDGE_L)      nx = DW - 1 + HB_L;   /* enter at right edge */
-    else if (edge == IWPACK_EDGE_R) nx = 1 - HB_L;        /* enter at left edge */
-    else if (edge == IWPACK_EDGE_U) ny = DH - 1 + HB_T;   /* enter at bottom */
-    else                            ny = 1 - HB_T;        /* enter at top */
-    if (nx < -HB_L) nx = -HB_L;
-    if (nx > DW - 1 - HB_R) nx = DW - 1 - HB_R;
-    if (ny < -HB_T) ny = -HB_T;
-    if (ny > DH - 1 - HB_B) ny = DH - 1 - HB_B;
+    if (edge == IWPACK_EDGE_L)      nx = DW - 1 + env->hb_l;   /* enter at right edge */
+    else if (edge == IWPACK_EDGE_R) nx = 1 - env->hb_l;        /* enter at left edge */
+    else if (edge == IWPACK_EDGE_U) ny = DH - 1 + env->hb_t;   /* enter at bottom */
+    else                            ny = 1 - env->hb_t;        /* enter at top */
+    if (nx < -env->hb_l) nx = -env->hb_l;
+    if (nx > DW - 1 - env->hb_r) nx = DW - 1 - env->hb_r;
+    if (ny < -env->hb_t) ny = -env->hb_t;
+    if (ny > DH - 1 - env->hb_b) ny = DH - 1 - env->hb_b;
     env->pending_room = target;
     env->pending_x = (float)nx;
     env->pending_y = (float)ny;
@@ -1210,10 +1255,26 @@ static int iw_pack_do_pending(IWanna* env) {
         iw_pack_room_switch(env, room, dst->start_x, dst->start_y, 0);
         env->djump = 1;
         env->prev_jump_held = 0;
+        if (env->xs && env->pending_xnops > 0) {
+            iwx_run_ops(env, env->pending_xop0, env->pending_xnops, -1);
+            env->pending_xnops = 0;
+            if (env->xs->spawn_boost != 0) {
+                env->vspeed = env->xs->spawn_boost;
+                env->xs->spawn_boost = 0;
+            }
+        }
         return 1;
     }
     iw_pack_room_switch(env, room, env->pending_x, env->pending_y,
                         env->pending_keep_speed);
+    if (env->xs && env->pending_xnops > 0) {
+        iwx_run_ops(env, env->pending_xop0, env->pending_xnops, -1);
+        env->pending_xnops = 0;
+        if (env->xs->spawn_boost != 0) {
+            env->vspeed = env->xs->spawn_boost;
+            env->xs->spawn_boost = 0;
+        }
+    }
     return 1;
 }
 
@@ -1250,6 +1311,11 @@ static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
         return -1;
     }
     env->pack = rt;
+    if (iwx_load_section(env, err, errlen) < 0) {
+        env->pack = NULL;
+        iwpack_free_rt(rt);
+        return -1;
+    }
     env->save_shoot_mode = 1;  /* exact-game default: shot-activated saves */
     env->start_room = (int)rt->hdr.start_room;
     env->respawn_room = env->start_room;
@@ -1289,6 +1355,7 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
     env->prev_y = env->y;
     double rdx = env->goal_x - env->x, rdy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(rdx * rdx + rdy * rdy);
+    if (env->xs) iwx_after_spawn(env);
 }
 
 /* ---------- observations ---------- */
@@ -1317,7 +1384,8 @@ static void compute_observations(IWanna* env) {
 
     /* K nearest active, visible entities (triggers are invisible), sorted by
      * squared distance. Features per slot: dx, dy, vx, vy, signed type
-     * (negative = deadly). Zero-padded when fewer than K entities exist. */
+     * (negative = deadly). Zero-padded when fewer than K entities exist.
+     * Exact-layer entities (xents) join the scan with index offset 1<<20. */
     int   best[IW_OBS_K];
     float bestd[IW_OBS_K];
     int nbest = 0;
@@ -1341,14 +1409,49 @@ static void compute_observations(IWanna* env) {
             bestd[j] = d2; best[j] = k;
         }
     }
+    if (env->xs) {
+        IWXState* xs = env->xs;
+        for (int k = 0; k < xs->n_ents; k++) {
+            IWXEnt* e = &xs->ents[k];
+            if (!e->alive || !e->active) continue;
+            if (e->cls == XB_TRIGGER || e->cls == XB_MARKER ||
+                e->cls == XB_WALLSTRIP || e->cls == XB_WATER) continue;
+            float dx = e->x - (float)env->x, dy = e->y - (float)env->y;
+            float d2 = dx * dx + dy * dy;
+            int key = k + (1 << 20);
+            if (nbest < IW_OBS_K) {
+                int j = nbest++;
+                while (j > 0 && bestd[j - 1] > d2) {
+                    bestd[j] = bestd[j - 1]; best[j] = best[j - 1]; j--;
+                }
+                bestd[j] = d2; best[j] = key;
+            } else if (d2 < bestd[IW_OBS_K - 1]) {
+                int j = IW_OBS_K - 1;
+                while (j > 0 && bestd[j - 1] > d2) {
+                    bestd[j] = bestd[j - 1]; best[j] = best[j - 1]; j--;
+                }
+                bestd[j] = d2; best[j] = key;
+            }
+        }
+    }
     for (int s = 0; s < IW_OBS_K; s++) {
         if (s < nbest) {
-            IWEntity* e = &env->entities[best[s]];
-            float f0 = (float)((e->x - env->x) / W);
-            float f1 = (float)((e->y - env->y) / H);
-            float f2 = e->vx / 10.0f, f3 = e->vy / 10.0f;
-            float f4 = (float)e->type / IW_OBS_TYPE_NORM;
-            if (e->flags & EF_DEADLY) f4 = -f4;
+            float f0, f1, f2, f3, f4;
+            if (best[s] >= (1 << 20)) {
+                IWXEnt* e = &env->xs->ents[best[s] - (1 << 20)];
+                f0 = (float)((e->x - env->x) / W);
+                f1 = (float)((e->y - env->y) / H);
+                f2 = e->vx / 10.0f; f3 = e->vy / 10.0f;
+                f4 = 13.0f / IW_OBS_TYPE_NORM;   /* capped to 1.0 below */
+                if (e->flags & XEF_KILLER) f4 = -f4;
+            } else {
+                IWEntity* e = &env->entities[best[s]];
+                f0 = (float)((e->x - env->x) / W);
+                f1 = (float)((e->y - env->y) / H);
+                f2 = e->vx / 10.0f; f3 = e->vy / 10.0f;
+                f4 = (float)e->type / IW_OBS_TYPE_NORM;
+                if (e->flags & EF_DEADLY) f4 = -f4;
+            }
             float f[5] = { f0, f1, f2, f3, f4 };
             for (int q = 0; q < IW_OBS_ENT_F; q++) {
                 float v = f[q];
@@ -1396,8 +1499,8 @@ static void c_reset(IWanna* env) {
          * progression state (flags, save, transition count). The room is
          * re-copied unconditionally so start-room/difficulty changes made
          * before reset always take effect. */
-        iw_pack_copy_room(env, env->start_room);
         env->gflags = 0;
+        iw_pack_copy_room(env, env->start_room);
         env->respawn_room = env->start_room;
         env->pending_room = -1;
         env->pending_use_start = 0;
@@ -1422,6 +1525,7 @@ static void c_reset(IWanna* env) {
     env->prev_y = env->y;
     reset_entities(env);
     reset_events(env);
+    if (env->xs) iwx_after_spawn(env);
     sample_goal(env);
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(dx * dx + dy * dy);
@@ -1452,6 +1556,18 @@ static void c_step(IWanna* env) {
     env->prev_jump_held = jump_held;
     env->prev_shoot_held = shoot_held;
 
+    int xmode = env->xs && (env->xs->hdr.flags & IWXF_PHYSICS);
+    int hpl = (h == -1 && env->prev_h != -1);
+    int hpr = (h == 1 && env->prev_h != 1);
+    env->prev_h = h;
+
+    /* exact layer: room entities step BEFORE the player (GM object order) */
+    if (env->xs) iwx_frame_begin(env);
+
+    if (xmode) {
+        iwx_player_step(env, h, jump_held, pressed, released, shoot_pressed,
+                        hpl, hpr);
+    } else {
     /* --- ///movement --- */
     if (h != 0) env->face = h;
     env->hspeed = IW_MAXSPEED * h;
@@ -1513,6 +1629,7 @@ static void c_step(IWanna* env) {
     env->vspeed += IW_GRAV;
     env->x += env->hspeed;
     env->y += env->vspeed;
+    }
 
     env->tick += 1;
 
@@ -1530,8 +1647,12 @@ static void c_step(IWanna* env) {
         }
     }
 
+    /* --- exact layer: collision events, triggers, camera (post-motion) --- */
+    if (env->xs) iwx_frame_end(env);
+
     /* --- killer detection: spike tiles + deadly entities --- */
-    if (killer_hit(env) || entity_killer_hit(env)) {
+    if (killer_hit(env) || entity_killer_hit(env) ||
+        (env->xs && iwx_killer_hit(env))) {
         env->rewards[0] = -env->death_penalty;
         env->deaths += 1;
         if (env->checkpoint_respawn) {
@@ -2002,6 +2123,7 @@ static int iw_load_level(IWanna* env, const char* text) {
 }
 
 static void iw_free(IWanna* env) {
+    iwx_free(env);
     if (env->pack) { iwpack_free_rt(env->pack); env->pack = NULL; }
     env->solids = NULL;  env->n_solids = 0;
     env->killers = NULL; env->n_killers = 0;

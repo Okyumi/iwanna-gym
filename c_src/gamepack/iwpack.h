@@ -35,6 +35,8 @@
  * masks, and exact room pixel dimensions. v1 packs are rejected (packs are
  * build artifacts — recompile from the IR). */
 #define IWPACK_VERSION 2u
+#define IWPACK_VERSION_EXACT 3u  /* v3 = v2 + exact-behavior section
+                                    (offset/length in reserved0/reserved1) */
 #define IWPACK_MAX_FLAGS 64
 #define IWPACK_EDGE_L 0
 #define IWPACK_EDGE_R 1
@@ -179,7 +181,7 @@ static IWPackRT* iwpack_load(const uint8_t* data, size_t len,
     IWPackHeader hdr;
     memcpy(&hdr, data, sizeof hdr);
     if (hdr.magic != IWPACK_MAGIC)   { iwpack_err(err, errlen, "bad magic (not an .iwpack)"); return NULL; }
-    if (hdr.version != IWPACK_VERSION) { iwpack_err(err, errlen, "unsupported iwpack version"); return NULL; }
+    if (hdr.version != IWPACK_VERSION && hdr.version != IWPACK_VERSION_EXACT) { iwpack_err(err, errlen, "unsupported iwpack version"); return NULL; }
     if (hdr.total_size != len)       { iwpack_err(err, errlen, "size mismatch (truncated pack?)"); return NULL; }
     if (hdr.n_rooms == 0)            { iwpack_err(err, errlen, "pack has no rooms"); return NULL; }
     if (hdr.start_room >= hdr.n_rooms) { iwpack_err(err, errlen, "start_room out of range"); return NULL; }
