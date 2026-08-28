@@ -357,6 +357,8 @@ static int iwx_solid_hit(IWanna* env, int l, int r, int t, int b);
 static int iwx_killer_hit(IWanna* env);
 static int iwx_bullet_hit(IWanna* env, float bx, float by,
                           int bl, int br, int bt, int bb);
+static int iwxb_route_bullet(IWanna* env, IWEntity* b,
+                             int bl, int br, int bt, int bb);
 static void iwx_frame_begin(IWanna* env);
 static void iwx_frame_end(IWanna* env);
 static void iwx_load_room(IWanna* env, int room);
@@ -565,9 +567,17 @@ static void update_entities(IWanna* env) {
                     break;
                 }
                 e->x += e->vx;
+                e->y += e->vy;   /* nonzero only after a boss deflect */
                 int bx = gm_round(e->x), by = gm_round(e->y);
                 int bl = bx + IW_BULLET_L, br = bx + IW_BULLET_R;
                 int bt = by + IW_BULLET_T, bb = by + IW_BULLET_B;
+                /* boss weak points / body deflects (collision phase);
+                 * n_boss == 0 in every ordinary room */
+                if (env->xs && env->xs->n_boss &&
+                    iwxb_route_bullet(env, e, bl, br, bt, bb)) {
+                    e->flags &= ~EF_ACTIVE;
+                    break;
+                }
                 /* shootable exact entities first: GM fires both the
                  * bullet's Collision_block and the target's
                  * Collision_bullet in the same frame */
@@ -1336,6 +1346,11 @@ static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
  * (savedata) and the active save persist. Classic single-room mode keeps
  * its historical semantics: respawn position only, no room reset. */
 static void iw_respawn_to_checkpoint(IWanna* env) {
+    /* clear stale pendings BEFORE the room copy: room-enter ops (e.g. a
+     * flag-gated boss-arena skip) may set a pending warp that must
+     * survive into the next step */
+    env->pending_room = -1;
+    env->pending_use_start = 0;
     if (env->pack) {
         iw_pack_copy_room(env, env->respawn_room);
         env->face = env->respawn_face >= 0 ? 1 : -1;
@@ -1348,8 +1363,6 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
     env->prev_shoot_held = 0;
     env->on_platform = 0;
     env->prev_on_platform = 0;
-    env->pending_room = -1;
-    env->pending_use_start = 0;
     env->attempt += 1;
     env->prev_x = env->x;
     env->prev_y = env->y;
@@ -1500,10 +1513,10 @@ static void c_reset(IWanna* env) {
          * re-copied unconditionally so start-room/difficulty changes made
          * before reset always take effect. */
         env->gflags = 0;
+        env->pending_room = -1;   /* before the copy: enter ops may warp */
+        env->pending_use_start = 0;
         iw_pack_copy_room(env, env->start_room);
         env->respawn_room = env->start_room;
-        env->pending_room = -1;
-        env->pending_use_start = 0;
         env->room_transitions = 0;
     }
     env->x = env->start_x;

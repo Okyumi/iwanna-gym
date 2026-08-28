@@ -323,6 +323,25 @@ per class in
 [docs/iwbtgr_nonboss_coverage.md](docs/iwbtgr_nonboss_coverage.md);
 per-room GIFs come from `python scripts/record_room_gif.py --all`.
 
+**Boss framework + the first two bosses.** A reusable native boss layer
+([c_src/boss/](c_src/boss/),
+[docs/boss_architecture.md](docs/boss_architecture.md)) adds compact
+boss records — hit points, phases, GM alarms, attack state machines,
+moving weak-point hitboxes, projectile templates, arena transitions,
+completion events, progression flags, seeded randomness — at zero cost
+to rooms without bosses. Two source bosses are fully playable on it:
+**MechaBirdo** (`rMechaBirdoBoss`: 30/15/5-HP hitbox phases, egg rides,
+laser pairs, homing FlyGuys, death drop into the factory outskirts) and
+**Kraidgief** (`rKraidgiefBoss`: rise intro, roar vulnerability windows,
+the 15-damage lariat that shreds the ceiling, the phase-1 eye-repel
+duel with charge/headbutt/triple-Hadouken specials and the wall-grab
+piledriver kill, Blanka waves + aimed giant fires, and a death sequence
+that clears the arena to its orb and exit). Defeats feed the same
+six-orb progression gate as the source
+(`orb_birdo`/`orb_kraidgief`); the remaining bosses have a documented
+mapping plan in
+[docs/iwbtgr_boss_coverage.md](docs/iwbtgr_boss_coverage.md).
+
 ## PufferLib integration
 
 The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):

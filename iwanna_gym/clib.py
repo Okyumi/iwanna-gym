@@ -82,6 +82,9 @@ def _load() -> ctypes.CDLL:
     lib.iw_xents.restype = ctypes.c_int
     lib.iw_xents.argtypes = [ctypes.c_void_p,
                              ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+    lib.iw_bosses.restype = ctypes.c_int
+    lib.iw_bosses.argtypes = [ctypes.c_void_p,
+                              ctypes.POINTER(ctypes.c_float), ctypes.c_int]
     lib.iw_view.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float)]
     lib.iw_player_ext.argtypes = [ctypes.c_void_p,
                                   ctypes.POINTER(ctypes.c_float)]
@@ -211,6 +214,15 @@ class CIWanna:
         n = LIB.iw_xents(self._h,
                          buf.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
                          max_rows)
+        return buf[:n]
+
+    def bosses(self, max_rows: int = 4) -> "np.ndarray":
+        """Live boss slots: rows [def,phase,timer,dmg,hp,ent,flags,sprite,
+        p0,p2,x,y] (see c_src/boss/boss_types.h)."""
+        buf = np.zeros((max_rows, 12), dtype=np.float32)
+        n = LIB.iw_bosses(self._h,
+                          buf.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+                          max_rows)
         return buf[:n]
 
     @property

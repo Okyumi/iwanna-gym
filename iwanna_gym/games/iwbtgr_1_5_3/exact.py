@@ -41,7 +41,10 @@ XB_CHOZO XB_TRIGGER XB_LOCKCONTROLS XB_FRUIT XB_CATTHING XB_FIRECHALICE
 XB_RYU XB_RYUWIND XB_MOONSMALL XB_MOONBIG XB_ORB XB_SECRET XB_ENTRANCETELE
 XB_CONDSOLID XB_TOURIANBARRIER XB_DESTRUCTIBLE XB_WALLSTRIP XB_WATER
 XB_SNIFITCANNON XB_SNIFITBULLET XB_ZELDAOLDMAN XB_PATHKILLER XB_FRSPIKE
-XB_FRBARRIER XB_SPIKEMAN XB_SPINNER""".split()
+XB_FRBARRIER XB_SPIKEMAN XB_SPINNER
+XB_WEAKBOX XB_BOSS_TEST XB_BOSS_BIRDO XB_MECHAEGG XB_EGGPLAT XB_EGGHITBOX
+XB_LAZA XB_FLYGUY XB_BOSS_KRAIDGIEF XB_KGPROJ XB_KGFIRE XB_BLANKA
+XB_KGDEBRISSPAWN XB_KGDEBRIS XB_KGSPIKE XB_KGCEIL""".split()
 C = {name: i for i, name in enumerate(XCLS)}
 
 XOPS = """XOP_END XOP_SET_ACTIVE XOP_ARM XOP_SET_VX XOP_SET_VY XOP_SET_FSPD
@@ -50,7 +53,7 @@ XOP_FREEZE_PLAYER XOP_SET_FIRE XOP_SET_FLAG XOP_GOTO_ROOM XOP_IF_STATE_EQ
 XOP_IF_STATE_NE XOP_IF_ALIVE XOP_IF_DEAD XOP_IF_FLAG XOP_IF_NOT_FLAG
 XOP_IF_PLAYER_FIRE XOP_IF_Y_LT XOP_IF_VY_LE XOP_IF_X_LT XOP_IF_OVERLAP
 XOP_IF_WITCH_WAIT XOP_SET_FRAME XOP_LAST_FRAME XOP_SET_TIMER XOP_SET_P
-XOP_SPAWNBOOST XOP_IF_P_EQ""".split()
+XOP_SPAWNBOOST XOP_IF_P_EQ XOP_CAM_MODE""".split()
 OP = {name: i for i, name in enumerate(XOPS)}
 
 # marker kinds (XB_MARKER p0) — mirrors the C enum
@@ -59,8 +62,8 @@ OP = {name: i for i, name in enumerate(XOPS)}
  XM_MEDUSAMOD, XM_SOFTLOCK, XM_FRSW, XM_WALLJUMP_GONE) = range(14)
 
 XW_PLAIN, XW_YELLOW, XW_WEIRD = 0, 1, 2
-XCAM_NONE, XCAM_HARD, XCAM_CART, XCAM_TOWER, XCAM_HARD_METROID = \
-    0, 1, 2, 3, 4
+XCAM_NONE, XCAM_HARD, XCAM_CART, XCAM_TOWER, XCAM_HARD_METROID, \
+    XCAM_KRAID = 0, 1, 2, 3, 4, 5
 
 XEF_KILLER = 1
 XEF_SOLID = 2
@@ -82,7 +85,7 @@ GAMEPLAY_ROOMS = ["rCastlevania", "rFactoryOutskirts", "rGraveyard", "rGuy1",
                   "rMegaman", "rMetroid", "rZelda"]
 
 ROOM_CAMERA = {"cameraHard": XCAM_HARD, "cameraCart": XCAM_CART,
-               "cameraTower": XCAM_TOWER}
+               "cameraTower": XCAM_TOWER, "cameraKraid": XCAM_KRAID}
 
 MMFS = 1 / 8.0        # mmf_speed(n)  = n/8   (scripts/mmf_speed.gml)
 MMFA = 1 / 100.0      # mmf_animspeed = n/100
@@ -653,6 +656,7 @@ VISUAL_CLASSES = {
     "secret1trophy", "secret2trophy", "secret3trophy", "secret4trophy",
     "secret5trophy", "secret6trophy",
     "JumpRefresher",   # source: destroyed unless char==Boshy (Kid: absent)
+    "MechaWarning",    # arena siren+music cue: draw/sound only, no gameplay
     "saveVeryEvil",    # settings("evilsaves") gated (default off)
     "PlayerMetroided", "CreditsMetroid", "FireGlow",
     # cosmetic runtime spawns (no collision events; debris/particles/text)
@@ -850,6 +854,7 @@ class ExactBuild:
         self.templates: list[dict] = []
         self._tmpl_key: dict[tuple, int] = {}
         self.coverage = {"implemented": Counter(), "static": Counter(),
+                         "implemented_boss": Counter(),
                          "excluded_visual": Counter(),
                          "excluded_boss": Counter(),
                          "trigger_programs": 0,
@@ -881,6 +886,10 @@ class ExactBuild:
 
     def template_for(self, cls_name, flip=False, go=False):
         """Template for a runtime-spawned source class."""
+        from . import bosses as _b
+        t = _b.template_for(self, cls_name)
+        if t is not None:
+            return t
         M = self.mask
         if cls_name == "HoverGunner":
             return self.template("XB_HOVERGUNNER", M("sprTurret"),
@@ -1289,6 +1298,11 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
             referenced.update(
                 m.split("_")[-1] for m in
                 re.findall(r"r\w+_[0-9A-F]{8}", inst.creation_code))
+    if rname == "rKraidgiefBoss":
+        # the boss destroys the spike floor on death (and the won-arena
+        # teardown clears it), so the row cannot stay in the static grid
+        referenced.update(i.id_hex for i in src.instances
+                          if i.object == "spikeUp")
 
     # blockFake regions: overlapping blocks were removed at compile time
     fake_boxes = []
@@ -1382,7 +1396,10 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
                 f"{rname}: object class {obj!r} is neither implemented nor "
                 f"excluded with justification (coverage gate)")
         if emitted is True:            # "static" is tallied in cov["static"]
-            cov["implemented"][obj] += 1
+            from . import bosses as _b
+            key = ("implemented_boss" if rname in _b.BOSS_ROOMS
+                   else "implemented")
+            cov[key][obj] += 1
 
     # deferred cross-links
     for kind, *args in ctx.deferred:
@@ -1420,6 +1437,10 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
         _emit_trigger(build, ctx, tc, inst, cc2, roomvars)
         cov["trigger_programs"] += 1
     _finish_deferred(build, ctx)
+
+    from . import bosses as _b
+    if rname in _b.BOSS_ROOMS:
+        enter_ops = _b.enter_ops_for(build, rname)
 
     return {"name": rname, "xents": ctx.xents, "camera": camera,
             "always_active": 1 if rname == "rGuyLabyrinth" else 0,
@@ -1947,8 +1968,9 @@ def _emit_class2(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc, roomvars,
             inst=inst)
         return True
     if obj == "MoonSmall":
+        # rMechaBirdoBoss instance falls from creation (cc vspeed=6)
         add("XB_MOONSMALL", x, y, mask=M("sprMoonSmall"), xs=xs, ys=ys,
-            inst=inst)
+            p=[cc.get("vspeed", 0.0)], inst=inst)
         return True
     if obj in ("OrbBirdo", "OrbMother"):
         flag = PROGRESSION_FLAGS["orb_birdo" if obj == "OrbBirdo"
@@ -2028,6 +2050,13 @@ def _emit_class2(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc, roomvars,
     if obj == "BossTeleporter":
         _emit_boss_teleporter(build, ctx, ir_room, inst, cc)
         return True
+
+    # boss-arena classes (c_src/boss/ milestone; bosses.py)
+    from . import bosses as _b
+    r = _b.emit_class(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc,
+                      roomvars)
+    if r is not None:
+        return r
     return None
 
 
@@ -2209,9 +2238,10 @@ def build_exact(source_root: str, proj, result: dict) -> dict:
     build = ExactBuild(source_root, proj, ir, room_index)
 
     ir_rooms = {r["name"]: r for r in ir["rooms"]}
+    from . import bosses
     xrooms = []
     for rname in room_names:
-        if rname in GAMEPLAY_ROOMS:
+        if rname in GAMEPLAY_ROOMS or rname in bosses.BOSS_ROOMS:
             xr = emit_room(build, rname, ir_rooms[rname])
         else:
             xr = {"name": rname, "xents": [], "camera": XCAM_NONE,
@@ -2270,6 +2300,7 @@ def build_exact(source_root: str, proj, result: dict) -> dict:
     cov = build.coverage
     cov["implemented"] = dict(cov["implemented"])
     cov["static"] = dict(cov["static"])
+    cov["implemented_boss"] = dict(cov["implemented_boss"])
     cov["excluded_visual"] = dict(cov["excluded_visual"])
     cov["excluded_boss"] = dict(cov["excluded_boss"])
     return cov

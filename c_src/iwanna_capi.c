@@ -320,6 +320,33 @@ int iw_xents(void* h, float* out, int max_rows) {
     }
     return n;
 }
+/* live bosses: rows of 12 floats — def, phase, timer, dmg, stage hp,
+ * body ent index, flags, sprite, eye_damage(p0), walk_counter(p2),
+ * body x, body y */
+int iw_bosses(void* h, float* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    if (!e->xs) return 0;
+    int n = 0;
+    for (int i = 0; i < IWXB_MAX && n < max_rows; i++) {
+        IWXBossState* bs = &e->xs->boss[i];
+        if (!bs->used) continue;
+        IWXEnt* b = &e->xs->ents[bs->ent];
+        out[n * 12 + 0] = (float)bs->def;
+        out[n * 12 + 1] = (float)bs->phase;
+        out[n * 12 + 2] = (float)bs->timer;
+        out[n * 12 + 3] = bs->dmg;
+        out[n * 12 + 4] = bs->hp;
+        out[n * 12 + 5] = (float)bs->ent;
+        out[n * 12 + 6] = (float)bs->f;
+        out[n * 12 + 7] = (float)bs->sprite;
+        out[n * 12 + 8] = bs->p[0];
+        out[n * 12 + 9] = bs->p[2];
+        out[n * 12 + 10] = b->x;
+        out[n * 12 + 11] = b->y;
+        n++;
+    }
+    return n;
+}
 void iw_view(void* h, float* out2) {
     IWanna* e = &((Handle*)h)->env;
     out2[0] = e->xs ? (float)e->xs->view_x : 0.0f;

@@ -159,6 +159,23 @@ static void iwx_load_room(IWanna* env, int room) {
             break;
         case XB_BUTTON: e->state = (int)e->p[8]; break;
         case XB_FACTORYBLOCK: e->frame = e->p[0]; break;
+        case XB_BOSS_BIRDO:
+            /* MechaBirdo Create: savedata("orb_birdo") skips the fight
+             * (the room-enter ops warp the player on) */
+            if (iwx_flag_bit(env, (int)e->p[9])) e->alive = 0;
+            break;
+        case XB_MOONSMALL:
+            e->vy = e->p[0];               /* creation-code vspeed */
+            if (e->vy != 0) e->state = 1;
+            break;
+        case XB_KGSPIKE: {
+            /* Create: image_index = image_number-1, waiting for its
+             * `active` roll (armed <- boss events, never at load) */
+            const IWXMaskRec* sm = iwx_mask(xs, e->mask);
+            e->frame = sm && sm->nframes ? (float)(sm->nframes - 1) : 0;
+            e->armed = 0;
+            break;
+        }
         default: break;
         }
     }
@@ -175,6 +192,12 @@ static void iwx_load_room(IWanna* env, int room) {
     xs->fire = 0; xs->metroid_doom = 0;
     xs->pending_kill = 0; xs->pending_freeze = 0;
     xs->view_init = 0;
+    /* boss framework: slots die with the room (death/retry = room reset) */
+    memset(xs->boss, 0, sizeof xs->boss);
+    xs->n_boss = 0;
+    xs->cam_voffset = 0;
+    xs->cam_locked = (uint8_t)(xs->camera == XCAM_KRAID);  /* cameraKraid */
+    xs->cam_piledriver = 0;
     /* cheep start alarms (source: CheepController Other_4, random 1..n) */
     int ncheep = 0;
     for (int i = 0; i < xs->n_ents; i++)
@@ -294,6 +317,29 @@ static void iwx_view_update(IWanna* env) {
         ny = 0;
         break;
     }
+    case XCAM_KRAID: {
+        /* cameraKraid Step_2: piledriver follows the boss, locked pins
+         * the arena screen, otherwise follow the player (y capped 281);
+         * voffset is the one-frame quake shake */
+        if (xs->cam_piledriver) {
+            double bx2 = px, by2 = py;
+            for (int s = 0; s < IWXB_MAX; s++)
+                if (xs->boss[s].used &&
+                    xs->boss[s].def == IWXB_DEF_KRAIDGIEF) {
+                    bx2 = xs->ents[xs->boss[s].ent].x;
+                    by2 = xs->ents[xs->boss[s].ent].y;
+                }
+            nx = iwx_median3(0, bx2 + 103 - 400, W - 800);
+            ny = iwx_median3(0, by2 + 400 - 304, 281);
+        } else if (xs->cam_locked) { nx = 0; ny = 281; }
+        else {
+            nx = iwx_median3(0, px - 400, W - 800);
+            ny = iwx_median3(0, py - 304, 281);
+        }
+        ny += xs->cam_voffset;
+        xs->cam_voffset = 0;
+        break;
+    }
     case XCAM_TOWER: {
         if (px > 800) { nx = 800; ny = 2432; }
         else {
@@ -392,6 +438,11 @@ static void iwx_op_apply(IWanna* env, const IWXOpRec* o, IWXEnt* e) {
     case XOP_SET_TIMER: if (e) e->t0 = (int)o->a; break;
     case XOP_SET_P: if (e) e->p[(int)o->a] = o->b; break;
     case XOP_SPAWNBOOST: xs->spawn_boost = o->a; break;
+    case XOP_CAM_MODE:
+        if ((int)o->a == 0) { xs->cam_locked = 0; xs->cam_piledriver = 0; }
+        else if ((int)o->a == 1) xs->cam_locked = 1;
+        else xs->cam_piledriver = 1;
+        break;
     case XOP_SPAWN: {
         IWXEnt* s = iwx_spawn(env, (int)o->a, o->b, o->c);
         (void)s;
@@ -745,6 +796,45 @@ static void iwx_aim45(float* vx, float* vy, double dx, double dy, double speed,
 
 /* ---------------- per-frame entity behavior (pre-player, GM order) -------- */
 
+/* ---------------- boss framework (c_src/boss/) ---------------- */
+#include "boss/boss.h"
+#include "boss/boss_birdo.h"
+#include "boss/boss_kraidgief.h"
+
+/* collision-phase bullet routing: weak-point consume (push mode) and
+ * body deflects.  Gated by n_boss at the call site. */
+static int iwxb_route_bullet(IWanna* env, IWEntity* b,
+                             int bl, int br, int bt, int bb) {
+    IWXState* xs = XS(env);
+    for (int s = 0; s < IWXB_MAX; s++) {
+        IWXBossState* bs = &xs->boss[s];
+        if (!bs->used) continue;
+        if (bs->def == IWXB_DEF_BIRDO || bs->def == IWXB_DEF_TEST) {
+            for (int w = 0; w < IWXB_WEAK; w++) {
+                int wi = bs->wp_ent[w];
+                if (wi < 0 || !xs->ents[wi].alive) continue;
+                if (iwx_hit_rect(xs, &xs->ents[wi], bl, br, bt, bb)) {
+                    bs->wp_dmg[w] += 1.0f;   /* bullet damage = 1 */
+                    return 1;
+                }
+            }
+        }
+        if (bs->def == IWXB_DEF_KRAIDGIEF && b->vy == 0) {
+            /* Kraidgief Collision_bullet: deflect at choose(45,90,135,
+             * -45,-90,-135), speed kept (16) */
+            IWXEnt* body = &xs->ents[bs->ent];
+            if (body->alive && iwx_hit_rect(xs, body, bl, br, bt, bb)) {
+                static const float dirs[6] = { 45, 90, 135, -45, -90, -135 };
+                float d = dirs[iw_rand(env) % 6] *
+                          3.14159265358979323846f / 180.0f;
+                b->vx = 16.0f * cosf(d);
+                b->vy = -16.0f * sinf(d);
+            }
+        }
+    }
+    return 0;
+}
+
 static void iwx_update_ent(IWanna* env, int idx) {
     IWXState* xs = XS(env);
     IWXEnt* e = &xs->ents[idx];
@@ -753,7 +843,25 @@ static void iwx_update_ent(IWanna* env, int idx) {
 
     case XB_MARKER: case XB_WALLSTRIP: case XB_WATER:
     case XB_CONDSOLID: case XB_LOCKCONTROLS: case XB_CARTPICKUP:
-    case XB_TETBLOCK:
+    case XB_TETBLOCK: case XB_WEAKBOX: case XB_KGCEIL:
+        return;
+
+    case XB_BOSS_TEST:      iwxb_test_step(env, e);      return;
+    case XB_BOSS_BIRDO:     iwxb_birdo_step(env, e);     return;
+    case XB_BOSS_KRAIDGIEF: iwxb_kraidgief_step(env, e); return;
+    case XB_MECHAEGG: case XB_EGGHITBOX: case XB_LAZA: case XB_FLYGUY:
+        iwxb_birdo_family_step(env, e);
+        return;
+    case XB_EGGPLAT: {                    /* movingPlatform child */
+        iwx_platform_step(env, e);
+        double l0, r0, t0v, b0;
+        iwx_ent_bbox(xs, e, &l0, &r0, &t0v, &b0);
+        if (r0 < 0) e->alive = 0;
+        return;
+    }
+    case XB_KGPROJ: case XB_KGFIRE: case XB_BLANKA:
+    case XB_KGDEBRISSPAWN: case XB_KGDEBRIS: case XB_KGSPIKE:
+        iwxb_kg_family_step(env, e);
         return;
 
     case XB_KILLER:                     /* static killer w/ optional anim */
@@ -2335,7 +2443,7 @@ static int iwx_bullet_hit(IWanna* env, float bx, float by,
         case XB_SPIKESHOOT:
             if (e->state == 0) { e->state = 1; }
             return 1;
-        case XB_BIRD: case XB_DUMBBUGZ: case XB_SPAG:
+        case XB_BIRD: case XB_DUMBBUGZ: case XB_SPAG: case XB_FLYGUY:
             e->alive = 0;
             return 1;
         case XB_MEDUSA:
@@ -2466,6 +2574,7 @@ static void iwx_contact_pass(IWanna* env) {
             }
             break;
         case XB_BIRD:
+        case XB_FLYGUY:                 /* "it's just a copy of bird" */
             if (iwx_hit_rect(xs, e, l, r, t, b) && xs->birded <= 0) {
                 xs->birded = 10;
                 env->hspeed = ((double)(iw_rand(env) % 40001) / 1000.0) - 20.0;

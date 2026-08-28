@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <math.h>
 
+#include "boss/boss_types.h"
+
 /* ------------------------------------------------------------------ *
  * On-disk records (little-endian, 4-byte aligned), pack v3 section.
  * Header reserved0/reserved1 carry x_off/x_len when version >= 3.
@@ -101,6 +103,7 @@ enum {
     XOP_SET_P,          /* p[(int)a] = b                                   */
     XOP_SPAWNBOOST,     /* player spawns with vspeed = a (castleboost)     */
     XOP_IF_P_EQ,        /* skip (int)b ops unless tgt p[(int)c] == a       */
+    XOP_CAM_MODE,       /* boss camera: a = 0 unlock / 1 lock / 2 piledrv  */
     XOP_NUM
 };
 
@@ -245,6 +248,23 @@ enum {
     XB_FRBARRIER,      /* FirstRoomBarrier closing gate (mask frames) */
     XB_SPIKEMAN,       /* FunnySpikeMan: wakes in range, walks at 4 px/f */
     XB_SPINNER,        /* FactorySpinner1/2: tipping solid (angle ramp) */
+    /* ---- boss framework classes (c_src/boss/) ---- */
+    XB_WEAKBOX,        /* boss weak point (positioned by its boss)       */
+    XB_BOSS_TEST,      /* synthetic framework-test boss                  */
+    XB_BOSS_BIRDO,     /* MechaBirdo body                                */
+    XB_MECHAEGG,       /* MechaEgg: drifts left, carries platforms       */
+    XB_EGGPLAT,        /* EggPlatform: rideable strip on the egg         */
+    XB_EGGHITBOX,      /* EggHitbox: killer riding phase-3 eggs          */
+    XB_LAZA,           /* BirdoLaza laser                                */
+    XB_FLYGUY,         /* FlyGuy: rises, then re-aims at the player      */
+    XB_BOSS_KRAIDGIEF, /* Kraidgief body                                 */
+    XB_KGPROJ,         /* KGHadouken                                     */
+    XB_KGFIRE,         /* KGFireDown / KGFireSide (one-shot flame)       */
+    XB_BLANKA,         /* rolling solid minion                           */
+    XB_KGDEBRISSPAWN,  /* 50-frame debris rain source                    */
+    XB_KGDEBRIS,       /* visual ballistic debris                        */
+    XB_KGSPIKE,        /* KraidgiefFallingSpike (shake, fall, reset)     */
+    XB_KGCEIL,         /* KraidgiefCeiling: solid destroyed by the boss  */
     XB_NUM_CLASSES
 };
 
@@ -268,7 +288,8 @@ enum { XW_PLAIN = 0, XW_YELLOW = 1, XW_WEIRD = 2 };
 
 /* camera kinds */
 enum { XCAM_NONE = 0, XCAM_HARD, XCAM_CART, XCAM_TOWER,
-       XCAM_HARD_METROID };  /* rMetroid: smooth-y past camx 2400 */
+       XCAM_HARD_METROID,   /* rMetroid: smooth-y past camx 2400 */
+       XCAM_KRAID };        /* cameraKraid: locked / follow / piledriver */
 
 /* live entity */
 typedef struct {
@@ -327,6 +348,12 @@ typedef struct {
     int pending_kill;          /* set by behaviors/ops: kill at check time */
     int pending_freeze;
     float spawn_boost;         /* castleboost: vspeed on next spawn */
+
+    /* boss framework (c_src/boss/): all zero when no boss is live */
+    IWXBossState boss[IWXB_MAX];
+    int n_boss;                /* used slots; gates every boss hook */
+    float cam_voffset;         /* one-frame camera shake (cameraKraid) */
+    uint8_t cam_locked, cam_piledriver;   /* XCAM_KRAID modes */
 } IWXState;
 
 /* ------------------------------------------------------------------ *
