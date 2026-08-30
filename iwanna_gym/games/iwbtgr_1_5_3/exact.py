@@ -1908,7 +1908,8 @@ def _emit_class2(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc, roomvars,
             for dx in (0, 32):
                 add("XB_DESTRUCTIBLE", x + dx, y - 32 + dy + 32,
                     mask=build.masks.rect_mask(32, 32),
-                    flags=XEF_SOLID, note="BiggusBrickus.column")
+                    flags=XEF_SOLID, inst=inst,
+                    note="BiggusBrickus.column")
         return True
     if obj == "blockTrapDestructible":
         add("XB_DESTRUCTIBLE", x, y, mask=build.masks.rect_mask(32, 32),

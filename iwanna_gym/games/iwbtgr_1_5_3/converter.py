@@ -25,7 +25,9 @@ from typing import Any
 from iwanna_gym.gamepack.schema import new_gamepack, new_room
 
 GAME_ID = "iwbtgr_1_5_3"
-CONVERTER_VERSION = "1.0"
+CONVERTER_VERSION = "1.1.0"
+#: frozen pack identity: bump when re-freezing a new pack version
+PACK_VERSION = "iwbtgr_1_5_3_v1"
 TILE = 32
 
 #: gameplay progression flags (global flag ids used for conditional routes)
@@ -162,7 +164,7 @@ def convert(source_root: str) -> dict[str, Any]:
 
     ir = new_gamepack(
         GAME_ID,
-        title="I Wanna Be The Guy: Remastered 1.5.3 (static world)",
+        title="I Wanna Be The Guy: Remastered 1.5.3",
         source_game="I Wanna Be The Guy: Remastered",
         source_version="1.5.3",
         source_format="GameMaker 8.2 gm82save text tree",
@@ -170,16 +172,19 @@ def convert(source_root: str) -> dict[str, Any]:
         importer_version=CONVERTER_VERSION,
     )
     ir["provenance"]["source_checksum_sha256"] = tree_sha256(source_root)
+    ir["provenance"]["pack_version"] = PACK_VERSION
     ir["global_flags"] = [
         {"id": fid, "name": name,
          "provenance": {"source_game": "IWBTGR", "source_object": "savedata"}}
         for name, fid in sorted(PROGRESSION_FLAGS.items(), key=lambda kv: kv[1])]
-    # No terminal goal in the static world: completion in the source is
-    # boss-gated (The Guy), which is dynamic content. Episodes end by
-    # death/timeout; success signals come later with boss import.
+    # Full-game completion is carried by the exact layer, not the legacy
+    # goal field: The Guy's defeat opens rEnding, whose completion event
+    # bumps game_completions and resets the run exactly as the source
+    # does (last_event 4).
     ir["completion"] = {"type": "none",
-                        "note": "completion is boss-gated (dynamic); "
-                                "not part of the static-world import"}
+                        "note": "completion lives in the exact layer: "
+                                "GuyHead defeat -> rEnding completion "
+                                "event (game_completions, last_event 4)"}
     # object definitions only for the entity kinds actually emitted
     ir["object_definitions"] = []
 

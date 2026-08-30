@@ -1,7 +1,7 @@
 {
  "game": "iwbtgr_1_5_3",
  "source_tree_sha256": "b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b",
- "converter_version": "1.0",
+ "converter_version": "1.1.0",
  "start_room_full_game": "rGuy1",
  "room_order": [
   "rInit",

@@ -1,0 +1,82 @@
+{
+ "rBowserBoss": {
+  "pack_content_sha256": "bf7cdfff730ebde86e5685eea1782daa8121b4d9b392a944c00e9950a42741c5",
+  "source_sha256": "03394713cad1287848f812652ae79646bebeabb77b251b67abca32f6cdf080a8"
+ },
+ "rCastlevania": {
+  "pack_content_sha256": "03918ec4fa20157c496635b7764911b13e0ec7fc18ca2812130ca827da140187",
+  "source_sha256": "d5973e3512e6c3b32d3d2e621135f089cc1f14ac751dfbe19f3a3057adcf3016"
+ },
+ "rDraculaBoss": {
+  "pack_content_sha256": "1fce3d78c60afda093a383ec61ecf950808311456f5342ccb41588bb2d4c608c",
+  "source_sha256": "b42f62debbe55d1a225e6b3502ceecd2461bfda437f938830d76e9895f2f5841"
+ },
+ "rEnding": {
+  "pack_content_sha256": "a804228a8836b222b6f926c1c7cdab73aa8b54f4c94d2d761df38bba53e0b26e",
+  "source_sha256": "8d75b39b426c637b6ad3faeb1c369670cfd97eb2c58654aa471c59e2d7a0fe3f"
+ },
+ "rFactoryOutskirts": {
+  "pack_content_sha256": "8a0e54042e35fe2c7a90a9fcf9de6d7e72646095e7203cbe10df6af1273098ea",
+  "source_sha256": "e5c47ee48b2bb768c1f6782c4a6a179ced39dabe1b7d5df5f1fcfb935356297a"
+ },
+ "rGraveyard": {
+  "pack_content_sha256": "c07c5aad1f0d59091d56d45d49967056978ebe4a43123dfc476a6467465374e0",
+  "source_sha256": "390d7f7657362cefa78c2abd9e89cdf022a913cc05f41a31aad7a3b0edff04a0"
+ },
+ "rGuy1": {
+  "pack_content_sha256": "13c170dae83b44195d693d3589ff14b13ba2fe5de22d431ec6d339632cce3592",
+  "source_sha256": "8ab49ff49c6674408e28bbd196d45d672f5f7f96a6d6dc91783e36006f43aaf0"
+ },
+ "rGuyBoss": {
+  "pack_content_sha256": "9e49105b4c2bc5e83b3521f41ead22cd30276aac2422f3ae4b4eefe80d393eca",
+  "source_sha256": "9461db4a8085b1d1eadc1faded6b34ed13b2a091f3400a1e92b27e43eaff177d"
+ },
+ "rGuyEntrance": {
+  "pack_content_sha256": "832b795d397322b585d70a1d9a09a935a3a33b4c350e045f12430bc4d77108d3",
+  "source_sha256": "d7841f4b727b8c6095d17b036c00841e076a0f36600903836645358399c13ae2"
+ },
+ "rGuyFortress1": {
+  "pack_content_sha256": "920255550a99a45254d21564dc9bf13bcf0160e6548664011754fe6563c35a65",
+  "source_sha256": "06d71a4378d6069629857778192682f462624aa727840ff74e2f0e32538466ea"
+ },
+ "rGuyFortress2": {
+  "pack_content_sha256": "3fc5742233e8320ae0d54d9c454002dce4a9fe4fda591c1b5c79a4ac0b215069",
+  "source_sha256": "c941ef1265e76d773be489af81a75805039d64d0edec5a4eb54183704bed9235"
+ },
+ "rGuyLabyrinth": {
+  "pack_content_sha256": "42fa804faa53d7b7e4deb1f143a17327f45baeaba54807b63bdb891bcfe098d2",
+  "source_sha256": "9b359b58e0905950792ab8444143e75650b0943b9dcd019bb51d8f0efcded28f"
+ },
+ "rGuyRoad": {
+  "pack_content_sha256": "5073d6614ec6350cbadf6ecd94b882f64b190686cdefa775b4e1902a1993471b",
+  "source_sha256": "cecbc51c2d3014ef6b9dc3a5c509d9013e6574bfc89bde82bb7fce004970a380"
+ },
+ "rGuyTower": {
+  "pack_content_sha256": "4d083e6d78cd8896c5fd5ec59518dfc666aab7918e356929bacf421080113729",
+  "source_sha256": "6abc654d6021387209328b8cd28423fb6c1b8df6d2c7d6409b866fbc6c4e1a17"
+ },
+ "rKraidgiefBoss": {
+  "pack_content_sha256": "579624a56ae4b286d4bebd8daea819ee15b23e20a876dcf6dd32f2841a53febb",
+  "source_sha256": "68b3bb0ae8122145fd2569e0c8db06227b857ea57cb28d43fdbdf74c06d93ff2"
+ },
+ "rKraidgiefLair": {
+  "pack_content_sha256": "bf815c3a6f00b1f1865f9a81fc3c6b8e868386695afdabd3201bbb3f3c9dcaae",
+  "source_sha256": "1f08338ebd58ec8fd8b7e50b3f7f90923e937884b57c177c85e53a7480a63f0f"
+ },
+ "rMechaBirdoBoss": {
+  "pack_content_sha256": "074f1704d702da32194b0836363ee0384d0e69e257b3542eb25878a200574587",
+  "source_sha256": "3fef2a4aea93378cb84041649a462970f2231e4a368d40f519de47c7a97743f1"
+ },
+ "rMegaman": {
+  "pack_content_sha256": "67b20afb3226021674bc84cb7b5781f3f6e87dd5e3b2842161e27e847fc32b80",
+  "source_sha256": "401ba9acb538cf5bd5deac6a5c0af53cff30d34d6c194cf28244ed23bb259837"
+ },
+ "rMetroid": {
+  "pack_content_sha256": "d510200052f66864e6d7f8fc151f4a7c9749965b606c85036942373db1188bd9",
+  "source_sha256": "53e5cb8ad6f0a239ce4bfc62557bda39bf199c4fa917c3147eeb2fdce50b130b"
+ },
+ "rZelda": {
+  "pack_content_sha256": "0a6ad7688a8184cd505f78065f7cb9a0c809662dcad561a23e2dc4bc9e8bc7e6",
+  "source_sha256": "02134f3f6e5eeef56e0410fe9b3e7e366cca981dfe8034a54cce04db1bf5e8b3"
+ }
+}

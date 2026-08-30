@@ -6,7 +6,7 @@ The player physics is a line-by-line C port of the [Renex GM8 fangame engine](ht
 
 ## Why
 
-The "I Wanna" series (after [I Wanna Be The Guy](https://en.wikipedia.org/wiki/I_Wanna_Be_the_Guy), 2007) is a family of extremely difficult precision platformers. Thousands of fangames share one physics engine, one hitbox, and one skill ceiling — an ideal benchmark for RL: deterministic, pixel-perfect, sparse-reward, and with a natural task distribution (levels) over fixed dynamics. No RL environment existed for it before this one.
+The "I Wanna" series (after [I Wanna Be The Guy](https://en.wikipedia.org/wiki/I_Wanna_Be_the_Guy), 2007) is a family of extremely difficult precision platformers. Thousands of fangames share one physics engine, one hitbox, and one skill ceiling — an ideal benchmark for RL: deterministic, precision-demanding, sparse-reward, and with a natural task distribution (levels) over fixed dynamics. No RL environment existed for it before this one.
 
 ## Layout
 
@@ -175,7 +175,7 @@ A new `gate` entity supports doors: `@gate 12 14 w=1 h=4 tag=2 [open=1]` stamps 
 | `t19_speedgate` | the save opens the exit gate and starts a 110-frame timer that closes it |
 | `t20_finale` | combo: door closes behind, apple arc, collapsing platform over spikes, save-keyed gate, bullet rain |
 
-Every room is verified solvable by a **scripted rule policy** (`scripts/probe_traps.py` — x-threshold rules, timed waits, steered jumps; the same style of policy a careful human would follow), and 19 of 20 kill at least one of three naive baselines (blind sprint, camp-then-sprint, periodic hop-sprint; `t19` is a timing-window room where sprinting is the intended play). `tests/test_events.py` locks all of this in: every condition and action primitive, per-room load checks, probe solvability, sprint-punishment on the signature room, and bit-exact deterministic replay of the event-heavy finale.
+Every room is verified solvable by a **scripted rule policy** (`scripts/probe_traps.py` — x-threshold rules, timed waits, steered jumps; the same style of policy a careful human would follow), and 19 of 20 kill at least one of three naive baselines (blind sprint, camp-then-sprint, periodic hop-sprint; `t19` is a timing-window room where sprinting is the intended play). `tests/test_events.py` locks all of this in: every condition and action primitive, per-room load checks, probe solvability, sprint-punishment on the signature room, and pinned deterministic replay of the event-heavy finale.
 
 ![t20 finale](docs/agent_t20_finale.gif)
 

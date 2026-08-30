@@ -1,0 +1,74 @@
+# Frozen exact-game pack: I Wanna Be The Guy: Remastered 1.5.3, v1
+#
+# This manifest is the version-freeze record for the first exact IWBTG
+# game shipped in iwanna-gym.  The pack is byte-reproducible: building
+# from the recorded source revision with the recorded importer version
+# yields exactly the recorded pack checksum.  Re-freezing (any content
+# change) bumps pack_version and re-records every value here, the
+# content-checksum fixture, and the reference traces.
+
+[pack]
+pack_version = "iwbtgr_1_5_3_v1"
+game_id = "iwbtgr_1_5_3"
+title = "I Wanna Be The Guy: Remastered 1.5.3"
+pack_file = "build/games/iwbtgr_1_5_3.iwpack"
+pack_sha256 = "af31958a5b4ab83df95120d423de2758b28b4f0dfcd356371a72280b046f52c1"
+build_reproducible = true            # two clean builds byte-identical
+rooms = 27
+gameplay_rooms = 20
+gameplay_source_instances = 7337
+
+[source]
+game = "I Wanna Be The Guy: Remastered"
+version = "1.5.3"
+format = "GameMaker 8.2 gm82save text tree"
+repository = "https://github.com/aut0mat1clol/IWBTGR-Autosplitter-mod"
+repository_commit = "244c325667f12e106b07feaa167572ef97b7a575"
+tree_root = "IWBTGR Source Files"
+tree_sha256 = "b7763bcc0cdede07640076f1623893444baa58feefcaca93471eb734382ce73b"
+
+[importer]
+module = "iwanna_gym.games.iwbtgr_1_5_3.converter"
+importer_version = "1.1.0"
+build_command = "python -m iwanna_gym.games.iwbtgr_1_5_3 build <tree_root>"
+
+[physics_profile]
+name = "iwannagym_renex"
+# line-by-line port of the Renex GM8 fangame engine player step
+frame_rate_hz = 50
+run_speed = 3.0
+jump_vspeed = -8.5
+double_jump_vspeed = -7.0
+gravity = 0.4
+vspeed_cap = 9.0
+release_multiplier = 0.45
+player_hitbox = [-5, -12, 5, 8]      # l, t, r, b around (x, y)
+rounding = "gm_banker"               # GameMaker banker's rounding
+
+[action_profile]
+name = "standard6x2"
+actions = 12
+encoding = "a = shoot_held*6 + 2*(h+1) + jump_held"
+notes = "6 movement actions x shoot; shooting fires on the press edge"
+
+[saves]
+mode = "shoot_activated"             # source-faithful (save_shoot_mode)
+difficulty_default = "medium"
+
+[verification]
+room_audit = "scripts/audit_iwbtgr_source.py"       # 20/20 rooms clean
+differential = "scripts/differential_validation.py" # 24/24 checks
+warps_walked = 39                    # every pack warp runtime-verified
+content_fixture = "tests/fixtures/iwbtgr_content_checksums.json"
+trace_fullgame_sha256 = "5bc9d787bdce706c7950abcc5a2b7d15f57de723c84def987b54a68b85993e5a"
+trace_rguy1_sha256 = "dfb0d499e311d9ac35a84956099b8d2c3470a79fa7486c4504d870a53281de46"
+trace_birdo_sha256 = "b9001ddca8cec977cbfaa573eec699984529eac472bde3743a43f11c5f8a5712"
+
+[deviations]
+# every known difference from the source, classified; the full table
+# with per-item rationale lives in docs/iwbtgr_known_deviations.md
+document = "docs/iwbtgr_known_deviations.md"
+gameplay_approximations = ["G1", "G2", "G3", "G4"]
+behaviorally_equivalent = ["E1", "E2", "E3", "E4", "E5", "E6"]
+simplified_visual = ["V1", "V2", "V3", "V4"]
+unsupported = ["U1", "U2", "U3", "U4", "U5"]

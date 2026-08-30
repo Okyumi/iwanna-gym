@@ -1,0 +1,5700 @@
+{
+ "coordinate_offsets": {
+  "rBowserBoss/BowserFloor": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/BowserWall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/ClownCar": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/FallingCeiling": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/FallingCeilingSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/FallingCeilingSwitch": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/spikeDown": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rBowserBoss/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/FallStair": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/MedusaHead": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/MedusaMaker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/MedusaModifier": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/SpikeUpExtend": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/Witch": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/WitchShadow": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rCastlevania/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rDraculaBoss/Dracform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rDraculaBoss/DraculaIntro": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rEnding/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/EggHitbox": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FactoryCeiling": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FactorySpinner1": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FactorySpinner2": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FactoryYoku": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FactoryYokuController": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/HoverGunner": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/NatsCat": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/OrbBirdo": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/OutskirtPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/PaintingTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/PlatformReset": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/Ryu": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/RyuButton": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/RyuWind": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/SniperJohn": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/Turbine": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/WeirdYellowWallL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/WeirdYellowWallR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/couchTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/platform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret1": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret2": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret3": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret4": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret5": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/secret6": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/spikeDown": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rFactoryOutskirts/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/CycleSpikeDown": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/CycleSpikeUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/FallingBlockTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/FallingSpike10frameUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/Ghoul": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/GhoulGenerator": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/Grabby": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/GraveTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/HillMove": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/MoonSmall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/PillarMove": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/SpikeUpExtend": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/blockTrapDestructible": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/deliciousFruit": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/secret2": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGraveyard/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/BoltTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FakeFallingSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FallingBrick": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FirstRoomBarrier": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FirstRoomSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/FirstRoomSpikeWall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/GuyPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/KumoPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/KumoStopper": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/RealYoku": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/RealYokuController": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/RealYokuEndTrigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/RevealingSpikesUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/Snifit": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/SnifitCannon": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/SpikeTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/TheSpikeYouShoot": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/Tyson": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/TysonBrick": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/TysonDoor": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/blockTrapDestructible": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/deliciousFruit": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/objWater2": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/platform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/secret1": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/trapStar": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuy1/triggerLockControls": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/Geye": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/GuyFirst": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/GuyHead": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/Guybrow": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/WalljumpL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/platform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyBoss/spikeRight": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyEntrance/EntranceTele": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyEntrance/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/CatThing": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FallingFort": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/Fire": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireChalice": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireOnce": [
+   [
+    0.0,
+    -2.0
+   ]
+  ],
+  "rGuyFortress1/FirePermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireShort": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireShortPermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireSometimes": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireSometimesPermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/FireSometimesUpside": [
+   [
+    0.0,
+    32.0
+   ]
+  ],
+  "rGuyFortress1/Grabby": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/LongForm": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/WalljumpL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress1/yellowallL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/ArkaBall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/ArkaBrick": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/ArkaBrickShort": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/ArkaPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/BounceDown": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/BounceLeft": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/BounceRight": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/BounceUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/BouncyFruit": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/Eggplant": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/FallingFort": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/Fire": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/FireShortPermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/FireSometimesPermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/GradiusBoss": [
+   [
+    16.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/GradiusBugz": [
+   [
+    0.0,
+    16.0
+   ]
+  ],
+  "rGuyFortress2/GradiusDrones": [
+   [
+    16.0,
+    8.0
+   ]
+  ],
+  "rGuyFortress2/GradiusMarker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/Higger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/LongForm": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/LuBooHoo": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/MoonSmall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/RevealingSpikesUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/Sinistar": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/VicViper": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/WalljumpL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/blockTrapDestructible": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/secret6": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/yellowallL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyFortress2/yellowallR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyLabyrinth/FireSometimesPermanent": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyLabyrinth/Kamek": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyLabyrinth/WatchFor": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyLabyrinth/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/BiggusBrickus": [
+   [
+    0.0,
+    -128.0
+   ],
+   [
+    0.0,
+    -96.0
+   ],
+   [
+    0.0,
+    -64.0
+   ],
+   [
+    0.0,
+    -32.0
+   ],
+   [
+    0.0,
+    0.0
+   ],
+   [
+    32.0,
+    -128.0
+   ],
+   [
+    32.0,
+    -96.0
+   ],
+   [
+    32.0,
+    -64.0
+   ],
+   [
+    32.0,
+    -32.0
+   ],
+   [
+    32.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/BulletTrigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/Cart": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/CartSpeedup": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/CartStopper": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/CheepController": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/Dragon": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/DragonBlock": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/DragonMarker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/DragonMarker2": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/DumpMoment": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/FallingSpike10frameUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/NatsCat": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/RoadBulletBill": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/RoadCheep": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/RoadMoon": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyRoad/yellowallL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyTower/AscentPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyTower/AscentSpeedMod": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyTower/LongForm": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rGuyTower/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/KraidgiefCeiling": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/KraidgiefFallingSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/OrbKraidgief": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/blockTrapDestructible": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/spikeUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefBoss/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/FallingCave": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/FallingSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/FlyingSpike": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/FunnySpikeMan": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/WalljumpL": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/WalljumpR": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/WheelTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/blockTrapDestructible": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/deliciousFruit": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/secret5": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/spikeUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/tetrisController": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rKraidgiefLair/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMechaBirdoBoss/MechaBirdo": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMechaBirdoBoss/MoonSmall": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/BlownEntrance": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/FactoryPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/Hammer": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/HammerTrigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/QuickLaser": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/QuickLaserTimer": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/movingPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/spikeDown": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMegaman/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/ChozoOrb": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/Crawler": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/FallingSpike10frame": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/MommyThinker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/OrbMother": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/RevealingSpikesUp": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/ShootyBarrier": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/Skwee": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/SkweeTrigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/SoftlockBlocker": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/SpaghettiosDispenser": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/TourianBarrier": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/TourianTurret": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/blockNise": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/metroidPlatform": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/metroidTrap": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rMetroid/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rZelda/Lonk": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rZelda/ZeldaFire": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rZelda/ZeldaOldMan": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rZelda/ZeldaSword": [
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "rZelda/trigger": [
+   [
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "edge_walk": [
+  {
+   "cond": false,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rKraidgiefLair",
+   "x": 400.0,
+   "y": 1840.0
+  },
+  {
+   "cond": false,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rZelda",
+   "x": 4816.0,
+   "y": 1424.0
+  },
+  {
+   "cond": false,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rMegaman",
+   "x": 4016.0,
+   "y": 2128.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rGuy1",
+   "x": 848.0,
+   "y": 1488.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 848.0,
+   "y": 1616.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rMegaman",
+   "x": 912.0,
+   "y": 1616.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 1488.0,
+   "y": 1616.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 1552.0,
+   "y": 1616.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rBowserBoss",
+   "x": 1552.0,
+   "y": 1488.0
+  },
+  {
+   "cond": true,
+   "from": "rGuy1",
+   "ok": true,
+   "to": "rGuyTower",
+   "x": 1200.0,
+   "y": 1680.0
+  },
+  {
+   "cond": false,
+   "from": "rZelda",
+   "ok": true,
+   "to": "rGraveyard",
+   "x": 816.0,
+   "y": 992.0
+  },
+  {
+   "cond": false,
+   "from": "rZelda",
+   "ok": true,
+   "to": "rZelda",
+   "x": 400.0,
+   "y": 560.0
+  },
+  {
+   "cond": false,
+   "from": "rZelda",
+   "ok": true,
+   "to": "rZelda",
+   "x": 226.0,
+   "y": 831.0
+  },
+  {
+   "cond": false,
+   "from": "rGraveyard",
+   "ok": true,
+   "to": "rZelda",
+   "x": -16.0,
+   "y": 784.0
+  },
+  {
+   "cond": false,
+   "from": "rGraveyard",
+   "ok": true,
+   "to": "rMechaBirdoBoss",
+   "x": 2800.0,
+   "y": 1232.0
+  },
+  {
+   "cond": false,
+   "from": "rKraidgiefLair",
+   "ok": true,
+   "to": "rKraidgiefBoss",
+   "x": 5328.0,
+   "y": 1840.0
+  },
+  {
+   "cond": false,
+   "from": "rKraidgiefBoss",
+   "ok": true,
+   "to": "rMegaman",
+   "x": 1616.0,
+   "y": 784.0
+  },
+  {
+   "cond": false,
+   "from": "rMegaman",
+   "ok": true,
+   "to": "rMetroid",
+   "x": 2000.0,
+   "y": 1840.0
+  },
+  {
+   "cond": false,
+   "from": "rMegaman",
+   "ok": true,
+   "to": "rBowserBoss",
+   "x": 2416.0,
+   "y": 1008.0
+  },
+  {
+   "cond": false,
+   "from": "rBowserBoss",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 1616.0,
+   "y": 480.0
+  },
+  {
+   "cond": false,
+   "from": "rBowserBoss",
+   "ok": true,
+   "to": "rMegaman",
+   "x": -19.0,
+   "y": 400.0
+  },
+  {
+   "cond": false,
+   "from": "rMetroid",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 2800.0,
+   "y": 80.0
+  },
+  {
+   "cond": false,
+   "from": "rMetroid",
+   "ok": true,
+   "to": "rMegaman",
+   "x": 2000.0,
+   "y": 592.0
+  },
+  {
+   "cond": false,
+   "from": "rFactoryOutskirts",
+   "ok": true,
+   "to": "rGuyEntrance",
+   "x": 3984.0,
+   "y": 912.0
+  },
+  {
+   "cond": false,
+   "from": "rFactoryOutskirts",
+   "ok": true,
+   "to": "rGuyEntrance",
+   "x": 3216.0,
+   "y": 912.0
+  },
+  {
+   "cond": true,
+   "from": "rFactoryOutskirts",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 2816.0,
+   "y": 576.0
+  },
+  {
+   "cond": false,
+   "from": "rFactoryOutskirts",
+   "ok": true,
+   "to": "rCastlevania",
+   "x": 2816.0,
+   "y": 576.0
+  },
+  {
+   "cond": false,
+   "from": "rCastlevania",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 1616.0,
+   "y": 912.0
+  },
+  {
+   "cond": false,
+   "from": "rCastlevania",
+   "ok": true,
+   "to": "rDraculaBoss",
+   "x": -16.0,
+   "y": 384.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyEntrance",
+   "ok": true,
+   "to": "rGuy1",
+   "x": 80.0,
+   "y": 528.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyEntrance",
+   "ok": true,
+   "to": "rGuy1",
+   "x": 720.0,
+   "y": 528.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyEntrance",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": -16.0,
+   "y": 304.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyEntrance",
+   "ok": true,
+   "to": "rFactoryOutskirts",
+   "x": 816.0,
+   "y": 304.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyFortress1",
+   "ok": true,
+   "to": "rGuyLabyrinth",
+   "x": 2416.0,
+   "y": 176.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyLabyrinth",
+   "ok": true,
+   "to": "rGuyFortress2",
+   "x": 2416.0,
+   "y": 1664.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyLabyrinth",
+   "ok": true,
+   "to": "rGuyFortress1",
+   "x": 784.0,
+   "y": 176.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyFortress2",
+   "ok": true,
+   "to": "rGuyLabyrinth",
+   "x": -16.0,
+   "y": 464.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyFortress2",
+   "ok": true,
+   "to": "rGuyTower",
+   "x": 4816.0,
+   "y": 1664.0
+  },
+  {
+   "cond": false,
+   "from": "rGuyTower",
+   "ok": true,
+   "to": "rGuyBoss",
+   "x": 816.0,
+   "y": 416.0
+  }
+ ],
+ "event_inventory": {
+  "AndDownIGo": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "ArkaBall": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_BounceDown",
+    "Collision_BounceRight",
+    "Collision_BounceUp",
+    "Collision_BounceLeft",
+    "Other_10"
+   ]
+  },
+  "ArkaBrick": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "ArkaBrickShort": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "ArkaPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2"
+   ]
+  },
+  "AscentPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "AscentSpeedMod": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "BiggusBrickus": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_Cart"
+   ]
+  },
+  "BlownEntrance": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "BoltTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Bosnwentr": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "BossTeleporter": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "BounceDown": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "BounceLeft": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "BounceRight": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "BounceUp": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "BouncyFruit": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_BounceDown",
+    "Collision_BounceRight",
+    "Collision_BounceUp",
+    "Collision_BounceLeft"
+   ]
+  },
+  "BowserFloor": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Other_7"
+   ]
+  },
+  "BowserWall": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "BulletTrigger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "CampingNoobs": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "Cart": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_blockNise",
+    "Collision_CartSpeedup",
+    "Collision_BulletTrigger",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "CartSpeedup": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "CartStopper": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "CastlevaniaSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "CatThing": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "CheepController": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0",
+    "Other_4"
+   ]
+  },
+  "ChozoOrb": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Collision_bullet"
+   ]
+  },
+  "ClownCar": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_BowserExplosion",
+    "Other_5",
+    "Other_8",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "Crawler": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_blockNise"
+   ]
+  },
+  "CycleSpikeDown": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "CycleSpikeUp": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "DeadGuy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "DeadGuyBrow": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "DeadGuyMouth": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Dracform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "DraculaIntro": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_5",
+    "Other_7",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "Dragon": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_blockTrapDestructible",
+    "Collision_DragonMarker",
+    "Collision_DragonMarker2",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "DragonBlock": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Other_10"
+   ]
+  },
+  "DragonMarker": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "DragonMarker2": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "DumpMoment": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "EggHitbox": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "Eggplant": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_BounceDown",
+    "Collision_BounceUp"
+   ]
+  },
+  "EndingGun1": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2",
+    "Collision_blockNise"
+   ]
+  },
+  "EndingKid1": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2",
+    "Collision_blockNise",
+    "Draw_0"
+   ]
+  },
+  "EndingKid2": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Alarm_2",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "EndingSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "EndingSkybox2": {
+   "bucket": "excluded_visual",
+   "draw_only": true,
+   "events": [
+    "Draw_0"
+   ]
+  },
+  "EntranceController": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "EntranceStatue1": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceStatue2": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceStatue3": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceStatue4": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceStatue5": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceStatue6": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "EntranceTele": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player",
+    "Collision_bloodEmitter"
+   ]
+  },
+  "FactoryCeiling": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "FactoryPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FactorySkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "FactorySpinner1": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "FactorySpinner2": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "FactoryYoku": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FactoryYokuController": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "FakeFallingSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallStair": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallingBlockTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "FallingBrick": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "FallingCave": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallingCeiling": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "FallingCeilingSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "FallingCeilingSwitch": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "FallingFort": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallingSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallingSpike10frame": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FallingSpike10frameUp": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "Fire": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2"
+   ]
+  },
+  "FireChalice": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_block",
+    "Other_10"
+   ]
+  },
+  "FireGlow": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FireOnce": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "FirePermanent": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2"
+   ]
+  },
+  "FireShort": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2"
+   ]
+  },
+  "FireShortPermanent": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2"
+   ]
+  },
+  "FireSometimes": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "FireSometimesPermanent": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "FireSometimesUpside": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "FirstRoomBarrier": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Alarm_2",
+    "Other_10"
+   ]
+  },
+  "FirstRoomSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_2",
+    "Alarm_3",
+    "Collision_FirstRoomSpikeWall",
+    "Other_10"
+   ]
+  },
+  "FirstRoomSpikeWall": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "FlyingSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "FortressSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "FunnySpikeMan": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_block"
+   ]
+  },
+  "Geye": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Step_0",
+    "Collision_bullet",
+    "Other_7"
+   ]
+  },
+  "Ghoul": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_block",
+    "Collision_bullet"
+   ]
+  },
+  "GhoulGenerator": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_block"
+   ]
+  },
+  "GlAsshole": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Other_7"
+   ]
+  },
+  "Glass1": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Glass2": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Glass3": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Glass4": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Glass5": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Grabby": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "GradiusBoss": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_GradiusMarker",
+    "Collision_VicBullet",
+    "Other_7"
+   ]
+  },
+  "GradiusBugz": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_GradiusMarker",
+    "Collision_VicBullet"
+   ]
+  },
+  "GradiusDrones": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_GradiusMarker",
+    "Collision_VicBullet",
+    "Other_7"
+   ]
+  },
+  "GradiusMarker": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "GraveTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player",
+    "Other_7"
+   ]
+  },
+  "GraveyardSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "GutsStarLarge": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "GutsStarMedium": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "GutsStarSmall": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "GuyDarkness": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Step_1"
+   ]
+  },
+  "GuyFirst": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_GuyBouncingBullet",
+    "Other_5",
+    "Other_8",
+    "Draw_0"
+   ]
+  },
+  "GuyHead": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Other_5",
+    "Draw_0"
+   ]
+  },
+  "GuyPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2",
+    "Collision_blockNise"
+   ]
+  },
+  "GuySkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "Guybrow": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Collision_bullet",
+    "Other_10"
+   ]
+  },
+  "Hammer": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_2",
+    "Collision_blockNise"
+   ]
+  },
+  "HammerTrigger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "Higger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "HillMove": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "HoverGunner": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_7"
+   ]
+  },
+  "JumpRefresher": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "Kamek": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "KraidSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "KraidgiefCeiling": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Destroy_0"
+   ]
+  },
+  "KraidgiefFallingSpike": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "KumoPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2",
+    "Collision_KumoStopper"
+   ]
+  },
+  "KumoStopper": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "LongForm": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Lonk": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "LuBooHoo": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_BowserFireClassic"
+   ]
+  },
+  "MechaBirdo": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Alarm_2",
+    "Alarm_3",
+    "Alarm_4",
+    "Alarm_5",
+    "Alarm_6",
+    "Step_0",
+    "Other_7",
+    "Draw_0"
+   ]
+  },
+  "MechaWarning": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Draw_0"
+   ]
+  },
+  "MedusaHead": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_MedusaModifier"
+   ]
+  },
+  "MedusaMaker": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0"
+   ]
+  },
+  "MedusaModifier": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "MommyThinker": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "MoonBigDeco": {
+   "bucket": "excluded_visual",
+   "draw_only": true,
+   "events": [
+    "Draw_0"
+   ]
+  },
+  "MoonSmall": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "MotherBrainPlatform": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "NatsCat": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Destroy_0",
+    "Step_0",
+    "Collision_bullet",
+    "Collision_Fire",
+    "Collision_CUTE_KITTY_BOOM",
+    "Draw_0"
+   ]
+  },
+  "OrbBirdo": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "OrbKraidgief": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "OrbMother": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "OutskirtPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "PaintingTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "PillarMove": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "PlatformReset": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_10"
+   ]
+  },
+  "PlayerSign": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "QuickLaser": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "QuickLaserTimer": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "RealYoku": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_1",
+    "Alarm_2",
+    "Other_10"
+   ]
+  },
+  "RealYokuController": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Collision_player"
+   ]
+  },
+  "RealYokuEndTrigger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "RevealingSpikesUp": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Alarm_0",
+    "Step_0",
+    "Other_10"
+   ]
+  },
+  "RoadBulletBill": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "RoadCheep": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_player",
+    "Collision_bullet"
+   ]
+  },
+  "RoadMoon": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2"
+   ]
+  },
+  "RoadSkybox": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "RoadSkybox2": {
+   "bucket": "excluded_visual",
+   "draw_only": true,
+   "events": [
+    "Draw_0"
+   ]
+  },
+  "RoadSkybox3": {
+   "bucket": "excluded_visual",
+   "draw_only": true,
+   "events": [
+    "Draw_0"
+   ]
+  },
+  "RoadStar": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2"
+   ]
+  },
+  "RunBoshy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "Ryu": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_FactoryCeiling",
+    "Collision_RyuWind",
+    "Other_8"
+   ]
+  },
+  "RyuButton": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_10",
+    "Other_11"
+   ]
+  },
+  "RyuWind": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "Samus": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_8",
+    "Other_10"
+   ]
+  },
+  "ShootyBarrier": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_bullet"
+   ]
+  },
+  "Sinistar": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_player",
+    "Collision_bullet",
+    "Collision_VicViper"
+   ]
+  },
+  "Skwee": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_block",
+    "Collision_bullet",
+    "Other_7"
+   ]
+  },
+  "SkweeTrigger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "Snifit": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "SnifitCannon": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "SniperJohn": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_7"
+   ]
+  },
+  "SoftlockBlocker": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "SpaghettiosDispenser": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "SpikeTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_2"
+   ]
+  },
+  "SpikeUpExtend": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "SpinningBirdoFloor": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "SpinningFortBrick": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "StaticEgg": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "TextBlock": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "TheSpikeYouShoot": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0",
+    "Collision_player",
+    "Collision_bullet",
+    "Draw_0"
+   ]
+  },
+  "Torizo": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "TourianBarrier": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "TourianTurret": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "Turbine": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_7"
+   ]
+  },
+  "Tyson": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Step_0",
+    "Other_5",
+    "Other_10",
+    "Draw_0"
+   ]
+  },
+  "TysonBrick": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "TysonDoor": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Other_7"
+   ]
+  },
+  "TysonReferee": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": []
+  },
+  "TysonStar": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0"
+   ]
+  },
+  "VicViper": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player",
+    "Collision_block",
+    "Collision_spikeUp",
+    "Collision_bloodEmitter",
+    "Collision_GradiusBugz",
+    "Collision_GradiusDrones",
+    "Collision_GradiusBoss",
+    "Collision_GradiusDroneBullet",
+    "Collision_GradiusFruit",
+    "Other_10",
+    "Other_11"
+   ]
+  },
+  "WallCrack": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Collision_player",
+    "Collision_bullet"
+   ]
+  },
+  "WalljumpL": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "WalljumpR": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "WatchFor": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0"
+   ]
+  },
+  "WeirdYellowWallL": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "WeirdYellowWallR": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "WheelTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Alarm_0",
+    "Step_0",
+    "Collision_deliciousFruit",
+    "Collision_blockTrapDestructible",
+    "Draw_0"
+   ]
+  },
+  "Witch": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_blockNise"
+   ]
+  },
+  "WitchShadow": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "WonSign": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "ZeldaCollision": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "ZeldaFire": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0"
+   ]
+  },
+  "ZeldaHearts": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Step_2"
+   ]
+  },
+  "ZeldaOldMan": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Other_4",
+    "Other_5",
+    "Draw_0"
+   ]
+  },
+  "ZeldaSword": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player",
+    "Other_7",
+    "Draw_0"
+   ]
+  },
+  "block": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "blockFake": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Destroy_0",
+    "Collision_player",
+    "Other_4"
+   ]
+  },
+  "blockKill": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "blockMini": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "blockNise": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "blockTrapDestructible": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Destroy_0"
+   ]
+  },
+  "blockYoku": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0",
+    "Collision_bullet"
+   ]
+  },
+  "blockYokuTile": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet"
+   ]
+  },
+  "cameraCart": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_2"
+   ]
+  },
+  "cameraHard": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2",
+    "Other_10"
+   ]
+  },
+  "cameraKraid": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2"
+   ]
+  },
+  "cameraTower": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2",
+    "Other_10"
+   ]
+  },
+  "couchTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player",
+    "Other_7"
+   ]
+  },
+  "decoGameover": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "decoKumo3": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "decoKumoLayer": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Draw_0"
+   ]
+  },
+  "decoStar": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "deliciousFruit": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_2",
+    "Other_0"
+   ]
+  },
+  "kumoLeft": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "kumoRight": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "metroidPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "metroidTrap": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Collision_player"
+   ]
+  },
+  "movingPlatform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Step_0",
+    "Collision_blockNise",
+    "Draw_0"
+   ]
+  },
+  "musicChanger": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0"
+   ]
+  },
+  "objWater2": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "platform": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "playerStart": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "saveHard": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "saveMedium": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "saveVeryEvil": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet"
+   ]
+  },
+  "saveVeryHard": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_bullet",
+    "Other_4",
+    "Other_7",
+    "Other_10"
+   ]
+  },
+  "secret1": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret1trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "secret2": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret2trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "secret3": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret3trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "secret4": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret4trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "secret5": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret5trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "secret6": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Collision_player"
+   ]
+  },
+  "secret6trophy": {
+   "bucket": "excluded_visual",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "spikeDown": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": [
+    "Step_0"
+   ]
+  },
+  "spikeLeft": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "spikeRight": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "spikeUp": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": []
+  },
+  "tetrisController": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Step_0",
+    "Draw_0"
+   ]
+  },
+  "trapStar": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0"
+   ]
+  },
+  "trigger": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Create_0",
+    "Alarm_0",
+    "Alarm_1",
+    "Trigger_post"
+   ]
+  },
+  "triggerLockControls": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": [
+    "Collision_player"
+   ]
+  },
+  "warp": {
+   "bucket": "static_solid",
+   "draw_only": false,
+   "events": [
+    "Collision_player",
+    "Collision_bloodEmitter"
+   ]
+  },
+  "yellowallL": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  },
+  "yellowallR": {
+   "bucket": "entity",
+   "draw_only": false,
+   "events": []
+  }
+ },
+ "failures": [],
+ "rooms": {
+  "rBowserBoss": {
+   "buckets": {
+    "camera": 1,
+    "entity": 55,
+    "excluded": 1,
+    "lowered": 61,
+    "static_solid": 0
+   },
+   "killer_rects": 5,
+   "object_to_class": {
+    "": {
+     "1": 2
+    },
+    "BowserFloor": {
+     "136": 2
+    },
+    "BowserWall": {
+     "83": 5
+    },
+    "ClownCar": {
+     "125": 1
+    },
+    "FallingCeiling": {
+     "133": 25
+    },
+    "FallingCeilingSpike": {
+     "134": 2
+    },
+    "FallingCeilingSwitch": {
+     "135": 1
+    },
+    "spikeDown": {
+     "133": 18
+    },
+    "trigger": {
+     "71": 1
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "bf7cdfff730ebde86e5685eea1782daa8121b4d9b392a944c00e9950a42741c5",
+   "pack_dims": [
+    1600,
+    608
+   ],
+   "runtime_dims": [
+    1600,
+    608
+   ],
+   "source_sha256": "03394713cad1287848f812652ae79646bebeabb77b251b67abca32f6cdf080a8",
+   "src_dims": [
+    1600,
+    608
+   ],
+   "src_instances": 118,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rCastlevania": {
+   "buckets": {
+    "camera": 1,
+    "entity": 33,
+    "excluded": 3,
+    "lowered": 141,
+    "static_solid": 0
+   },
+   "killer_rects": 3,
+   "object_to_class": {
+    "FallStair": {
+     "3": 1
+    },
+    "FallStair.hitbox": {
+     "64": 1
+    },
+    "MedusaHead": {
+     "20": 1
+    },
+    "MedusaMaker": {
+     "21": 2
+    },
+    "MedusaModifier": {
+     "0": 1
+    },
+    "SpikeUpExtend": {
+     "5": 1
+    },
+    "SpikeUpExtend.blockKill": {
+     "1": 1
+    },
+    "Witch": {
+     "42": 1
+    },
+    "WitchShadow": {
+     "43": 1
+    },
+    "blockNise": {
+     "0": 10
+    },
+    "movingPlatform": {
+     "48": 12
+    },
+    "trigger": {
+     "71": 3
+    }
+   },
+   "pack_checkpoints": 3,
+   "pack_content_sha256": "03918ec4fa20157c496635b7764911b13e0ec7fc18ca2812130ca827da140187",
+   "pack_dims": [
+    1600,
+    1216
+   ],
+   "runtime_dims": [
+    1600,
+    1216
+   ],
+   "source_sha256": "d5973e3512e6c3b32d3d2e621135f089cc1f14ac751dfbe19f3a3057adcf3016",
+   "src_dims": [
+    1600,
+    1216
+   ],
+   "src_instances": 178,
+   "src_saves_by_diff": [
+    3,
+    2,
+    1
+   ]
+  },
+  "rDraculaBoss": {
+   "buckets": {
+    "camera": 0,
+    "entity": 5,
+    "excluded": 0,
+    "lowered": 40,
+    "static_solid": 0
+   },
+   "killer_rects": 35,
+   "object_to_class": {
+    "Dracform": {
+     "167": 4
+    },
+    "DraculaIntro": {
+     "115": 1
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "1fce3d78c60afda093a383ec61ecf950808311456f5342ccb41588bb2d4c608c",
+   "pack_dims": [
+    800,
+    608
+   ],
+   "runtime_dims": [
+    800,
+    608
+   ],
+   "source_sha256": "b42f62debbe55d1a225e6b3502ceecd2461bfda437f938830d76e9895f2f5841",
+   "src_dims": [
+    800,
+    608
+   ],
+   "src_instances": 45,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rEnding": {
+   "buckets": {
+    "camera": 0,
+    "entity": 2,
+    "excluded": 63,
+    "lowered": 44,
+    "static_solid": 0
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "blockNise": {
+     "0": 2
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "a804228a8836b222b6f926c1c7cdab73aa8b54f4c94d2d761df38bba53e0b26e",
+   "pack_dims": [
+    800,
+    4040
+   ],
+   "runtime_dims": [
+    800,
+    4040
+   ],
+   "source_sha256": "8d75b39b426c637b6ad3faeb1c369670cfd97eb2c58654aa471c59e2d7a0fe3f",
+   "src_dims": [
+    800,
+    4040
+   ],
+   "src_instances": 109,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rFactoryOutskirts": {
+   "buckets": {
+    "camera": 1,
+    "entity": 315,
+    "excluded": 16,
+    "lowered": 772,
+    "static_solid": 0
+   },
+   "killer_rects": 56,
+   "object_to_class": {
+    "EggHitbox": {
+     "1": 1
+    },
+    "FactoryCeiling": {
+     "83": 1
+    },
+    "FactorySpinner1": {
+     "95": 1
+    },
+    "FactorySpinner2": {
+     "95": 1
+    },
+    "FactoryYoku": {
+     "60": 121
+    },
+    "FactoryYokuController": {
+     "59": 1
+    },
+    "FallingSpike10frame": {
+     "3": 1
+    },
+    "HoverGunner": {
+     "25": 13
+    },
+    "NatsCat": {
+     "68": 7
+    },
+    "OrbBirdo": {
+     "80": 1
+    },
+    "OutskirtPlatform": {
+     "49": 3
+    },
+    "PaintingTrap": {
+     "13": 2
+    },
+    "PlatformReset": {
+     "66": 1
+    },
+    "Ryu": {
+     "76": 1
+    },
+    "RyuButton": {
+     "66": 1
+    },
+    "RyuWind": {
+     "77": 1
+    },
+    "SniperJohn": {
+     "27": 1
+    },
+    "Turbine": {
+     "1": 1
+    },
+    "WeirdYellowWallL": {
+     "86": 46
+    },
+    "WeirdYellowWallR": {
+     "86": 50
+    },
+    "blockNise": {
+     "0": 2
+    },
+    "couchTrap": {
+     "17": 9
+    },
+    "movingPlatform": {
+     "48": 11
+    },
+    "platform": {
+     "0": 18
+    },
+    "secret1": {
+     "81": 1
+    },
+    "secret2": {
+     "81": 1
+    },
+    "secret3": {
+     "81": 2
+    },
+    "secret4": {
+     "81": 1
+    },
+    "secret5": {
+     "81": 1
+    },
+    "secret6": {
+     "81": 1
+    },
+    "spikeDown": {
+     "4": 2
+    },
+    "trigger": {
+     "71": 11
+    }
+   },
+   "pack_checkpoints": 15,
+   "pack_content_sha256": "8a0e54042e35fe2c7a90a9fcf9de6d7e72646095e7203cbe10df6af1273098ea",
+   "pack_dims": [
+    4800,
+    3648
+   ],
+   "runtime_dims": [
+    4800,
+    3648
+   ],
+   "source_sha256": "e5c47ee48b2bb768c1f6782c4a6a179ced39dabe1b7d5df5f1fcfb935356297a",
+   "src_dims": [
+    4800,
+    3648
+   ],
+   "src_instances": 1104,
+   "src_saves_by_diff": [
+    15,
+    10,
+    5
+   ]
+  },
+  "rGraveyard": {
+   "buckets": {
+    "camera": 1,
+    "entity": 126,
+    "excluded": 4,
+    "lowered": 289,
+    "static_solid": 0
+   },
+   "killer_rects": 3,
+   "object_to_class": {
+    "CycleSpikeDown": {
+     "2": 5
+    },
+    "CycleSpikeUp": {
+     "2": 6
+    },
+    "FallingBlockTrap": {
+     "3": 1
+    },
+    "FallingSpike10frame": {
+     "3": 2
+    },
+    "FallingSpike10frameUp": {
+     "3": 1
+    },
+    "Ghoul": {
+     "23": 3
+    },
+    "GhoulGenerator": {
+     "24": 5
+    },
+    "Grabby": {
+     "2": 3
+    },
+    "GraveTrap": {
+     "2": 7
+    },
+    "HillMove": {
+     "56": 1
+    },
+    "MoonSmall": {
+     "78": 5
+    },
+    "PillarMove": {
+     "55": 1
+    },
+    "PillarMove.platform": {
+     "0": 1
+    },
+    "SoftlockBlocker": {
+     "0": 5
+    },
+    "SpikeUpExtend": {
+     "5": 1
+    },
+    "SpikeUpExtend.blockKill": {
+     "1": 1
+    },
+    "WalljumpR": {
+     "86": 9
+    },
+    "blockTrapDestructible": {
+     "85": 22
+    },
+    "deliciousFruit": {
+     "73": 13
+    },
+    "movingPlatform": {
+     "48": 8
+    },
+    "secret2": {
+     "81": 1
+    },
+    "trigger": {
+     "71": 27
+    }
+   },
+   "pack_checkpoints": 6,
+   "pack_content_sha256": "c07c5aad1f0d59091d56d45d49967056978ebe4a43123dfc476a6467465374e0",
+   "pack_dims": [
+    4000,
+    1216
+   ],
+   "runtime_dims": [
+    4000,
+    1216
+   ],
+   "source_sha256": "390d7f7657362cefa78c2abd9e89cdf022a913cc05f41a31aad7a3b0edff04a0",
+   "src_dims": [
+    4000,
+    1216
+   ],
+   "src_instances": 420,
+   "src_saves_by_diff": [
+    6,
+    3,
+    1
+   ]
+  },
+  "rGuy1": {
+   "buckets": {
+    "camera": 1,
+    "entity": 443,
+    "excluded": 142,
+    "lowered": 528,
+    "static_solid": 10
+   },
+   "killer_rects": 34,
+   "object_to_class": {
+    "BoltTrap": {
+     "4": 2
+    },
+    "FakeFallingSpike": {
+     "3": 3
+    },
+    "FallingBrick": {
+     "49": 1
+    },
+    "FallingSpike10frame": {
+     "3": 9
+    },
+    "FirstRoomBarrier": {
+     "93": 3
+    },
+    "FirstRoomSpike": {
+     "92": 3
+    },
+    "FirstRoomSpikeWall": {
+     "0": 6
+    },
+    "GuyPlatform": {
+     "54": 12
+    },
+    "KumoPlatform": {
+     "53": 4
+    },
+    "KumoStopper": {
+     "0": 3
+    },
+    "RealYoku": {
+     "62": 6
+    },
+    "RealYokuController": {
+     "61": 1
+    },
+    "RealYokuEndTrigger": {
+     "71": 1
+    },
+    "RevealingSpikesUp": {
+     "6": 2
+    },
+    "Snifit": {
+     "1": 1
+    },
+    "SnifitCannon": {
+     "88": 1
+    },
+    "SnifitCannon.laser": {
+     "1": 1
+    },
+    "SoftlockBlocker": {
+     "0": 15
+    },
+    "SpikeTrap": {
+     "7": 1
+    },
+    "SpikeTrap.blockKill": {
+     "1": 1
+    },
+    "TheSpikeYouShoot": {
+     "19": 1
+    },
+    "Tyson": {
+     "112": 1
+    },
+    "TysonBrick": {
+     "85": 49
+    },
+    "TysonDoor": {
+     "114": 2
+    },
+    "blockNise": {
+     "0": 3
+    },
+    "blockTrapDestructible": {
+     "85": 73
+    },
+    "deliciousFruit": {
+     "73": 182
+    },
+    "movingPlatform": {
+     "48": 3
+    },
+    "objWater2": {
+     "87": 4
+    },
+    "platform": {
+     "0": 2
+    },
+    "secret1": {
+     "81": 1
+    },
+    "trapStar": {
+     "1": 1
+    },
+    "trigger": {
+     "71": 46
+    },
+    "triggerLockControls": {
+     "72": 1
+    }
+   },
+   "pack_checkpoints": 8,
+   "pack_content_sha256": "13c170dae83b44195d693d3589ff14b13ba2fe5de22d431ec6d339632cce3592",
+   "pack_dims": [
+    4800,
+    2432
+   ],
+   "runtime_dims": [
+    4800,
+    2432
+   ],
+   "source_sha256": "8ab49ff49c6674408e28bbd196d45d672f5f7f96a6d6dc91783e36006f43aaf0",
+   "src_dims": [
+    4800,
+    2432
+   ],
+   "src_instances": 1124,
+   "src_saves_by_diff": [
+    8,
+    5,
+    2
+   ]
+  },
+  "rGuyBoss": {
+   "buckets": {
+    "camera": 0,
+    "entity": 52,
+    "excluded": 7,
+    "lowered": 30,
+    "static_solid": 0
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "Geye": {
+     "160": 2
+    },
+    "GuyFirst": {
+     "155": 1
+    },
+    "GuyHead": {
+     "159": 1
+    },
+    "Guybrow": {
+     "165": 2
+    },
+    "WalljumpL": {
+     "86": 20
+    },
+    "WalljumpR": {
+     "86": 20
+    },
+    "platform": {
+     "0": 2
+    },
+    "spikeRight": {
+     "4": 4
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "9e49105b4c2bc5e83b3521f41ead22cd30276aac2422f3ae4b4eefe80d393eca",
+   "pack_dims": [
+    800,
+    1216
+   ],
+   "runtime_dims": [
+    800,
+    1216
+   ],
+   "source_sha256": "9461db4a8085b1d1eadc1faded6b34ed13b2a091f3400a1e92b27e43eaff177d",
+   "src_dims": [
+    800,
+    1216
+   ],
+   "src_instances": 89,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rGuyEntrance": {
+   "buckets": {
+    "camera": 0,
+    "entity": 6,
+    "excluded": 7,
+    "lowered": 16,
+    "static_solid": 0
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "EntranceTele": {
+     "82": 1
+    },
+    "SoftlockBlocker": {
+     "0": 5
+    }
+   },
+   "pack_checkpoints": 1,
+   "pack_content_sha256": "832b795d397322b585d70a1d9a09a935a3a33b4c350e045f12430bc4d77108d3",
+   "pack_dims": [
+    800,
+    608
+   ],
+   "runtime_dims": [
+    800,
+    608
+   ],
+   "source_sha256": "d7841f4b727b8c6095d17b036c00841e076a0f36600903836645358399c13ae2",
+   "src_dims": [
+    800,
+    608
+   ],
+   "src_instances": 29,
+   "src_saves_by_diff": [
+    1,
+    1,
+    1
+   ]
+  },
+  "rGuyFortress1": {
+   "buckets": {
+    "camera": 1,
+    "entity": 152,
+    "excluded": 4,
+    "lowered": 57,
+    "static_solid": 0
+   },
+   "killer_rects": 5,
+   "object_to_class": {
+    "CatThing": {
+     "74": 1
+    },
+    "FallingFort": {
+     "49": 9
+    },
+    "FallingFort.blockNotMerge": {
+     "64": 9
+    },
+    "Fire": {
+     "2": 9
+    },
+    "FireChalice": {
+     "75": 3
+    },
+    "FireOnce": {
+     "2": 8
+    },
+    "FirePermanent": {
+     "2": 49
+    },
+    "FireShort": {
+     "2": 7
+    },
+    "FireShortPermanent": {
+     "2": 12
+    },
+    "FireSometimes": {
+     "2": 2
+    },
+    "FireSometimesPermanent": {
+     "2": 1
+    },
+    "FireSometimesUpside": {
+     "2": 3
+    },
+    "Grabby": {
+     "2": 1
+    },
+    "LongForm": {
+     "48": 2
+    },
+    "SoftlockBlocker": {
+     "0": 12
+    },
+    "WalljumpL": {
+     "86": 5
+    },
+    "WalljumpR": {
+     "86": 10
+    },
+    "blockNise": {
+     "0": 1
+    },
+    "movingPlatform": {
+     "48": 1
+    },
+    "trigger": {
+     "71": 5
+    },
+    "yellowallL": {
+     "86": 11
+    }
+   },
+   "pack_checkpoints": 3,
+   "pack_content_sha256": "920255550a99a45254d21564dc9bf13bcf0160e6548664011754fe6563c35a65",
+   "pack_dims": [
+    2400,
+    608
+   ],
+   "runtime_dims": [
+    2400,
+    608
+   ],
+   "source_sha256": "06d71a4378d6069629857778192682f462624aa727840ff74e2f0e32538466ea",
+   "src_dims": [
+    2400,
+    608
+   ],
+   "src_instances": 214,
+   "src_saves_by_diff": [
+    3,
+    2,
+    1
+   ]
+  },
+  "rGuyFortress2": {
+   "buckets": {
+    "camera": 1,
+    "entity": 398,
+    "excluded": 8,
+    "lowered": 334,
+    "static_solid": 0
+   },
+   "killer_rects": 4,
+   "object_to_class": {
+    "ArkaBall": {
+     "152": 1
+    },
+    "ArkaBrick": {
+     "154": 63
+    },
+    "ArkaBrickShort": {
+     "154": 19
+    },
+    "ArkaPlatform": {
+     "153": 1
+    },
+    "BounceDown": {
+     "0": 32
+    },
+    "BounceLeft": {
+     "0": 20
+    },
+    "BounceRight": {
+     "0": 20
+    },
+    "BounceUp": {
+     "0": 32
+    },
+    "BouncyFruit": {
+     "41": 8
+    },
+    "Eggplant": {
+     "40": 8
+    },
+    "FallingFort": {
+     "49": 27
+    },
+    "FallingFort.blockNotMerge": {
+     "64": 27
+    },
+    "FallingSpike10frame": {
+     "3": 3
+    },
+    "Fire": {
+     "2": 17
+    },
+    "FireShortPermanent": {
+     "2": 9
+    },
+    "FireSometimesPermanent": {
+     "2": 22
+    },
+    "GradiusBoss": {
+     "147": 1
+    },
+    "GradiusBugz": {
+     "148": 25
+    },
+    "GradiusDrones": {
+     "149": 8
+    },
+    "GradiusMarker": {
+     "0": 1
+    },
+    "Higger": {
+     "11": 1
+    },
+    "LongForm": {
+     "48": 2
+    },
+    "LuBooHoo": {
+     "0": 1
+    },
+    "MoonSmall": {
+     "78": 1
+    },
+    "RevealingSpikesUp": {
+     "6": 2
+    },
+    "Sinistar": {
+     "144": 1
+    },
+    "VicViper": {
+     "145": 1
+    },
+    "WalljumpL": {
+     "86": 12
+    },
+    "WalljumpR": {
+     "86": 26
+    },
+    "blockTrapDestructible": {
+     "85": 4
+    },
+    "movingPlatform": {
+     "48": 9
+    },
+    "secret6": {
+     "81": 1
+    },
+    "trigger": {
+     "71": 11
+    },
+    "yellowallL": {
+     "86": 3
+    },
+    "yellowallR": {
+     "86": 6
+    }
+   },
+   "pack_checkpoints": 6,
+   "pack_content_sha256": "3fc5742233e8320ae0d54d9c454002dce4a9fe4fda591c1b5c79a4ac0b215069",
+   "pack_dims": [
+    5600,
+    1824
+   ],
+   "runtime_dims": [
+    5600,
+    1824
+   ],
+   "source_sha256": "c941ef1265e76d773be489af81a75805039d64d0edec5a4eb54183704bed9235",
+   "src_dims": [
+    5600,
+    1824
+   ],
+   "src_instances": 741,
+   "src_saves_by_diff": [
+    6,
+    4,
+    2
+   ]
+  },
+  "rGuyLabyrinth": {
+   "buckets": {
+    "camera": 1,
+    "entity": 34,
+    "excluded": 0,
+    "lowered": 404,
+    "static_solid": 0
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "FireSometimesPermanent": {
+     "2": 16
+    },
+    "Kamek": {
+     "39": 5
+    },
+    "WatchFor": {
+     "37": 7
+    },
+    "blockNise": {
+     "0": 6
+    }
+   },
+   "pack_checkpoints": 1,
+   "pack_content_sha256": "42fa804faa53d7b7e4deb1f143a17327f45baeaba54807b63bdb891bcfe098d2",
+   "pack_dims": [
+    3200,
+    2432
+   ],
+   "runtime_dims": [
+    3200,
+    2432
+   ],
+   "source_sha256": "9b359b58e0905950792ab8444143e75650b0943b9dcd019bb51d8f0efcded28f",
+   "src_dims": [
+    3200,
+    2432
+   ],
+   "src_instances": 439,
+   "src_saves_by_diff": [
+    1,
+    0,
+    0
+   ]
+  },
+  "rGuyRoad": {
+   "buckets": {
+    "camera": 1,
+    "entity": 273,
+    "excluded": 62,
+    "lowered": 126,
+    "static_solid": 0
+   },
+   "killer_rects": 5,
+   "object_to_class": {
+    "BiggusBrickus": {
+     "85": 60
+    },
+    "BulletTrigger": {
+     "0": 1
+    },
+    "Cart": {
+     "57": 1
+    },
+    "Cart.crash_wall": {
+     "64": 1
+    },
+    "CartSpeedup": {
+     "58": 20
+    },
+    "CartStopper": {
+     "0": 11
+    },
+    "CheepController": {
+     "46": 1
+    },
+    "Dragon": {
+     "139": 1
+    },
+    "DragonBlock": {
+     "142": 15
+    },
+    "DragonMarker": {
+     "0": 1
+    },
+    "DragonMarker2": {
+     "0": 1
+    },
+    "DumpMoment": {
+     "0": 33
+    },
+    "FallingSpike10frameUp": {
+     "3": 3
+    },
+    "NatsCat": {
+     "68": 1
+    },
+    "RoadBulletBill": {
+     "47": 17
+    },
+    "RoadCheep": {
+     "45": 29
+    },
+    "RoadMoon": {
+     "143": 1
+    },
+    "SoftlockBlocker": {
+     "0": 31
+    },
+    "WalljumpR": {
+     "86": 27
+    },
+    "blockNise": {
+     "0": 1
+    },
+    "trigger": {
+     "71": 3
+    },
+    "yellowallL": {
+     "86": 69
+    }
+   },
+   "offset_note": {
+    "BiggusBrickus": 10
+   },
+   "pack_checkpoints": 6,
+   "pack_content_sha256": "5073d6614ec6350cbadf6ecd94b882f64b190686cdefa775b4e1902a1993471b",
+   "pack_dims": [
+    30000,
+    608
+   ],
+   "runtime_dims": [
+    30000,
+    608
+   ],
+   "source_sha256": "cecbc51c2d3014ef6b9dc3a5c509d9013e6574bfc89bde82bb7fce004970a380",
+   "src_dims": [
+    30000,
+    608
+   ],
+   "src_instances": 462,
+   "src_saves_by_diff": [
+    6,
+    3,
+    1
+   ]
+  },
+  "rGuyTower": {
+   "buckets": {
+    "camera": 1,
+    "entity": 5,
+    "excluded": 2,
+    "lowered": 360,
+    "static_solid": 0
+   },
+   "killer_rects": 3,
+   "object_to_class": {
+    "AscentPlatform": {
+     "51": 1
+    },
+    "AscentSpeedMod": {
+     "52": 2
+    },
+    "LongForm": {
+     "48": 1
+    },
+    "trigger": {
+     "71": 1
+    }
+   },
+   "pack_checkpoints": 2,
+   "pack_content_sha256": "4d083e6d78cd8896c5fd5ec59518dfc666aab7918e356929bacf421080113729",
+   "pack_dims": [
+    1600,
+    3040
+   ],
+   "runtime_dims": [
+    1600,
+    3040
+   ],
+   "source_sha256": "6abc654d6021387209328b8cd28423fb6c1b8df6d2c7d6409b866fbc6c4e1a17",
+   "src_dims": [
+    1600,
+    3040
+   ],
+   "src_instances": 368,
+   "src_saves_by_diff": [
+    2,
+    2,
+    1
+   ]
+  },
+  "rKraidgiefBoss": {
+   "buckets": {
+    "camera": 1,
+    "entity": 214,
+    "excluded": 0,
+    "lowered": 33,
+    "static_solid": 0
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "KraidgiefCeiling": {
+     "111": 110
+    },
+    "KraidgiefFallingSpike": {
+     "110": 46
+    },
+    "OrbKraidgief": {
+     "80": 1
+    },
+    "blockTrapDestructible": {
+     "85": 11
+    },
+    "spikeUp": {
+     "4": 45
+    },
+    "trigger": {
+     "71": 1
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "579624a56ae4b286d4bebd8daea819ee15b23e20a876dcf6dd32f2841a53febb",
+   "pack_dims": [
+    1600,
+    1216
+   ],
+   "runtime_dims": [
+    1600,
+    1216
+   ],
+   "source_sha256": "68b3bb0ae8122145fd2569e0c8db06227b857ea57cb28d43fdbdf74c06d93ff2",
+   "src_dims": [
+    1600,
+    1216
+   ],
+   "src_instances": 248,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rKraidgiefLair": {
+   "buckets": {
+    "camera": 1,
+    "entity": 350,
+    "excluded": 4,
+    "lowered": 325,
+    "static_solid": 0
+   },
+   "killer_rects": 3,
+   "object_to_class": {
+    "FallingCave": {
+     "3": 11
+    },
+    "FallingSpike": {
+     "3": 2
+    },
+    "FallingSpike10frame": {
+     "3": 1
+    },
+    "FlyingSpike": {
+     "15": 1
+    },
+    "FunnySpikeMan": {
+     "94": 1
+    },
+    "SoftlockBlocker": {
+     "0": 3
+    },
+    "WalljumpL": {
+     "86": 83
+    },
+    "WalljumpR": {
+     "86": 54
+    },
+    "WheelTrap": {
+     "14": 1
+    },
+    "blockTrapDestructible": {
+     "85": 150
+    },
+    "deliciousFruit": {
+     "73": 23
+    },
+    "movingPlatform": {
+     "48": 3
+    },
+    "secret5": {
+     "81": 1
+    },
+    "spikeUp": {
+     "1": 1
+    },
+    "tetris.slot0": {
+     "64": 1
+    },
+    "tetris.slot1": {
+     "64": 1
+    },
+    "tetris.slot10": {
+     "64": 1
+    },
+    "tetris.slot11": {
+     "64": 1
+    },
+    "tetris.slot12": {
+     "64": 1
+    },
+    "tetris.slot13": {
+     "64": 1
+    },
+    "tetris.slot14": {
+     "64": 1
+    },
+    "tetris.slot15": {
+     "64": 1
+    },
+    "tetris.slot16": {
+     "64": 1
+    },
+    "tetris.slot17": {
+     "64": 1
+    },
+    "tetris.slot18": {
+     "64": 1
+    },
+    "tetris.slot19": {
+     "64": 1
+    },
+    "tetris.slot2": {
+     "64": 1
+    },
+    "tetris.slot20": {
+     "64": 1
+    },
+    "tetris.slot21": {
+     "64": 1
+    },
+    "tetris.slot22": {
+     "64": 1
+    },
+    "tetris.slot23": {
+     "64": 1
+    },
+    "tetris.slot24": {
+     "64": 1
+    },
+    "tetris.slot25": {
+     "64": 1
+    },
+    "tetris.slot26": {
+     "64": 1
+    },
+    "tetris.slot27": {
+     "64": 1
+    },
+    "tetris.slot28": {
+     "64": 1
+    },
+    "tetris.slot29": {
+     "64": 1
+    },
+    "tetris.slot3": {
+     "64": 1
+    },
+    "tetris.slot30": {
+     "64": 1
+    },
+    "tetris.slot31": {
+     "64": 1
+    },
+    "tetris.slot32": {
+     "64": 1
+    },
+    "tetris.slot33": {
+     "64": 1
+    },
+    "tetris.slot34": {
+     "64": 1
+    },
+    "tetris.slot35": {
+     "64": 1
+    },
+    "tetris.slot36": {
+     "64": 1
+    },
+    "tetris.slot37": {
+     "64": 1
+    },
+    "tetris.slot38": {
+     "64": 1
+    },
+    "tetris.slot39": {
+     "64": 1
+    },
+    "tetris.slot4": {
+     "64": 1
+    },
+    "tetris.slot40": {
+     "64": 1
+    },
+    "tetris.slot41": {
+     "64": 1
+    },
+    "tetris.slot42": {
+     "64": 1
+    },
+    "tetris.slot43": {
+     "64": 1
+    },
+    "tetris.slot44": {
+     "64": 1
+    },
+    "tetris.slot45": {
+     "64": 1
+    },
+    "tetris.slot46": {
+     "64": 1
+    },
+    "tetris.slot47": {
+     "64": 1
+    },
+    "tetris.slot48": {
+     "64": 1
+    },
+    "tetris.slot49": {
+     "64": 1
+    },
+    "tetris.slot5": {
+     "64": 1
+    },
+    "tetris.slot50": {
+     "64": 1
+    },
+    "tetris.slot51": {
+     "64": 1
+    },
+    "tetris.slot52": {
+     "64": 1
+    },
+    "tetris.slot53": {
+     "64": 1
+    },
+    "tetris.slot54": {
+     "64": 1
+    },
+    "tetris.slot55": {
+     "64": 1
+    },
+    "tetris.slot56": {
+     "64": 1
+    },
+    "tetris.slot57": {
+     "64": 1
+    },
+    "tetris.slot58": {
+     "64": 1
+    },
+    "tetris.slot59": {
+     "64": 1
+    },
+    "tetris.slot6": {
+     "64": 1
+    },
+    "tetris.slot60": {
+     "64": 1
+    },
+    "tetris.slot61": {
+     "64": 1
+    },
+    "tetris.slot62": {
+     "64": 1
+    },
+    "tetris.slot63": {
+     "64": 1
+    },
+    "tetris.slot64": {
+     "64": 1
+    },
+    "tetris.slot65": {
+     "64": 1
+    },
+    "tetris.slot66": {
+     "64": 1
+    },
+    "tetris.slot67": {
+     "64": 1
+    },
+    "tetris.slot68": {
+     "64": 1
+    },
+    "tetris.slot69": {
+     "64": 1
+    },
+    "tetris.slot7": {
+     "64": 1
+    },
+    "tetris.slot70": {
+     "64": 1
+    },
+    "tetris.slot71": {
+     "64": 1
+    },
+    "tetris.slot8": {
+     "64": 1
+    },
+    "tetris.slot9": {
+     "64": 1
+    },
+    "tetrisController": {
+     "63": 1
+    },
+    "trigger": {
+     "71": 14
+    }
+   },
+   "pack_checkpoints": 5,
+   "pack_content_sha256": "bf815c3a6f00b1f1865f9a81fc3c6b8e868386695afdabd3201bbb3f3c9dcaae",
+   "pack_dims": [
+    6400,
+    1824
+   ],
+   "runtime_dims": [
+    6400,
+    1824
+   ],
+   "source_sha256": "1f08338ebd58ec8fd8b7e50b3f7f90923e937884b57c177c85e53a7480a63f0f",
+   "src_dims": [
+    6400,
+    1824
+   ],
+   "src_instances": 680,
+   "src_saves_by_diff": [
+    5,
+    4,
+    2
+   ]
+  },
+  "rMechaBirdoBoss": {
+   "buckets": {
+    "camera": 0,
+    "entity": 2,
+    "excluded": 4,
+    "lowered": 5,
+    "static_solid": 0
+   },
+   "killer_rects": 2,
+   "object_to_class": {
+    "MechaBirdo": {
+     "98": 1
+    },
+    "MoonSmall": {
+     "78": 1
+    }
+   },
+   "pack_checkpoints": 0,
+   "pack_content_sha256": "074f1704d702da32194b0836363ee0384d0e69e257b3542eb25878a200574587",
+   "pack_dims": [
+    800,
+    608
+   ],
+   "runtime_dims": [
+    800,
+    608
+   ],
+   "source_sha256": "3fef2a4aea93378cb84041649a462970f2231e4a368d40f519de47c7a97743f1",
+   "src_dims": [
+    800,
+    608
+   ],
+   "src_instances": 11,
+   "src_saves_by_diff": [
+    0,
+    0,
+    0
+   ]
+  },
+  "rMegaman": {
+   "buckets": {
+    "camera": 1,
+    "entity": 57,
+    "excluded": 1,
+    "lowered": 351,
+    "static_solid": 75
+   },
+   "killer_rects": 0,
+   "object_to_class": {
+    "BlownEntrance": {
+     "83": 1
+    },
+    "FactoryPlatform": {
+     "49": 34
+    },
+    "Hammer": {
+     "18": 1
+    },
+    "HammerTrigger": {
+     "71": 1
+    },
+    "QuickLaser": {
+     "8": 7
+    },
+    "QuickLaserTimer": {
+     "9": 1
+    },
+    "blockNise": {
+     "0": 1
+    },
+    "movingPlatform": {
+     "48": 4
+    },
+    "spikeDown": {
+     "4": 3
+    },
+    "trigger": {
+     "71": 4
+    }
+   },
+   "pack_checkpoints": 5,
+   "pack_content_sha256": "67b20afb3226021674bc84cb7b5781f3f6e87dd5e3b2842161e27e847fc32b80",
+   "pack_dims": [
+    2400,
+    1824
+   ],
+   "runtime_dims": [
+    2400,
+    1824
+   ],
+   "source_sha256": "401ba9acb538cf5bd5deac6a5c0af53cff30d34d6c194cf28244ed23bb259837",
+   "src_dims": [
+    2400,
+    1824
+   ],
+   "src_instances": 485,
+   "src_saves_by_diff": [
+    5,
+    3,
+    2
+   ]
+  },
+  "rMetroid": {
+   "buckets": {
+    "camera": 1,
+    "entity": 128,
+    "excluded": 9,
+    "lowered": 291,
+    "static_solid": 1
+   },
+   "killer_rects": 8,
+   "object_to_class": {
+    "": {
+     "138": 1
+    },
+    "ChozoOrb": {
+     "70": 1
+    },
+    "Crawler": {
+     "30": 2
+    },
+    "FallingSpike10frame": {
+     "3": 5
+    },
+    "MommyThinker": {
+     "137": 1
+    },
+    "OrbMother": {
+     "80": 1
+    },
+    "RevealingSpikesUp": {
+     "6": 3
+    },
+    "ShootyBarrier": {
+     "67": 4
+    },
+    "Skwee": {
+     "29": 4
+    },
+    "SkweeTrigger": {
+     "71": 4
+    },
+    "SoftlockBlocker": {
+     "0": 3
+    },
+    "SpaghettiosDispenser": {
+     "34": 14
+    },
+    "TourianBarrier": {
+     "84": 1
+    },
+    "TourianTurret": {
+     "28": 10
+    },
+    "blockNise": {
+     "0": 2
+    },
+    "metroidPlatform": {
+     "50": 60
+    },
+    "metroidTrap": {
+     "33": 5
+    },
+    "trigger": {
+     "71": 8
+    }
+   },
+   "pack_checkpoints": 2,
+   "pack_content_sha256": "d510200052f66864e6d7f8fc151f4a7c9749965b606c85036942373db1188bd9",
+   "pack_dims": [
+    3200,
+    2432
+   ],
+   "runtime_dims": [
+    3200,
+    2432
+   ],
+   "source_sha256": "53e5cb8ad6f0a239ce4bfc62557bda39bf199c4fa917c3147eeb2fdce50b130b",
+   "src_dims": [
+    3200,
+    2432
+   ],
+   "src_instances": 430,
+   "src_saves_by_diff": [
+    2,
+    2,
+    1
+   ]
+  },
+  "rZelda": {
+   "buckets": {
+    "camera": 1,
+    "entity": 7,
+    "excluded": 2,
+    "lowered": 32,
+    "static_solid": 1
+   },
+   "killer_rects": 25,
+   "object_to_class": {
+    "Lonk": {
+     "44": 1
+    },
+    "Lonk.platform": {
+     "0": 1
+    },
+    "ZeldaFire": {
+     "1": 2
+    },
+    "ZeldaOldMan": {
+     "1": 1
+    },
+    "ZeldaSword": {
+     "1": 1
+    },
+    "trigger": {
+     "71": 2
+    }
+   },
+   "pack_checkpoints": 1,
+   "pack_content_sha256": "0a6ad7688a8184cd505f78065f7cb9a0c809662dcad561a23e2dc4bc9e8bc7e6",
+   "pack_dims": [
+    800,
+    1216
+   ],
+   "runtime_dims": [
+    800,
+    1216
+   ],
+   "source_sha256": "02134f3f6e5eeef56e0410fe9b3e7e366cca981dfe8034a54cce04db1bf5e8b3",
+   "src_dims": [
+    800,
+    1216
+   ],
+   "src_instances": 43,
+   "src_saves_by_diff": [
+    1,
+    1,
+    0
+   ]
+  }
+ }
+}

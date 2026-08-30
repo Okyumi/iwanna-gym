@@ -238,7 +238,7 @@ here. Each entry is deliberate, bounded, and tested:
 | 4 | `ErrorTrap` | fake GM error dialog dismissed with the mouse | trap fires, dialog auto-dismisses after the source delay | mouse input is outside the 12-action space; recorded as a deviation, not emulated UI |
 | 5 | Metroid latch | latched metroid drains health while attached | latch kills after 100 contact frames (the source drain time) | the env has no health meter; the latch's lethal deadline is preserved |
 | 6 | GM path motion | runtime evaluates smooth paths per frame | paths sampled offline at GM's precision-4 corner-cutting, baked into the pack keys pool | offline translation rule (no runtime source interpretation); sampled trajectories match the runtime evaluator |
-| 7 | boss content | 20 boss classes / 145 instances in the gameplay rooms belong to boss fights | excluded, listed with counts in the coverage report; boss teleporters and their defeat-flag gating ARE implemented | milestone boundary: "stop before the boss catalogue" |
+| 7 | boss content | *(historical)* the non-boss milestone excluded the boss catalogue | since the full-game milestone every boss is implemented; `excluded_boss` is empty and the game is completable end-to-end | superseded — see [iwbtgr_boss_coverage.md](iwbtgr_boss_coverage.md) |
 
 Two earlier engine-level approximations were **removed** in this milestone
 rather than documented: the player hitbox is now the source `sprMask`
@@ -248,3 +248,9 @@ gone for exact packs), and save/shoot/death semantics follow the source GML
 `tests/test_exact_player.py`, `tests/test_exact_mechanics.py`, and
 `tests/test_exact_rooms.py` (coverage gates + per-room determinism + a
 pinned reference trace).
+
+For the FROZEN pack (`iwbtgr_1_5_3_v1`) the consolidated, classified
+deviation list — every known difference labeled exact / behaviorally
+equivalent / simplified visual / gameplay approximation / unsupported —
+lives in [iwbtgr_known_deviations.md](iwbtgr_known_deviations.md), and
+the freeze record in `manifests/iwbtgr_1_5_3_v1.toml`.

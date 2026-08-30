@@ -168,7 +168,9 @@ corridor at room entry.
 ## Documented deviations (boss layer)
 
 These extend the fidelity contract §7 table; everything else is
-transliterated 1:1.
+transliterated from the source GML. The consolidated, classified
+deviation list for the frozen pack lives in
+[iwbtgr_known_deviations.md](iwbtgr_known_deviations.md).
 
 | # | deviation | source | engine | why |
 |---|---|---|---|---|
