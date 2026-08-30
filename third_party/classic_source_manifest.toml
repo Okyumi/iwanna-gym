@@ -1,0 +1,111 @@
+# Classic-track source manifest (selection milestone, 2026-08-30)
+#
+# Machine-readable record for the classic exact-import selection.
+# Narrative: docs/classic_exact_import_selection.md; investigation:
+# docs/classic_source_matrix.md.  Conventions (what is never committed,
+# checksum policy, user-provided-files pipeline) are inherited from
+# third_party/SOURCES.md and third_party/source_manifest.toml; entries
+# here pin the SELECTED versions exactly and record this audit's live
+# verification.  No game content is implemented or vendored by this
+# milestone.
+
+schema_version = 1
+audit_date = 2026-08-30
+selection_status = "awaiting user review"
+
+# ------------------------------------------------------------ selected
+
+[[selected]]
+slot = "CLASSIC_GAME_1"
+name = "iwbtg_original_2007"
+display_name = "I Wanna Be The Guy (original)"
+author = "Michael 'Kayin' O'Reilly"
+exact_version = "beta build 2008-01-31 — iwbtgbeta(fs).mfa (canonical released game; IWBTG shipped as 'beta', fs = standard build)"
+source_tier = 1                     # public author-provided source
+format = "Multimedia Fusion 2 .mfa"
+engine_lineage = "Clickteam MMF2 (progenitor engine; NOT Yuuutu family)"
+source_pointer_repo = "https://github.com/Kayinnasaki/IWBTG"
+source_pointer_commit = "bb5a6cb56149a1fb1198843e291af355d51bdfce"
+source_files_url = "https://kayin.moe/iwbtg/source/"
+source_files_mirror = "Google Drive link in the pointer repo README"
+# open-directory inventory as fetched 2026-08-30 (name, size, mtime):
+source_inventory = [
+  "README.md, 969 B, 2018-12-06",
+  "ending.ccn, 6.3 MB, 2008-01-15",
+  "iwbtgALPHA5.mfa, 81 MB, 2007-12-17",
+  "iwbtgbeta(fs).mfa, 81 MB, 2008-01-31",
+  "iwbtgbeta(slomo).mfa, 81 MB, 2008-01-31",
+  "iwstkalpha12.mfa, 4.2 MB, 2007-12-25",
+  "iwstkalpha133.mfa, 4.1 MB, 2007-12-28",
+]
+checksum_sha256 = ""                # recorded on first user-provided fetch;
+checksum_status = "pending-first-fetch"  # kayin.moe blocked from the sandbox
+license_status = "no license; author's README grants no rights (deliberately informal); files published openly by the author as reference; naming request: fangames must not present as official sequels"
+redistribution = "forbidden - never commit or redistribute the .mfa or embedded assets; importer consumes a user-fetched copy"
+importer_adapter = "mfa2pack (new; external reader on the open-source mmfparser/Anaconda lineage)"
+physics_profile = "iwbtg_original_2007 (new; MUST be extracted from the .mfa per docs/fidelity_contract.md before any exactness claim)"
+implementation_status = "selected, not implemented"
+
+[[selected]]
+slot = "CLASSIC_GAME_2"
+name = "k2warped_gms14"
+display_name = "I Wanna Kill the Kamilia 2 WARPED"
+author = "SUDALV92 (his own remake/medley in the K2/K3 lineage)"
+exact_version = "GitHub HEAD a6d6dce1fe21f759f9e2218c9f9445c051667ad6 (2022-05-19 00:12:36 +0300)"
+source_tier = 1                     # public author-provided source
+format = "GameMaker: Studio 1.4 .project.gmx XML tree (build target v1.4.9999 per README)"
+engine_lineage = "Yuuutu family ported to GMS1 (verified in scripts: djump, vspeed=-jump, gravity 0.4, water double-jump)"
+source_repo = "https://github.com/SUDALV92/K2W"
+source_commit = "a6d6dce1fe21f759f9e2218c9f9445c051667ad6"
+source_tree_hash = "72c80cc39be972889d2cfcff8a3a946357ac19eb"
+checksum_status = "pinned by git commit + tree hash (fresh clone verified 2026-08-30)"
+# hands-on inventory from the fresh clone:
+inventory_rooms = 157
+inventory_boss_avoidance_rooms = 38
+inventory_objects = 1469
+inventory_scripts = 227
+inventory_sprites = 854
+license_status = "author README grants blanket code reuse ('completely free to use this code... modding, using part of the code in your projects... publish... without asking'); no formal LICENSE file; embedded third-party medley assets NOT covered"
+redistribution = "code permission recorded; game tree still never committed (third-party assets); users clone the author's repo at the pinned commit"
+importer_adapter = "gmx2pack (new; GMS1.4 XML reader on the gm82save-importer architecture)"
+physics_profile = "iwannagym_renex expected reusable; a GMS1 delta audit gates the claim (else a documented k2w_gms14 variant)"
+labeling = "always 'K2 WARPED by SUDALV92' - never presented as I Wanna Kill The Kamilia 2"
+implementation_status = "selected, not implemented"
+
+[[proposed]]
+slot = "CLASSIC_GAME_3"
+name = "iwktk3"
+display_name = "I Wanna Kill The Kamilia 3"
+author = "Influcca + Kamilia + ~13 sub-producers"
+exact_version = "v1.30 (2015) or v2.00 (2024) - pin by exe checksum if ever imported"
+source_tier = "3 required (creator permission); otherwise only a documented tier-5 proposal"
+format = "compiled GameMaker 8.1 executable (no source release)"
+gate = "import ONLY with creator permission; the itch page reserves copyright to Influcca and third-party contributors - an unpermissioned decompile is not a responsible path for this project"
+official_download = "https://influcca.itch.io/iwktk3"
+implementation_status = "proposed, permission-gated, not selected"
+
+# --------------------------------------------------- investigated, not selected
+
+[[rejected]]
+name = "iwbt_boshy_1_7_1"
+reason = "no author source; only an unofficial INCOMPLETE community decompile ('missing a few frames', speedrun.com forum) - fails both exactness and the source hierarchy; revisit only after mfa2pack exists AND with Solgryn's permission"
+
+[[rejected]]
+name = "iwktk2_original"
+reason = "no source (compiled GM8, copyright reserved); its lineage is covered by the author-permitted K2W selection, correctly labeled as the WARPED remake"
+
+[[rejected]]
+name = "crimson_needle_1_2_3"
+reason = "no source for any entry (re-searched 2026-08-30); CN3 flagged for a possible future data.win track - still tier 5, not viable now"
+
+[[rejected]]
+name = "iwbt_fangame_2010"
+reason = "official downloads alive (Tijit itch, incl. TAS build) but no project files - decompile-only (tier 5)"
+
+[[rejected]]
+name = "iwbt_tribute"
+reason = "dead distribution, unfinished, low importance"
+
+[[rejected]]
+name = "iwbt_lovetrap"
+reason = "original channel expired; only unofficial mirrors/mobile knockoffs; no source; watchlist for historical value only"

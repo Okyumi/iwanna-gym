@@ -1,5 +1,11 @@
 # Classic fangame import candidates
 
+> **Superseded for selection purposes** by the 2026-08-30 selection
+> milestone: see `docs/classic_source_matrix.md` (fresh verification),
+> `docs/classic_exact_import_selection.md` (the selected games), and
+> `third_party/classic_source_manifest.toml` (pins). This file remains
+> the 2026-08-27 investigation record.
+
 Audit date: 2026-08-27; verification notes as in
 `docs/exact_game_source_audit.md`. Games are ranked not by popularity but
 by: (1) source/project availability, (2) legal & reproducibility status,
