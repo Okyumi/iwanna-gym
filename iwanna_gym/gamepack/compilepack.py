@@ -294,7 +294,8 @@ def _pack_exact_section(x: dict, section_base: int) -> bytes:
                          room_tbl_off + i * _XROOM.size,
                          n, off, int(rm["camera"]),
                          int(rm["always_active"]),
-                         int(eo[0]), int(eo[1]), 0, 0)
+                         int(eo[0]), int(eo[1]),
+                         int(rm.get("kind", 0)), 0)
     hb = x.get("hb", [-5, -12, 5, 8])
     struct.pack_into(_XHDR.format, body, off_hdr,
                      0x33544358,

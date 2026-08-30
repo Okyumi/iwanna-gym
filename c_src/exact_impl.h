@@ -11,6 +11,8 @@ static int rect_hits_solid(IWanna* env, int l, int r, int t, int b);
 static void iw_player_shoot(IWanna* env);
 
 static void iwx_run_ops(IWanna* env, int op0, int nops, int self);
+static void iwxb_mommy_event(IWanna* env, IWXEnt* e);
+static void iwxb_guybrow_event(IWanna* env, IWXEnt* e);
 static void iwx_ent_event(IWanna* env, IWXEnt* e);
 static void iwx_view_update(IWanna* env);
 
@@ -53,6 +55,20 @@ static int iwx_ent_in_view(IWXState* xs, const IWXEnt* e) {
     return iwx_in_view_bbox(xs, l, r, t, b);
 }
 
+/* classes the bullet router must see even with no live boss slot
+ * (keep in sync with the non-slot switch in iwxb_route_bullet) */
+static inline int iwx_cls_biface(int cls) {
+    switch (cls) {
+    case XB_DRACPLASM: case XB_BOSS_DEADCULA: case XB_WILYBALL:
+    case XB_GUYBROW: case XB_GEYE: case XB_BOSS_MOMMY:
+    case XB_SINISTAR: case XB_WARTBANZAI: case XB_BOWSERBOMB:
+    case XB_GUYGLASSSHOT:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 /* spawn a live entity from a template (bounded; drops when full) */
 static IWXEnt* iwx_spawn(IWanna* env, int tmpl_idx, float x, float y) {
     IWXState* xs = XS(env);
@@ -78,6 +94,7 @@ static IWXEnt* iwx_spawn(IWanna* env, int tmpl_idx, float x, float y) {
     e->link = -1;
     e->hp = 0;
     if (slot >= xs->n_ents) xs->n_ents = slot + 1;
+    if (iwx_cls_biface(e->cls)) xs->n_xiface++;
     return e;
 }
 
@@ -176,6 +193,24 @@ static void iwx_load_room(IWanna* env, int room) {
             e->armed = 0;
             break;
         }
+        case XB_BOSS_TYSON:
+            /* savedata skip (orb_tyson) */
+            if (iwx_flag_bit(env, (int)e->p[9])) e->alive = 0;
+            break;
+        case XB_MOMMYGLASS:
+            e->frame = e->p[0];        /* collider frame (1) */
+            break;
+        case XB_BOSS_MOMMY:
+            e->hp = 35;                /* MommyThinker Create */
+            break;
+        case XB_FCSPIKE: case XB_GEYE: case XB_GRADBUGZ:
+        case XB_GRADDRONE:
+            e->armed = 0;
+            break;
+        case XB_GRADBOSS:
+            e->armed = 0;
+            e->hp = 10;
+            break;
         default: break;
         }
     }
@@ -198,6 +233,16 @@ static void iwx_load_room(IWanna* env, int room) {
     xs->cam_voffset = 0;
     xs->cam_locked = (uint8_t)(xs->camera == XCAM_KRAID);  /* cameraKraid */
     xs->cam_piledriver = 0;
+    xs->cutscene = 0;
+    xs->force_h = 0;
+    xs->viper = -1;
+    if ((int)rr->reserved[0] == 1)        /* the ending room */
+        xs->game_complete = 1;
+    /* non-slot bullet interactors present in this room's load set */
+    xs->n_xiface = 0;
+    for (int i = 0; i < xs->n_ents; i++)
+        if (xs->ents[i].alive && iwx_cls_biface(xs->ents[i].cls))
+            xs->n_xiface++;
     /* cheep start alarms (source: CheepController Other_4, random 1..n) */
     int ncheep = 0;
     for (int i = 0; i < xs->n_ents; i++)
@@ -305,15 +350,38 @@ static void iwx_view_update(IWanna* env) {
         break;
     }
     case XCAM_CART: {
-        IWXEnt* c = xs->cart_ent >= 0 ? &xs->ents[xs->cart_ent] : NULL;
-        if (c && !c->on) {                 /* on = dead flag for the cart */
-            nx = c->x + 54 - 400;
-            if (nx > px && xs->view_init) xs->pending_kill = 1;
+        /* cameraCart Step_2: while the Dragon is active the view locks to
+         * him in phase 0 (his own step pans it in later phases) and any
+         * player outside the view dies */
+        IWXBossState* dbs = NULL;
+        for (int s = 0; s < IWXB_MAX; s++)
+            if (xs->boss[s].used && xs->boss[s].def == IWXB_DEF_DRAGON &&
+                xs->ents[xs->boss[s].ent].alive &&
+                (xs->ents[xs->boss[s].ent].on || xs->boss[s].timer > 0))
+                dbs = &xs->boss[s];
+        if (dbs && !(dbs->f & IWXB_F_DEAD)) {
+            IWXEnt* d = &xs->ents[dbs->ent];
+            nx = dbs->phase == 0 ? floor(d->x) + 150 - 400 : xs->view_x;
+            if (xs->view_init) {
+                int pl2, pr2, pt2, pb2;
+                iwx_player_rect(env, &pl2, &pr2, &pt2, &pb2);
+                if (pr2 < nx || pl2 >= nx + 800 ||
+                    pb2 < xs->view_y || pt2 >= xs->view_y + 608)
+                    xs->pending_kill = 1;
+            }
         } else {
-            double cur = xs->view_init ? xs->view_x : px - 400;
-            nx = cur < 22368 + 32 ? cur : 22368 + 32;
-            if (px - 400 > nx) nx = px - 400;
+            IWXEnt* c = xs->cart_ent >= 0 ? &xs->ents[xs->cart_ent] : NULL;
+            if (c && !c->on) {             /* on = dead flag for the cart */
+                nx = c->x + 54 - 400;
+                if (nx > px && xs->view_init) xs->pending_kill = 1;
+            } else {
+                double cur = xs->view_init ? xs->view_x : px - 400;
+                nx = cur < 22368 + 32 ? cur : 22368 + 32;
+                if (px - 400 > nx) nx = px - 400;
+            }
         }
+        if (iwx_flag_bit(env, 7))          /* savedata("orb_dragon") */
+            nx = nx < 21856 ? nx : 21856;
         ny = 0;
         break;
     }
@@ -739,6 +807,28 @@ static void iwx_ent_event(IWanna* env, IWXEnt* e) {
         /* RyuButton event_user(0): forced OFF (factory ceiling entry) */
         e->state = 0; e->frame = 0;
         break;
+    case XB_BOSS_MOMMY:
+        iwxb_mommy_event(env, e);          /* the escape trigger */
+        break;
+    case XB_GUYBROW:
+        iwxb_guybrow_event(env, e);
+        break;
+    case XB_DRAGONBLOCK: {
+        /* re-materialize a destructible unless one overlaps */
+        int found = 0;
+        double l, r, t, b;
+        iwx_ent_bbox(xs, e, &l, &r, &t, &b);
+        for (int i = 0; i < xs->n_ents && !found; i++) {
+            IWXEnt* o = &xs->ents[i];
+            if (!o->alive || o->cls != XB_DESTRUCTIBLE) continue;
+            double dl, dr, dt, db;
+            iwx_ent_bbox(xs, o, &dl, &dr, &dt, &db);
+            if (dr >= l && dl <= r && db >= t && dt <= b) found = 1;
+        }
+        if (!found && e->p[0] > 0)
+            iwx_spawn(env, (int)e->p[0], e->x, e->y);
+        break;
+    }
     case XB_REALYOKU: {           /* Other_10: appear, auto-hide in 100 */
         const IWXMaskRec* m = iwx_mask(xs, e->mask);
         int nfr = m ? m->nframes : 4;
@@ -800,6 +890,12 @@ static void iwx_aim45(float* vx, float* vy, double dx, double dy, double speed,
 #include "boss/boss.h"
 #include "boss/boss_birdo.h"
 #include "boss/boss_kraidgief.h"
+#include "boss/boss_tyson.h"
+#include "boss/boss_dracula.h"
+#include "boss/boss_clowncar.h"
+#include "boss/boss_road.h"
+#include "boss/boss_misc.h"
+#include "boss/boss_guy.h"
 
 /* collision-phase bullet routing: weak-point consume (push mode) and
  * body deflects.  Gated by n_boss at the call site. */
@@ -809,10 +905,14 @@ static int iwxb_route_bullet(IWanna* env, IWEntity* b,
     for (int s = 0; s < IWXB_MAX; s++) {
         IWXBossState* bs = &xs->boss[s];
         if (!bs->used) continue;
-        if (bs->def == IWXB_DEF_BIRDO || bs->def == IWXB_DEF_TEST) {
+        if (bs->f & IWXB_F_PUSH) {
             for (int w = 0; w < IWXB_WEAK; w++) {
                 int wi = bs->wp_ent[w];
                 if (wi < 0 || !xs->ents[wi].alive) continue;
+                /* Dragon's face counts only during shooting windows
+                 * and never for deflected bullets */
+                if (bs->def == IWXB_DEF_DRAGON &&
+                    (bs->p[0] <= 0 || b->vy != 0)) continue;
                 if (iwx_hit_rect(xs, &xs->ents[wi], bl, br, bt, bb)) {
                     bs->wp_dmg[w] += 1.0f;   /* bullet damage = 1 */
                     return 1;
@@ -831,6 +931,167 @@ static int iwxb_route_bullet(IWanna* env, IWEntity* b,
                 b->vy = -16.0f * sinf(d);
             }
         }
+        if (bs->def == IWXB_DEF_DRAGON && b->vy == 0) {
+            /* the dragon's body clicks bullets away at random dirs */
+            IWXEnt* body = &xs->ents[bs->ent];
+            if (body->alive && iwx_hit_rect(xs, body, bl, br, bt, bb)) {
+                float d = iwxb_irandom(env, 31) * 90.0f / 8.0f *
+                          3.14159265358979323846f / 180.0f;
+                b->vx = 16.0f * cosf(d);
+                b->vy = -16.0f * sinf(d);
+            }
+        }
+        if (bs->def == IWXB_DEF_GUYFIRST && b->grav != 1) {
+            IWXEnt* body = &xs->ents[bs->ent];
+            if (body->alive && iwx_hit_rect(xs, body, bl, br, bt, bb)) {
+                if (bs->phase < 2) {
+                    bs->dmg += 1;
+                    if (bs->dmg >= 30 && bs->timer < 5501 &&
+                        bs->phase == 0) {
+                        bs->timer = 5501;
+                        body->vx = 0; body->vy = -12.5f;
+                        bs->f &= ~GF_PILLARS;
+                        iwxb_kg_destroy_class(env, XB_WILYPILLAR);
+                    }
+                    if (bs->dmg >= 45 && bs->phase < 2) {
+                        bs->p[5] = body->x; bs->p[6] = body->y;
+                        bs->timer = 10000;
+                        bs->phase = 2;
+                        bs->dmg = 45;
+                        bs->p[0] = 0;          /* leave any path */
+                        body->vx = 0; body->vy = 0;
+                    }
+                    return 1;                  /* consumed */
+                } else if (bs->phase == 2) {
+                    b->grav = 1;               /* invalid */
+                    float d = (float)iwxb_random(env, 360.0) *
+                              3.14159265358979323846f / 180.0f;
+                    b->vx = 16.0f * cosf(d);
+                    b->vy = -16.0f * sinf(d);
+                }
+            }
+        }
+        if (bs->def == IWXB_DEF_CLOWNCAR) {
+            IWXEnt* body = &xs->ents[bs->ent];
+            if (body->alive && iwx_hit_rect(xs, body, bl, br, bt, bb)) {
+                if (bs->phase == 2 && !(bs->f & CC_DEAD) &&
+                    b->grav == 2) {            /* wilyball-validated */
+                    bs->hp -= 1;
+                    bs->dmg += 1;
+                    if (bs->hp <= 0) {
+                        iwxb_cc_die(env, bs, body, 10000);
+                        bs->f |= IWXB_F_DEAD;
+                    }
+                    return 1;
+                }
+                if (b->grav == 0) {            /* ricochet + invalid */
+                    b->grav = 1;
+                    float d = iwxb_irandom(env, 31) * 90.0f / 8.0f *
+                              3.14159265358979323846f / 180.0f;
+                    b->vx = 16.0f * cosf(d);
+                    b->vy = -16.0f * sinf(d);
+                }
+            }
+        }
+    }
+    /* non-slot bullet interactors (boss rooms only) */
+    for (int i = 0; i < xs->n_ents; i++) {
+        IWXEnt* e = &xs->ents[i];
+        if (!e->alive) continue;
+        switch (e->cls) {
+        case XB_DRACPLASM:
+            if (iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                e->x += b->vx > 0 ? 40.0f : -40.0f;
+                return 1;
+            }
+            break;
+        case XB_BOSS_DEADCULA:
+            if (e->state == 3 &&
+                iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                e->state = 4;
+                e->t1 = 0;
+                return 1;
+            }
+            break;
+        case XB_WILYBALL:
+            if (b->vx != 0 && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                b->vy = -fabsf(b->vx);
+                b->vx = 0;
+                b->grav = 2;                   /* validated */
+                return 0;
+            }
+            break;
+        case XB_GUYBROW:
+            if (e->on && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                float d = (float)iwxb_random(env, 360.0) *
+                          3.14159265358979323846f / 180.0f;
+                b->vx = 16.0f * cosf(d);
+                b->vy = -16.0f * sinf(d);
+                return 0;
+            }
+            break;
+        case XB_GEYE:
+            if (e->armed && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                iwxb_geye_bullet(env, e);
+                return 1;
+            }
+            break;
+        case XB_BOSS_MOMMY:
+            if (e->state < 2 && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                iwxb_mommy_bullet(env, e);
+                return 1;
+            }
+            break;
+        case XB_SINISTAR:
+            if (e->state == 1 && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                e->x += (e->x > b->x ? 32.0f : -32.0f);
+                return 1;
+            }
+            break;
+        case XB_WARTBANZAI:
+            if (iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                e->vx = fminf(0, e->vx + 5.0f / 8.0f);
+                e->hp -= 1;
+                if (e->hp <= 0) {
+                    IWXEnt* x2 = iwxb_spawn(env, (int)e->p[0],
+                                            e->x + 66, e->y + 96);
+                    if (x2) { x2->xs = 11.0f; x2->ys = 11.0f; }
+                    e->alive = 0;
+                }
+                return 1;
+            }
+            break;
+        case XB_BOWSERBOMB:
+            if (iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                /* knocked toward the car */
+                for (int k = 0; k < IWXB_MAX; k++)
+                    if (xs->boss[k].used &&
+                        xs->boss[k].def == IWXB_DEF_CLOWNCAR) {
+                        IWXEnt* car = &xs->ents[xs->boss[k].ent];
+                        double dx = car->x - e->x,
+                               dy = (car->y - 84) - e->y;
+                        double L = sqrt(dx * dx + dy * dy);
+                        if (L > 0) { e->vx = (float)(5 * dx / L);
+                                     e->vy = (float)(5 * dy / L); }
+                        e->p[1] = 0.05f;
+                    }
+                return 1;
+            }
+            break;
+        case XB_GUYGLASSSHOT:
+            if (e->on && iwx_hit_rect(xs, e, bl, br, bt, bb)) {
+                if (e->link >= 0 && xs->ents[e->link].alive) {
+                    e->x = xs->ents[e->link].x;
+                    e->y = xs->ents[e->link].y;
+                }
+                e->on = 0;
+                e->vx = 0; e->vy = 0;
+                e->t0 = 160; e->t1 = 0;
+                return 1;
+            }
+            break;
+        default: break;
+        }
     }
     return 0;
 }
@@ -844,6 +1105,13 @@ static void iwx_update_ent(IWanna* env, int idx) {
     case XB_MARKER: case XB_WALLSTRIP: case XB_WATER:
     case XB_CONDSOLID: case XB_LOCKCONTROLS: case XB_CARTPICKUP:
     case XB_TETBLOCK: case XB_WEAKBOX: case XB_KGCEIL:
+    case XB_TYSONDOOR: case XB_MOMMYGLASS: case XB_ARKABRICK:
+    case XB_DRAGONBLOCK: case XB_GUYBROW:
+        return;
+
+    case XB_DRACFORM:
+        /* solid only while the player falls (Dracform Step_0) */
+        e->y = env->vspeed < 0 ? -999.0f : e->y0;
         return;
 
     case XB_BOSS_TEST:      iwxb_test_step(env, e);      return;
@@ -862,6 +1130,44 @@ static void iwx_update_ent(IWanna* env, int idx) {
     case XB_KGPROJ: case XB_KGFIRE: case XB_BLANKA:
     case XB_KGDEBRISSPAWN: case XB_KGDEBRIS: case XB_KGSPIKE:
         iwxb_kg_family_step(env, e);
+        return;
+
+    case XB_BOSS_TYSON:      iwxb_tyson_step(env, e);     return;
+    case XB_TYSONFIREBALL:
+        iwxb_tyson_family_step(env, e);
+        return;
+    case XB_BOSS_DRACINTRO:  iwxb_dracintro_step(env, e); return;
+    case XB_BOSS_DRACULA:    iwxb_dracula_step(env, e);   return;
+    case XB_BOSS_DEADCULA:   iwxb_deadcula_step(env, e);  return;
+    case XB_DRACTELE: case XB_DRACGLASS: case XB_DRACPROJ:
+    case XB_DRACFIREBALL: case XB_DRACSPIRAL: case XB_DRACPLASM:
+    case XB_WILYPILLAR:
+        iwxb_drac_family_step(env, e);
+        return;
+    case XB_BOSS_CLOWNCAR:   iwxb_clowncar_step(env, e);  return;
+    case XB_BOWSERBOMB: case XB_BOWSEREXPL: case XB_BOWSERFIRE:
+    case XB_WARTBANZAI: case XB_WARTPOOF: case XB_WILYBALL:
+    case XB_WILYFIREBALL: case XB_FCEIL: case XB_FCSPIKE:
+    case XB_FCSWITCH: case XB_BOWSERFLOOR:
+        iwxb_cc_family_step(env, e);
+        return;
+    case XB_BOSS_MOMMY:      iwxb_mommy_step(env, e);     return;
+    case XB_ARKAPADDLE: case XB_ARKABALL:
+        iwxb_arka_step(env, e);
+        return;
+    case XB_BOSS_DRAGON:     iwxb_dragon_step(env, e);    return;
+    case XB_ROADMOON: case XB_SINISTAR: case XB_DRAGONFIRE:
+    case XB_DEVILISM: case XB_VICBULLET: case XB_GRADFRUIT:
+    case XB_GRADDRONEBULLET: case XB_GRADBUGZ: case XB_GRADDRONE:
+    case XB_GRADBOSS: case XB_VICVIPER:
+        iwxb_road_family_step(env, e);
+        return;
+    case XB_BOSS_GUYFIRST:   iwxb_guyfirst_step(env, e);  return;
+    case XB_BOSS_GUYHEAD:    iwxb_guyhead_step(env, e);   return;
+    case XB_GUYPROJ: case XB_GRENADE: case XB_GUYBOUNCE: case XB_GEYE:
+    case XB_GUYMOUTH: case XB_GUYTOOTH: case XB_TOOTHSHOOTER:
+    case XB_GUYGLASSSHOT: case XB_THEGUN:
+        iwxb_guy_family_step(env, e);
         return;
 
     case XB_KILLER:                     /* static killer w/ optional anim */
@@ -2248,7 +2554,19 @@ static void iwx_update_ent(IWanna* env, int idx) {
         return;
     }
 
-    case XB_ORB: case XB_SECRET: case XB_ENTRANCETELE:
+    case XB_ORB:
+        if (e->state == 1 && --e->t0 <= 0) {
+            /* OrbDracula Alarm_0: player to (p2,p3), room_goto(p1-1) */
+            env->pending_room = (int)e->p[1] - 1;
+            env->pending_x = e->p[2];
+            env->pending_y = e->p[3];
+            env->pending_use_start = 0;
+            env->pending_keep_speed = 0;
+            e->alive = 0;
+        }
+        return;                          /* pickup: contact pass */
+
+    case XB_SECRET: case XB_ENTRANCETELE:
         return;                          /* contact pass */
 
     case XB_SNIFITCANNON: {
@@ -2646,20 +2964,40 @@ static void iwx_contact_pass(IWanna* env) {
                 iwx_bbox_hit(xs, e, l, r, t, b)) xs->carted = 0;
             break;
         case XB_ORB:
-            if (iwx_bbox_hit(xs, e, l, r, t, b)) {
+            if (e->state == 0 && iwx_bbox_hit(xs, e, l, r, t, b)) {
                 env->gflags |= 1ull << (int)e->p[0];
-                e->alive = 0;
                 /* source: orb pickup checkpoints immediately */
                 env->respawn_x = env->x;
                 env->respawn_y = env->y;
                 env->respawn_face = env->face;
                 env->respawn_room = env->room_id;
+                if (e->p[1] > 0) {
+                    /* OrbDracula Alarm_0: delayed room_goto with an
+                     * absolute player reposition */
+                    e->state = 1;
+                    e->t0 = (int)e->p[4];
+                } else e->alive = 0;
             }
             break;
         case XB_SECRET:
             if (iwx_bbox_hit(xs, e, l, r, t, b)) {
                 env->gflags |= 1ull << (int)e->p[0];
                 e->alive = 0;
+            }
+            break;
+        case XB_VICVIPER:
+            if (e->state == 0 && xs->viper < 0 &&
+                iwx_bbox_hit(xs, e, l, r, t, b)) {
+                xs->viper = i;
+                e->state = 1;
+                env->hspeed = 0; env->vspeed = 0;
+                for (int k = 0; k < xs->n_ents; k++) {
+                    IWXEnt* g = &xs->ents[k];
+                    if (!g->alive) continue;
+                    if (g->cls == XB_GRADBUGZ) g->vx = -6.25f;
+                    else if (g->cls == XB_GRADDRONE) g->vx = -6.25f;
+                    else if (g->cls == XB_GRADBOSS) g->vx = -5.0f;
+                }
             }
             break;
         case XB_ENTRANCETELE:
@@ -2845,6 +3183,16 @@ static void iwx_player_step(IWanna* env, int h, int jump_held, int pressed,
                             int released, int shoot_pressed,
                             int hpl, int hpr) {
     IWXState* xs = XS(env);
+    if (xs->cutscene) {                 /* player.cutscene input override */
+        h = xs->force_h;
+        jump_held = 0; pressed = 0; released = 0; shoot_pressed = 0;
+        hpl = xs->force_h < 0; hpr = xs->force_h > 0;
+    }
+    if (xs->viper >= 0) {               /* the Gradius vehicle */
+        /* prev_shoot_held already holds THIS action's shoot bit */
+        iwxb_viper_fly(env, h, jump_held, env->prev_shoot_held);
+        return;
+    }
     int locked = xs->frozen || xs->stoned;
 
     /* --- ///movement (player.gml Step_0) --- */

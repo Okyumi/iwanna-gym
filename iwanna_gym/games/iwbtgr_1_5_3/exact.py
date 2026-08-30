@@ -44,7 +44,23 @@ XB_SNIFITCANNON XB_SNIFITBULLET XB_ZELDAOLDMAN XB_PATHKILLER XB_FRSPIKE
 XB_FRBARRIER XB_SPIKEMAN XB_SPINNER
 XB_WEAKBOX XB_BOSS_TEST XB_BOSS_BIRDO XB_MECHAEGG XB_EGGPLAT XB_EGGHITBOX
 XB_LAZA XB_FLYGUY XB_BOSS_KRAIDGIEF XB_KGPROJ XB_KGFIRE XB_BLANKA
-XB_KGDEBRISSPAWN XB_KGDEBRIS XB_KGSPIKE XB_KGCEIL""".split()
+XB_KGDEBRISSPAWN XB_KGDEBRIS XB_KGSPIKE XB_KGCEIL
+XB_BOSS_TYSON XB_TYSONFIREBALL XB_TYSONDOOR
+XB_BOSS_DRACINTRO XB_BOSS_DRACULA XB_BOSS_DEADCULA XB_DRACTELE
+XB_DRACGLASS XB_DRACPROJ XB_DRACFIREBALL XB_DRACSPIRAL XB_DRACPLASM
+XB_WILYPILLAR
+XB_BOSS_CLOWNCAR XB_BOWSERBOMB XB_BOWSEREXPL XB_BOWSERFIRE XB_WARTBANZAI
+XB_WARTPOOF XB_WILYBALL XB_WILYFIREBALL XB_FCEIL XB_FCSPIKE XB_FCSWITCH
+XB_BOWSERFLOOR
+XB_BOSS_MOMMY XB_MOMMYGLASS
+XB_BOSS_DRAGON XB_DRAGONFIRE XB_DEVILISM XB_DRAGONBLOCK XB_ROADMOON
+XB_SINISTAR
+XB_VICVIPER XB_VICBULLET XB_GRADBOSS XB_GRADBUGZ XB_GRADDRONE
+XB_GRADDRONEBULLET XB_GRADFRUIT
+XB_ARKABALL XB_ARKAPADDLE XB_ARKABRICK
+XB_BOSS_GUYFIRST XB_GUYPROJ XB_GRENADE XB_GUYBOUNCE
+XB_BOSS_GUYHEAD XB_GEYE XB_GUYMOUTH XB_GUYTOOTH XB_TOOTHSHOOTER
+XB_GUYGLASSSHOT XB_GUYBROW XB_THEGUN XB_DRACFORM""".split()
 C = {name: i for i, name in enumerate(XCLS)}
 
 XOPS = """XOP_END XOP_SET_ACTIVE XOP_ARM XOP_SET_VX XOP_SET_VY XOP_SET_FSPD
@@ -59,7 +75,8 @@ OP = {name: i for i, name in enumerate(XOPS)}
 # marker kinds (XB_MARKER p0) — mirrors the C enum
 (XM_GENERIC, XM_BOUNCE_UP, XM_BOUNCE_DOWN, XM_BOUNCE_LEFT, XM_BOUNCE_RIGHT,
  XM_BLOCKNISE, XM_KUMOSTOP, XM_DUMP, XM_BULLETTRIGGER, XM_CARTSTOP,
- XM_MEDUSAMOD, XM_SOFTLOCK, XM_FRSW, XM_WALLJUMP_GONE) = range(14)
+ XM_MEDUSAMOD, XM_SOFTLOCK, XM_FRSW, XM_WALLJUMP_GONE,
+ XM_DRAGONTURN, XM_DRAGONDEAD, XM_GRADIUS, XM_FIRESINK) = range(18)
 
 XW_PLAIN, XW_YELLOW, XW_WEIRD = 0, 1, 2
 XCAM_NONE, XCAM_HARD, XCAM_CART, XCAM_TOWER, XCAM_HARD_METROID, \
@@ -462,6 +479,14 @@ class TriggerCompiler:
                 ops.extend(self._stmt(s2, inst, sub_tgt))
             return ops
 
+        # -- collision_rectangle guard: instance filtering already happened
+        # at conversion time (e.g. rBowserBoss spikeDown-in-rect became
+        # XB_FCEIL ents), so the guard is stripped and the body compiled.
+        m = re.fullmatch(r"if\s*\(collision_rectangle\([^)]*\)\)\s*(.*)",
+                         st, re.S)
+        if m:
+            return self._stmt(m.group(1).strip(), inst, tgt)
+
         # -- guarded composites (the exact source shapes) -------------------
         m = re.fullmatch(
             r"if\s*\(\s*!active\s*\)\s*\{(.*)\}", st, re.S)
@@ -657,6 +682,16 @@ VISUAL_CLASSES = {
     "secret5trophy", "secret6trophy",
     "JumpRefresher",   # source: destroyed unless char==Boshy (Kid: absent)
     "MechaWarning",    # arena siren+music cue: draw/sound only, no gameplay
+    "TysonStar",       # intro deco star drop (no collision events)
+    "Samus",           # escape cameo: path'd sprite, no gameplay events
+    "DracGlassShard", "DracSplosion", "DracOrbiterGhost", "EctoParticle",
+    "blood", "partFire", "partEntrance", "MagicExplosion", "MagicSmoke",
+    "Glass1", "Glass2", "Glass3", "Glass4", "Glass5",   # rGuyBoss panes
+    "GlAsshole", "GuyDarkness", "KidSpin", "prtGuyGlass",
+    "DeadGuy", "DeadGuyBrow", "DeadGuyMouth", "EndingGun1", "EndingKid1",
+    "EndingKid2", "EndingSkybox", "EndingSkybox2",   # rEnding tableau
+    "DeadBugz", "VicDeader", "VicBlood", "TourianDebris",
+    "DestroyedBlock",
     "saveVeryEvil",    # settings("evilsaves") gated (default off)
     "PlayerMetroided", "CreditsMetroid", "FireGlow",
     # cosmetic runtime spawns (no collision events; debris/particles/text)
@@ -669,20 +704,22 @@ VISUAL_CLASSES = {
 }
 
 #: boss / secret-battle objects — justified exceptions this milestone
+#: classes whose instances belong to boss content.  After the full-game
+#: milestone every one of them is IMPLEMENTED (the set only marks them
+#: for the coverage report's boss column); none is excluded any more.
 BOSS_CLASSES = {
-    "Tyson", "TysonBrick", "TysonDoor", "TysonStar", "TysonDoorTrigger",
+    "Tyson", "TysonBrick", "TysonDoor", "TysonDoorTrigger",
     "Dragon", "DragonBlock", "DragonMarker", "DragonMarker2", "RoadMoon",
-    "MommyThinker", "Samus", "TourianBarrier",
+    "MommyThinker", "TourianBarrier",
     "VicViper", "GradiusBoss", "GradiusBugz", "GradiusDrones",
     "GradiusMarker", "Sinistar", "ArkaBall", "ArkaBrick", "ArkaBrickShort",
-    "ArkaPlatform", "LuBooHoo", "BowserFireClassic", "Kamek", "Playstation",
+    "ArkaPlatform", "BowserFireClassic", "Kamek", "Playstation",
     "BossTeleporter", "OrbBirdo", "OrbMother",   # handled separately below
     "Higger",
 }
-# Of BOSS_CLASSES, these are actually IMPLEMENTED (non-boss interactive):
-IMPLEMENTED_ANYWAY = {"TysonDoor", "TysonBrick", "TourianBarrier",
-                      "BossTeleporter", "OrbBirdo", "OrbMother", "Kamek",
-                      "Playstation", "Higger"}
+# Of BOSS_CLASSES, these are IMPLEMENTED (either non-boss interactive or
+# ported bosses); after the full-game milestone that is the whole set.
+IMPLEMENTED_ANYWAY = set(BOSS_CLASSES)
 
 #: classes the STATIC converter already imported
 STATIC_CLASSES = {
@@ -1009,17 +1046,23 @@ OBJECT_TO_CLASS = {
     "FactorySpinner1": C["XB_SPINNER"], "FactorySpinner2": C["XB_SPINNER"],
     "SniperJohn": C["XB_SNIPER"], "FactoryYokuController": C["XB_FACTORYCTL"],
     "FactoryYoku": C["XB_FACTORYBLOCK"], "SnifitCannon": C["XB_SNIFITCANNON"],
-    "Tyson": -1, "player": -2,
+    "Tyson": C["XB_BOSS_TYSON"], "player": -2,
+    "MommyThinker": C["XB_BOSS_MOMMY"], "RoadMoon": C["XB_ROADMOON"],
+    "Dragon": C["XB_BOSS_DRAGON"], "Sinistar": C["XB_SINISTAR"],
+    "FallingCeiling": C["XB_FCEIL"],
+    "FallingCeilingSpike": C["XB_FCSPIKE"],
+    # rBowserBoss only: the rect-selected spikeDowns are XB_FCEIL ents
+    "spikeDown": C["XB_FCEIL"],
     "CycleSpikeUp": C["XB_ANIM_KILLER"], "CycleSpikeDown": C["XB_ANIM_KILLER"],
     "FallingBlockTrap": C["XB_SHAKE_FALL"],
     "FallingSpike10frameUp": C["XB_SHAKE_FALL"],
     "FallingSpike10frame": C["XB_SHAKE_FALL"],
     "FallingSpike": C["XB_SHAKE_FALL"], "FallingCave": C["XB_SHAKE_FALL"],
-    "MoonSmall": C["XB_MOONSMALL"], "RoadMoon": -1,
+    "MoonSmall": C["XB_MOONSMALL"],
     "LongForm": C["XB_MOVPLAT"], "Higger": C["XB_HIGGER"],
     "RevealingSpikesUp": C["XB_REVEALING"], "Lonk": C["XB_LONK"],
     "QuickLaserTimer": C["XB_QLTIMER"], "Skwee": C["XB_SKWEE"],
-    "MommyThinker": -1, "Samus": -1, "WheelTrap": C["XB_WHEEL"],
+    "Samus": -1, "WheelTrap": C["XB_WHEEL"],
     "FallingFort": C["XB_FALLPLAT"], "movingPlatform": C["XB_MOVPLAT"],
     "RealYoku": C["XB_REALYOKU"],
     "RealYokuController": C["XB_REALYOKUCTL"],
@@ -1303,6 +1346,19 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
         # teardown clears it), so the row cannot stay in the static grid
         referenced.update(i.id_hex for i in src.instances
                           if i.object == "spikeUp")
+    if rname == "rGuyBoss":
+        # GuyFirst's intro slides the spikeRight wall shut (they get
+        # tag 77 below so the boss can move them by class)
+        referenced.update(i.id_hex for i in src.instances
+                          if i.object == "spikeRight")
+    fceil_spikes = set()
+    if rname == "rBowserBoss":
+        # the arena trigger gives spikeDown in (832,192)-(1568,224) the
+        # FallingCeiling group's vspeed: those become XB_FCEIL entities
+        fceil_spikes = {i.id_hex for i in src.instances
+                        if i.object == "spikeDown" and
+                        832 <= i.x <= 1568 and 192 <= i.y <= 224}
+        referenced |= fceil_spikes
 
     # blockFake regions: overlapping blocks were removed at compile time
     fake_boxes = []
@@ -1336,8 +1392,14 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
                         if not (abs(k["x0"] - x) < 33 and
                                 abs(k["y0"] - y) < 33)]
                 spr = proj.objects[obj].sprite
-                ctx.add("XB_BOLT", x, y, mask=M(spr), xs=xs, ys=ys,
-                        flags=XEF_KILLER, inst=inst)
+                pv = None
+                cls_name = "XB_BOLT"
+                if rname == "rGuyBoss" and obj == "spikeRight":
+                    pv = [0, 0, 0, 0, 0, 0, 0, 77]   # GuyFirst's wall
+                if inst.id_hex in fceil_spikes:
+                    cls_name = "XB_FCEIL"            # ceiling group spike
+                ctx.add(cls_name, x, y, mask=M(spr), xs=xs, ys=ys,
+                        flags=XEF_KILLER, p=pv, inst=inst)
                 cov["implemented"][obj] += 1
                 continue
             # spikeUp with dest=1 becomes a destructible-linked killer xent
@@ -1439,12 +1501,17 @@ def emit_room(build: ExactBuild, rname: str, ir_room: dict) -> dict:
     _finish_deferred(build, ctx)
 
     from . import bosses as _b
-    if rname in _b.BOSS_ROOMS:
+    if rname in _b.BOSS_ROOMS or rname == "rGuy1":
         enter_ops = _b.enter_ops_for(build, rname)
+    if rname == "rGuyBoss" and camera == XCAM_NONE:
+        # no camera object in source: the world's default per-screen snap
+        # (the head fight drops the player to the lower screen)
+        camera = XCAM_HARD
 
     return {"name": rname, "xents": ctx.xents, "camera": camera,
             "always_active": 1 if rname == "rGuyLabyrinth" else 0,
-            "enter_ops": list(enter_ops)}
+            "enter_ops": list(enter_ops),
+            "kind": 1 if rname == _b.ENDING_ROOM else 0}
 
 
 def _emit_class(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc, roomvars,
@@ -1853,10 +1920,8 @@ def _emit_class2(build, ctx, ir_room, inst, obj, x, y, xs, ys, cc, roomvars,
         add("XB_DESTRUCTIBLE", x, y, mask=build.masks.rect_mask(32, 40),
             flags=XEF_SOLID, inst=inst)
         return True
-    if obj == "TysonDoor":
-        _rasterize_solid(build, ctx, ir_room, inst, roomvars)
-        build.coverage["static"][obj] += 1
-        return "static"
+    # (TysonDoor became a removable solid xent in the boss milestone;
+    # bosses.emit_class handles it)
 
     # ---- yoku chains / tetris -------------------------------------------
     if obj == "FactoryYokuController":
@@ -2245,7 +2310,7 @@ def build_exact(source_root: str, proj, result: dict) -> dict:
             xr = emit_room(build, rname, ir_rooms[rname])
         else:
             xr = {"name": rname, "xents": [], "camera": XCAM_NONE,
-                  "always_active": 0, "enter_ops": [0, 0]}
+                  "always_active": 0, "enter_ops": [0, 0], "kind": 0}
         xrooms.append(xr)
 
     # warp side-effect ops (code= strings recorded by the static pass)

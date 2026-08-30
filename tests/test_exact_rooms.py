@@ -126,11 +126,11 @@ def test_coverage_zero_unaccounted():
 
 @needs_pack
 def test_trigger_programs_all_compiled():
-    """All 136 trigger instances compiled into op programs: 135 in the
-    gameplay rooms + the Kraidgief arena spawn trigger (an unmatched code
-    string fails the build)."""
+    """All 137 trigger instances compiled into op programs: 135 in the
+    gameplay rooms + the Kraidgief arena spawn trigger + the rBowserBoss
+    falling-ceiling trigger (an unmatched code string fails the build)."""
     cov = json.load(open(COVERAGE_PATH))
-    assert cov["exact"]["trigger_programs"] == 136
+    assert cov["exact"]["trigger_programs"] == 137
 
 
 @needs_pack

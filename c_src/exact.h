@@ -232,7 +232,9 @@ enum {
     XB_RYUWIND,        /* updraft region (becomes Ryu trigger when off) */
     XB_MOONSMALL,
     XB_MOONBIG,        /* sampled path killer; ballistic at end/death */
-    XB_ORB,            /* p0 = flag bit; touch: flag + checkpoint */
+    XB_ORB,            /* p0 = flag bit; touch: flag + checkpoint.
+                        * p1>0: delayed warp (OrbDracula Alarm_0) —
+                        * p1 = room+1, p2/p3 = dest x/y, p4 = frames */
     XB_SECRET,         /* p0 = flag bit */
     XB_ENTRANCETELE,   /* 6-orb AND gate; kills without them */
     XB_CONDSOLID,      /* solid iff gflag p0 set (BlownEntrance) / unset */
@@ -265,6 +267,63 @@ enum {
     XB_KGDEBRIS,       /* visual ballistic debris                        */
     XB_KGSPIKE,        /* KraidgiefFallingSpike (shake, fall, reset)     */
     XB_KGCEIL,         /* KraidgiefCeiling: solid destroyed by the boss  */
+    /* ---- full-game boss milestone ---- */
+    XB_BOSS_TYSON,     /* Mike Tyson (rGuy1)                             */
+    XB_TYSONFIREBALL,  /* fireball spread; sticks on solids, alarm 200   */
+    XB_TYSONDOOR,      /* arena door: solid until victory                */
+    XB_BOSS_DRACINTRO, /* DraculaIntro cutscene -> spawns Dracula        */
+    XB_BOSS_DRACULA,   /* Dracula (teleport + random attacks, hp 39)     */
+    XB_BOSS_DEADCULA,  /* death sequence: true form, shoot to finish     */
+    XB_DRACTELE,       /* teleport riser: fires holder event_user(0)     */
+    XB_DRACGLASS,      /* thrown wine glass (gravity arc at the player)  */
+    XB_DRACPROJ,       /* p0: 0 apple 1 spiral-apple 2 homing 3 moon 4 orbiter */
+    XB_DRACFIREBALL,   /* falls; spawns 5 fire pillars on landing        */
+    XB_DRACSPIRAL,     /* DeathSpiral emitter (spiral apples, 300f)      */
+    XB_DRACPLASM,      /* ectoplasm chaser (bullet knockback, no HP)     */
+    XB_WILYPILLAR,     /* WilyFirePillar / GuyPersistentFirePillar (p2)  */
+    XB_BOSS_CLOWNCAR,  /* Bowser -> Wart -> Wily triple fight            */
+    XB_BOWSERBOMB,     /* pinball bomb; shoot it into the car            */
+    XB_BOWSEREXPL,     /* explosion (kills; damages the car)             */
+    XB_BOWSERFIRE,     /* BowserFireClassic (also the fortress2 trap)    */
+    XB_WARTBANZAI,     /* hp-50 slow missile                             */
+    XB_WARTPOOF,       /* floor-bounce poof burst                        */
+    XB_WILYBALL,       /* drops, rolls; bounces bullets upward (valid)   */
+    XB_WILYFIREBALL,   /* falls; 5 pillars on landing                    */
+    XB_FCEIL,          /* FallingCeiling killer block (group bounce)     */
+    XB_FCSPIKE,        /* FallingCeilingSpike: stretches a kill column   */
+    XB_FCSWITCH,       /* stand-on switch: activates the spikes          */
+    XB_BOWSERFLOOR,    /* solid; opens for Wart, restored at victory     */
+    XB_BOSS_MOMMY,     /* Mother Brain + escape countdown                */
+    XB_MOMMYGLASS,     /* her glass: solid until death                   */
+    XB_BOSS_DRAGON,    /* Devil Dragon (road chase, hp counts up)        */
+    XB_DRAGONFIRE,     /* aimed mouth fire                               */
+    XB_DEVILISM,       /* teleport pillar killers                        */
+    XB_DRAGONBLOCK,    /* event: re-materialize a destructible           */
+    XB_ROADMOON,       /* cutscene moon: grows, then wakes the Dragon    */
+    XB_SINISTAR,       /* chase killer, wakes when the bricks are gone   */
+    XB_VICVIPER,       /* the Gradius vehicle (player mode)              */
+    XB_VICBULLET,      /* viper shot (3-cap, dies on solids)             */
+    XB_GRADBOSS,       /* rotating-aim fruit-spiral turret, hp 10        */
+    XB_GRADBUGZ,       /* aimed-once flier                               */
+    XB_GRADDRONE,      /* retreating turret, 3-way bullets               */
+    XB_GRADDRONEBULLET,
+    XB_GRADFRUIT,      /* the boss's spiral bullets                      */
+    XB_ARKABALL,       /* Arkanoid ball (killer; exact reflection)       */
+    XB_ARKAPADDLE,     /* paddle following the player in the zone        */
+    XB_ARKABRICK,      /* removable solid brick (p0=cx p1=cy p2=short)   */
+    XB_BOSS_GUYFIRST,  /* The Guy, human form (body kills)               */
+    XB_GUYPROJ,        /* GuyFirstBullet / GuyShot / GuySpreadBullet     */
+    XB_GRENADE,        /* falls; 10 pillars across the floor on landing  */
+    XB_GUYBOUNCE,      /* big bouncing bullet: reflect it into him       */
+    XB_BOSS_GUYHEAD,   /* The Guy, giant head (final phases)             */
+    XB_GEYE,           /* his eyes: the weak points (2)                  */
+    XB_GUYMOUTH,       /* chomping mouth bar                             */
+    XB_GUYTOOTH,       /* teeth; launched at the player by the sweeper   */
+    XB_TOOTHSHOOTER,   /* invisible sweep that launches teeth            */
+    XB_GUYGLASSSHOT,   /* invisible-launch homing shot; shootable back   */
+    XB_GUYBROW,        /* eyebrows: bullet blockers when rotated down    */
+    XB_THEGUN,         /* falls after GuyFirst; pickup wakes the head    */
+    XB_DRACFORM,       /* one-way step: parked away while the Kid rises  */
     XB_NUM_CLASSES
 };
 
@@ -281,6 +340,10 @@ enum {
     XM_SOFTLOCK,         /* SoftlockBlocker: saves refuse while overlapped */
     XM_FRSW,             /* FirstRoomSpikeWall */
     XM_WALLJUMP_GONE,    /* placeholder for destroyed strips */
+    XM_DRAGONTURN,       /* DragonMarker: turn the dragon upward */
+    XM_DRAGONDEAD,       /* DragonMarker2: the dragon's death line */
+    XM_GRADIUS,          /* GradiusMarker: activates gradius actors */
+    XM_FIRESINK,         /* LuBooHoo: absorbs BowserFireClassic */
 };
 
 /* wall strip kinds (XB_WALLSTRIP p1) */
@@ -352,8 +415,21 @@ typedef struct {
     /* boss framework (c_src/boss/): all zero when no boss is live */
     IWXBossState boss[IWXB_MAX];
     int n_boss;                /* used slots; gates every boss hook */
-    float cam_voffset;         /* one-frame camera shake (cameraKraid) */
+    int n_xiface;              /* ents whose class reacts to bullets
+                                  outside a boss slot (Deadcula, Mother
+                                  Brain, Sinistar, the victory WilyBall,
+                                  ...); with n_boss it gates the bullet
+                                  router.  Counted at room load, bumped
+                                  by iwx_spawn, never decremented. */
+    float cam_voffset;         /* one-frame camera shake (all cameras) */
     uint8_t cam_locked, cam_piledriver;   /* XCAM_KRAID modes */
+
+    /* cutscene input override (player.cutscene: h forced, jump/shoot
+     * ignored, v zeroed) — set by boss intros, cleared by them */
+    uint8_t cutscene;
+    int8_t  force_h;           /* h override while cutscene */
+    int     viper;             /* VicViper ent index while flying (-1) */
+    uint8_t game_complete;     /* reached rEnding with orb_guy */
 } IWXState;
 
 /* ------------------------------------------------------------------ *

@@ -51,6 +51,7 @@ def _load() -> ctypes.CDLL:
         fn.argtypes = [ctypes.c_void_p]
     for name in ("iw_djump", "iw_on_ground", "iw_tick", "iw_tw", "iw_th",
                   "iw_last_event", "iw_ent_count", "iw_deaths",
+                  "iw_game_completions",
                   "iw_room", "iw_respawn_room", "iw_room_transitions",
                   "iw_num_rooms"):
         fn = getattr(lib, name)
@@ -301,6 +302,11 @@ class CIWanna:
     def last_event(self) -> int: return LIB.iw_last_event(self._h)
     @property
     def deaths(self) -> int: return LIB.iw_deaths(self._h)
+
+    @property
+    def game_completions(self) -> int:
+        """Times the run reached the source ending (rEnding)."""
+        return LIB.iw_game_completions(self._h)
     @property
     def ent_count(self) -> int: return LIB.iw_ent_count(self._h)
     @property

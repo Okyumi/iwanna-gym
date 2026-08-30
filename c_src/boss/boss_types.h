@@ -23,13 +23,17 @@
 #define IWXB_SPAWN_KEEP 16    /* xent slots visual spawns must leave free */
 
 /* boss definition ids (which step function drives the slot) */
-enum { IWXB_DEF_NONE = 0, IWXB_DEF_TEST, IWXB_DEF_BIRDO, IWXB_DEF_KRAIDGIEF };
+enum { IWXB_DEF_NONE = 0, IWXB_DEF_TEST, IWXB_DEF_BIRDO,
+       IWXB_DEF_KRAIDGIEF, IWXB_DEF_TYSON, IWXB_DEF_DRACULA,
+       IWXB_DEF_CLOWNCAR, IWXB_DEF_MOMMY, IWXB_DEF_DRAGON,
+       IWXB_DEF_GUYFIRST, IWXB_DEF_GUYHEAD };
 
 /* shared slot flags (per-boss bits start at IWXB_F_USER) */
 enum {
     IWXB_F_VULN   = 1u << 0,   /* body damage window open */
     IWXB_F_DEAD   = 1u << 1,   /* death/completion sequence running */
     IWXB_F_INTRO  = 1u << 2,   /* arena intro running */
+    IWXB_F_PUSH   = 1u << 3,   /* router consumes bullets on weak points */
     IWXB_F_USER   = 1u << 4,
 };
 

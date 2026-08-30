@@ -195,6 +195,19 @@ static int iwxb_route_bullet(IWanna* env, IWEntity* b,
 
 /* ---------------- arena / completion services ---------------- */
 
+/* does e's bbox overlap any alive marker of the given kind? (shared by
+ * the road/gradius actors and the BowserFireClassic torch sink) */
+static int iwxb_marker_overlap(IWXState* xs, IWXEnt* e, int kind) {
+    double l, r, t, b;
+    iwx_ent_bbox(xs, e, &l, &r, &t, &b);
+    for (int k = 0; k < xs->n_idx_marker; k++) {
+        IWXEnt* m = &xs->ents[xs->idx_marker[k]];
+        if (!m->alive || (int)m->p[0] != kind) continue;
+        if (iwx_bbox_hit(xs, m, (int)l, (int)r, (int)t, (int)b)) return 1;
+    }
+    return 0;
+}
+
 static inline void iwxb_goto_room(IWanna* env, int room, float x, float y,
                                   int use_start) {
     env->pending_room = room;
@@ -220,6 +233,43 @@ static inline void iwxb_cam_piledriver(IWanna* env, int on) {
 }
 static inline void iwxb_cam_shake(IWanna* env, float voffset) {
     XS(env)->cam_voffset = voffset;
+}
+
+/* ---------------- sampled GM paths (offline keys) ---------------- *
+ * Keys layout per path: [total_len, n, x0,y0, x1,y1, ...] with the n
+ * points resampled to equal arc-length steps by the converter.  pos in
+ * [0,1]; relative playback offsets by (start - point0).                */
+/* path keys: [total_len, n, x0,y0,sp0, x1,y1,sp1, ...] equal-arc samples
+ * (sp = the GM per-point speed percentage / 100, interpolated) */
+static inline void iwxb_path_xy(IWXState* xs, int off, float pos,
+                                float* px, float* py) {
+    int n = (int)xs->keys[off + 1];
+    if (n < 2) { *px = xs->keys[off + 2]; *py = xs->keys[off + 3]; return; }
+    float t = pos * (float)(n - 1);
+    int i = (int)t;
+    if (i > n - 2) i = n - 2;
+    if (i < 0) i = 0;
+    float f = t - (float)i;
+    const float* p0 = &xs->keys[off + 2 + 3 * i];
+    *px = p0[0] + (p0[3] - p0[0]) * f;
+    *py = p0[1] + (p0[4] - p0[1]) * f;
+}
+
+/* the GM speed factor at pos (1.0 = full path_speed) */
+static inline float iwxb_path_sp(IWXState* xs, int off, float pos) {
+    int n = (int)xs->keys[off + 1];
+    if (n < 2) return xs->keys[off + 4];
+    float t = pos * (float)(n - 1);
+    int i = (int)t;
+    if (i > n - 2) i = n - 2;
+    if (i < 0) i = 0;
+    float f = t - (float)i;
+    const float* p0 = &xs->keys[off + 2 + 3 * i];
+    return p0[2] + (p0[5] - p0[2]) * f;
+}
+
+static inline float iwxb_path_len(IWXState* xs, int off) {
+    return xs->keys[off];
 }
 
 /* animation helper: advance frame by fspd, report GM Animation End */
@@ -257,7 +307,7 @@ static void iwxb_test_step(IWanna* env, IWXEnt* e) {
         bs->hp = e->p[2];
         bs->alarm[0] = (int)e->p[4];
         iwxb_wp_make(env, bs, 0, (int)e->p[0]);
-        bs->f |= IWXB_F_VULN;
+        bs->f |= IWXB_F_VULN | IWXB_F_PUSH;
     }
     if (bs->f & IWXB_F_DEAD) return;
     bs->timer++;

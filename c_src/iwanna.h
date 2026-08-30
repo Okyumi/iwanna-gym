@@ -265,6 +265,7 @@ typedef struct {
     double respawn_x, respawn_y;
     int on_platform;          /* standing on a moving platform last frame */
     int deaths;               /* deaths this episode (checkpoint mode) */
+    int game_completions;     /* times the ending was reached (survives) */
 
     /* trigger/event system (immutable after load except runtime fields) */
     IWEvent* events;
@@ -290,6 +291,7 @@ typedef struct {
     int respawn_room;         /* room of the active save point */
     int room_has_goal;        /* pack rooms may have no terminal goal */
     int pending_room;         /* -1 none; >=0 = switch rooms after this phase */
+    int pending_checkpoint;   /* checkpoint at the destination (orb_dragon) */
     float pending_x, pending_y;
     int pending_keep_speed;
     int pending_use_start;    /* 1 = enter at the target room's start point */
@@ -322,7 +324,8 @@ typedef struct {
     int tick;
     double prev_goal_dist;
     float ep_return;
-    int last_event;           /* 0 none, 1 death, 2 goal, 3 timeout (survives auto-reset) */
+    int last_event;           /* 0 none, 1 death, 2 goal, 3 timeout,
+                                 4 game complete (survives auto-reset) */
 } IWanna;
 
 /* ---------- utilities ---------- */
@@ -572,8 +575,8 @@ static void update_entities(IWanna* env) {
                 int bl = bx + IW_BULLET_L, br = bx + IW_BULLET_R;
                 int bt = by + IW_BULLET_T, bb = by + IW_BULLET_B;
                 /* boss weak points / body deflects (collision phase);
-                 * n_boss == 0 in every ordinary room */
-                if (env->xs && env->xs->n_boss &&
+                 * n_boss == 0 and n_xiface == 0 in every ordinary room */
+                if (env->xs && (env->xs->n_boss || env->xs->n_xiface) &&
                     iwxb_route_bullet(env, e, bl, br, bt, bb)) {
                     e->flags &= ~EF_ACTIVE;
                     break;
@@ -1265,6 +1268,13 @@ static int iw_pack_do_pending(IWanna* env) {
         iw_pack_room_switch(env, room, dst->start_x, dst->start_y, 0);
         env->djump = 1;
         env->prev_jump_held = 0;
+        if (env->pending_checkpoint) {   /* global.save_on_room_change */
+            env->pending_checkpoint = 0;
+            env->respawn_room = room;
+            env->respawn_x = env->x;
+            env->respawn_y = env->y;
+            env->respawn_face = (float)env->face;
+        }
         if (env->xs && env->pending_xnops > 0) {
             iwx_run_ops(env, env->pending_xop0, env->pending_xnops, -1);
             env->pending_xnops = 0;
@@ -1515,9 +1525,11 @@ static void c_reset(IWanna* env) {
         env->gflags = 0;
         env->pending_room = -1;   /* before the copy: enter ops may warp */
         env->pending_use_start = 0;
+        env->pending_checkpoint = 0;
         iw_pack_copy_room(env, env->start_room);
         env->respawn_room = env->start_room;
         env->room_transitions = 0;
+        if (env->xs) env->xs->game_complete = 0;
     }
     env->x = env->start_x;
     env->y = env->start_y;
@@ -1712,6 +1724,19 @@ static void c_step(IWanna* env) {
         add_log(env, 1.0f, 0.0f);
         c_reset(env);
         env->last_event = 2;
+        return;
+    }
+
+    /* full-game completion: reaching the ending room (orb_guy set by the
+     * final eye, room_goto(rEnding) by the head — the source ending) */
+    if (env->xs && env->xs->game_complete) {
+        env->rewards[0] += 1.0f;
+        env->ep_return += env->rewards[0];
+        env->terminals[0] = 1;
+        add_log(env, 1.0f, 0.0f);
+        env->last_event = 4;               /* game complete */
+        env->game_completions += 1;
+        c_reset(env);
         return;
     }
 

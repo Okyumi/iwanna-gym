@@ -113,12 +113,12 @@ def main():
 
     L.append("## Excluded: boss content")
     L.append("")
-    L.append("The milestone stops before the boss catalogue. Boss actors and "
-             "the objects that only exist as part of a boss fight are "
-             "excluded under `exact.BOSS_CLASSES`; the arenas themselves, "
-             "their platforming approaches, and the flag-gated boss "
-             "teleporters (including the defeat-flag warp conditions) are "
-             "implemented.")
+    L.append("Since the full-game milestone every boss is implemented, so "
+             "this bucket is empty; it remains a build gate — any placed "
+             "boss-class instance that loses its implementation lands "
+             "here and fails coverage. See "
+             "[iwbtgr_boss_coverage.md](iwbtgr_boss_coverage.md) for the "
+             "boss catalogue.")
     L.append("")
     L.append(table(sorted(boss.items(), key=lambda kv: -kv[1]),
                    ("object", "instances")))

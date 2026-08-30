@@ -279,6 +279,9 @@ int iw_ent_count(void* h) {
 }
 
 int iw_deaths(void* h)      { return ((Handle*)h)->env.deaths; }
+int iw_game_completions(void* h) {
+    return ((Handle*)h)->env.game_completions;
+}
 double iw_respawn_x(void* h){ return ((Handle*)h)->env.respawn_x; }
 double iw_respawn_y(void* h){ return ((Handle*)h)->env.respawn_y; }
 

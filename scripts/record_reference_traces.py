@@ -62,8 +62,31 @@ def record_birdo():
     return "iwbtgr_trace_birdo.sha", h.hexdigest()
 
 
+def fullgame_digest(out):
+    """Canonical serialization of a run_full_game() summary (shared with
+    tests/test_iwbtgr_fullgame.py::test_full_game_reference_trace)."""
+    h = hashlib.sha256()
+    for tick, stage, gf, deaths in out["log"]:
+        h.update(f"{tick}:{stage}:{gf}:{deaths};".encode())
+    h.update(f"{out['gflags']:#x}:{out['deaths']}:"
+             f"{out['completions']}:{out['last_event']}".encode())
+    return h.hexdigest()
+
+
+def record_fullgame():
+    """The complete single-session full-game run: every boss, every
+    orb, the gate, the ending.  The waypoint ticks pin the whole 57k-
+    frame progression."""
+    from iwanna_gym.games.iwbtgr_1_5_3 import drivers
+    out = drivers.run_full_game(seed=11)
+    assert out["completions"] == 1 and out["deaths"] == 0, \
+        "refusing to record a broken full-game trace"
+    return "iwbtgr_trace_fullgame.sha", fullgame_digest(out)
+
+
 def main():
-    for name, digest in (record_rguy1(), record_birdo()):
+    for name, digest in (record_rguy1(), record_birdo(),
+                         record_fullgame()):
         out = os.path.join(FIX, name)
         with open(out, "w") as f:
             f.write(digest + "\n")

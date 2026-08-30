@@ -61,6 +61,7 @@ static void iwxb_birdo_step(IWanna* env, IWXEnt* e) {
     if (!bs) return;
     if (fresh) {                                   /* Create event */
         bs->phase = 1;
+        bs->f |= IWXB_F_PUSH;
         bs->hp = IWXB_BIRDO_HP1;
         bs->p[0] = 1.0f;                           /* dir */
         bs->p[1] = 1.0f;                           /* eggspeed */
