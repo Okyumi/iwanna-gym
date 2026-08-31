@@ -1,0 +1,138 @@
+"""I Wanna Kill the Kamilia 2 WARPED (SUDALV92) — static-world import.
+
+CLASSIC_GAME_2 of the classic track (docs/classic_exact_import_selection.md;
+pins in third_party/classic_source_manifest.toml): the author's own
+GameMaker: Studio 1.4 project, git commit ``a6d6dce1`` — imported by the
+versioned ``gmx2pack`` adapter in :mod:`.converter`.
+
+Static-world milestone: every room, dimensions, source room order,
+solids/spikes/static hazards, saves, player starts, warps + room graph,
+with the full dynamic-object inventory recorded in the coverage report
+(dynamic behavior lands in later milestones).  The source tree is never
+committed: users clone https://github.com/SUDALV92/K2W at the pinned
+commit and run ``python -m iwanna_gym.games.k2warped_gms14 build <dir>``.
+
+The pack is always labeled K2 WARPED by SUDALV92 — it is his released
+remake/medley and must never be presented as I Wanna Kill The Kamilia 2.
+"""
+from __future__ import annotations
+
+import json
+import os
+
+GAME_ID = "k2warped_gms14"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
+BUILD_DIR = os.path.join(_REPO, "build", "games")
+PACK_PATH = os.path.join(BUILD_DIR, GAME_ID + ".iwpack")
+GRAPH_PATH = os.path.join(_HERE, "room_graph.json")
+
+#: K2W has a single difficulty tier (its difficulty-select room is an
+#: unreferenced orphan in the source); saves carry an all-tiers mask.
+DIFFICULTIES = {"default": 0}
+
+
+def graph() -> dict:
+    with open(GRAPH_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def room_names() -> list[str]:
+    return list(graph()["room_order"])
+
+
+def room_index(room_id: str | int) -> int:
+    if isinstance(room_id, int):
+        return room_id
+    names = room_names()
+    if room_id not in names:
+        raise KeyError(f"unknown room {room_id!r}")
+    return names.index(room_id)
+
+
+def load_pack(path: str | None = None) -> bytes:
+    p = path or PACK_PATH
+    if not os.path.isfile(p):
+        raise FileNotFoundError(
+            f"{p} not built. Clone https://github.com/SUDALV92/K2W at "
+            f"commit a6d6dce1 and run: python -m "
+            f"iwanna_gym.games.{GAME_ID} build <clone-dir>")
+    with open(p, "rb") as f:
+        return f.read()
+
+
+def build(source_root: str, out_dir: str | None = None) -> dict:
+    """Offline: convert the author's GMS 1.4 tree -> IR -> .iwpack
+    (+ committed room graph & coverage reports)."""
+    from iwanna_gym.gamepack import compile_pack, save_iwgame, validate
+    from .converter import (ADAPTER, ADAPTER_VERSION, PIN_COMMIT, convert,
+                            project_sha256, source_identity)
+
+    res = convert(source_root)
+    out_dir = out_dir or BUILD_DIR
+    os.makedirs(out_dir, exist_ok=True)
+
+    rep = validate(res["ir"], allow_unsupported=False)
+    if not rep.ok:
+        raise RuntimeError("converted IR failed validation:\n" + rep.text())
+    ident = source_identity(source_root)
+    src_sha = project_sha256(source_root)
+    res["ir"]["provenance"]["source_checksum_sha256"] = src_sha
+    res["ir"]["provenance"]["source_commit"] = ident.get("actual_commit", "")
+    res["ir"]["provenance"]["pack_version"] = GAME_ID + "_static_m1"
+
+    save_iwgame(res["ir"], os.path.join(out_dir, GAME_ID + ".iwgame.json"))
+    comp = compile_pack(res["ir"])
+    pack_path = os.path.join(out_dir, GAME_ID + ".iwpack")
+    with open(pack_path, "wb") as f:
+        f.write(comp.data)
+    import hashlib
+    pack_sha = hashlib.sha256(comp.data).hexdigest()
+
+    # committed artifacts: room graph + coverage + instance inventory
+    g = {"game": GAME_ID,
+         "adapter": f"{ADAPTER} {ADAPTER_VERSION}",
+         "pin_commit": PIN_COMMIT,
+         "source_commit": ident.get("actual_commit", ""),
+         "pin_match": ident.get("pin_match", False),
+         "source_text_sha256": src_sha,
+         "room_order": res["room_order"],
+         "start_room": res["ir"]["room_graph"]["start_room"],
+         "meta_rooms": res["coverage"]["meta_rooms"],
+         "boss_rooms": res["coverage"]["boss_rooms"],
+         "edges": res["ir"]["room_graph"]["edges"]}
+    with open(GRAPH_PATH, "w", encoding="utf-8") as f:
+        json.dump(g, f, indent=1, sort_keys=True)
+
+    reports = os.path.join(_REPO, "build", "source_reports")
+    os.makedirs(reports, exist_ok=True)
+    with open(os.path.join(reports, GAME_ID + ".coverage.json"), "w",
+              encoding="utf-8") as f:
+        json.dump(res["coverage"], f, indent=1, sort_keys=True)
+    inv_path = os.path.join(reports, GAME_ID + ".instances.json")
+    with open(inv_path, "w", encoding="utf-8") as f:
+        json.dump(res["inventory"], f, indent=1, sort_keys=True)
+    with open(inv_path, "rb") as f:
+        g["instance_inventory_sha256"] = hashlib.sha256(
+            f.read()).hexdigest()
+    g["instance_inventory_note"] = (
+        "full per-instance provenance inventory is a deterministic "
+        "build artifact (build/source_reports/" + GAME_ID +
+        ".instances.json), regenerated by the build and pinned here")
+    with open(GRAPH_PATH, "w", encoding="utf-8") as f:
+        json.dump(g, f, indent=1, sort_keys=True)
+
+    summary = {
+        "game_id": GAME_ID,
+        "rooms": len(res["room_order"]),
+        "instances": res["coverage"]["instances_total"],
+        "by_status": res["coverage"]["instances_by_status"],
+        "object_categories": res["coverage"]["object_categories"],
+        "edges": len(g["edges"]),
+        "pack_sha256": pack_sha,
+        "source_text_sha256": src_sha,
+        "source_commit": ident.get("actual_commit", ""),
+        "pin_match": ident.get("pin_match", False),
+    }
+    print(json.dumps(summary, indent=1))
+    return summary

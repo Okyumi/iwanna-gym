@@ -5,3 +5,4 @@ __pycache__/
 *.egg-info/
 build/source_reports/*_code.json
 build/games/
+build/source_reports/k2warped_gms14.instances.json
