@@ -45,9 +45,28 @@ checksum_sha256 = "c41928c4e6599b3535c7a1d0d4b0df4da6068184e037a899af4282b460678
 checksum_status = "verified-author-hosted-file-2026-09-01"
 license_status = "no license; author's README grants no rights (deliberately informal); files published openly by the author as reference; naming request: fangames must not present as official sequels"
 redistribution = "forbidden - never commit or redistribute the .mfa or embedded assets; importer consumes a user-fetched copy"
-importer_adapter = "mfa2pack (new; CTFAK 2.0 direct-MFA reader as an external AGPL process -> normalized source-derived IR; fail closed on unsupported gameplay records)"
+importer_adapter = "mfa2pack (spike landed 2026-09-03; CTFAK 2.0 direct-MFA reader as an external AGPL process -> normalized source-derived inventory; fail closed on unsupported gameplay records)"
 physics_profile = "iwbtg_original_2007 (new; MUST be extracted from the .mfa per docs/fidelity_contract.md before any exactness claim)"
-implementation_status = "selected, not implemented"
+implementation_status = "feasibility spike landed (tools/importers/iwbtg_mfa); no extraction of the real file has run — see [iwbtg_mfa_extraction_gate]"
+
+# --------------------------------------- direct-MFA extraction gate (2026-09-03)
+
+[iwbtg_mfa_extraction_gate]
+# Feasibility milestone for CLASSIC_GAME_1. Narrative + reproducible
+# procedure: docs/iwbtg_mfa_feasibility.md. This records only external
+# tool pins and gate status — never game content.
+status = "conditionally feasible; real-file extraction PENDING (blockers below)"
+registration_command = "python -m tools.iwimport register-iwbtg '<path>/iwbtgbeta(fs).mfa'"
+registration_status = "BLOCKED in-sandbox: kayin.moe + mirrors unreachable (egress allowlist); no byte-verified copy present; mirror allowed only when SHA-256 matches the pin exactly"
+external_tool = "CTFAK 2.0 (CTFAK 2.2 line)"
+external_tool_repo = "https://github.com/CTFAK/CTFAK2.0"
+external_tool_commit = "f38ba7951f5fa9d714dc5d97772882ea6aa61717"
+external_tool_license = "AGPL-3.0 — NEVER vendored, copied, or linked into this MIT repo; runs as a separate process from a user-managed checkout (IWG_CTFAK_DIR outside the repo); the InventoryDump plugin lives in its own external AGPL repo"
+external_tool_runtime = ".NET 6 (net6.0-windows targets; no release binaries — build from source; Linux path via an external retarget patch, see the feasibility doc)"
+dump_contract = "ctfak-inventory-dump/1 (metadata only: names, handles, coordinates, numeric params, chunk ids — never images/sounds/expressive assets)"
+inventory_contract = "iwbtg-normalized-inventory/1 (per-record provenance to MFA identities; CoverageError fails closed on unparsed/unknown/unsupported gameplay records)"
+independent_validation = "UNRESOLVED GATE: CTFAK output not yet cross-checked against any independent Clickteam tooling; inventory must be treated as single-source until resolved"
+never_committed = ["iwbtgbeta(fs).mfa", "extracted assets", "build/iwbtg_mfa/", "build/source_registry/"]
 
 [[selected]]
 slot = "CLASSIC_GAME_2"

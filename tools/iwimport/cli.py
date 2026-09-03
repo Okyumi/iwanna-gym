@@ -137,6 +137,43 @@ def cmd_register_iwbtg(args) -> int:
     return 0
 
 
+def cmd_mfa_inventory(args) -> int:
+    """Registered .mfa -> (external CTFAK dump) -> normalized inventory."""
+    import json
+    import os
+
+    from tools.importers.iwbtg_mfa import (CoverageError, CtfakUnavailable,
+                                           DumpFormatError,
+                                           RegistrationRequired,
+                                           normalize_dump, report_text,
+                                           require_registered_source)
+    from tools.importers.iwbtg_mfa.ctfak_runner import run_ctfak
+    from tools.importers.iwbtg_mfa.normalize import load_dump
+
+    try:
+        require_registered_source(args.source, registry=args.registry)
+        if args.dump:
+            dump_path = args.dump
+        elif args.run_ctfak:
+            dump_path = str(run_ctfak(args.source, args.out_dir,
+                                      registry=args.registry))
+        else:
+            print("pass --dump <json> or --run-ctfak", file=sys.stderr)
+            return 2
+        inv = normalize_dump(load_dump(dump_path))
+    except (RegistrationRequired, CtfakUnavailable, DumpFormatError,
+            CoverageError) as exc:
+        print(f"mfa-inventory failed: {exc}", file=sys.stderr)
+        return 1
+    os.makedirs(args.out_dir, exist_ok=True)
+    out = os.path.join(args.out_dir, "iwbtg_inventory.json")
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(inv, f, indent=1, sort_keys=True)
+    print(report_text(inv))
+    print(f"\nwrote {out}")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="iwimport", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -193,6 +230,24 @@ def main(argv=None) -> int:
         help="gitignored local metadata record",
     )
     p.set_defaults(fn=cmd_register_iwbtg)
+
+    p = sub.add_parser(
+        "mfa-inventory",
+        help="normalize a CTFAK InventoryDump of the registered IWBTG "
+             ".mfa into the fail-closed source inventory",
+    )
+    p.add_argument("source", help="path to the REGISTERED iwbtgbeta(fs).mfa")
+    p.add_argument("--dump", help="existing ctfak-inventory-dump/1 JSON "
+                                  "(skip running CTFAK)")
+    p.add_argument("--run-ctfak", action="store_true",
+                   help="invoke the external CTFAK install "
+                        "(IWG_CTFAK_DIR) to produce the dump first")
+    p.add_argument("--out-dir", default="build/iwbtg_mfa",
+                   help="working directory for dump + inventory output")
+    p.add_argument(
+        "--registry",
+        default="build/source_registry/iwbtg_original_2007.json")
+    p.set_defaults(fn=cmd_mfa_inventory)
 
     args = ap.parse_args(argv)
     return args.fn(args)
