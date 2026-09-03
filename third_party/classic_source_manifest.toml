@@ -38,11 +38,14 @@ source_inventory = [
   "iwstkalpha12.mfa, 4.2 MB, 2007-12-25",
   "iwstkalpha133.mfa, 4.1 MB, 2007-12-28",
 ]
-checksum_sha256 = ""                # recorded on first user-provided fetch;
-checksum_status = "pending-first-fetch"  # kayin.moe blocked from the sandbox
+source_file_url = "https://kayin.moe/iwbtg/source/iwbtgbeta(fs).mfa"
+source_size_bytes = 85300282
+source_last_modified = "2008-01-31 03:57:52 GMT"
+checksum_sha256 = "c41928c4e6599b3535c7a1d0d4b0df4da6068184e037a899af4282b460678f76"
+checksum_status = "verified-author-hosted-file-2026-09-01"
 license_status = "no license; author's README grants no rights (deliberately informal); files published openly by the author as reference; naming request: fangames must not present as official sequels"
 redistribution = "forbidden - never commit or redistribute the .mfa or embedded assets; importer consumes a user-fetched copy"
-importer_adapter = "mfa2pack (new; external reader on the open-source mmfparser/Anaconda lineage)"
+importer_adapter = "mfa2pack (new; CTFAK 2.0 direct-MFA reader as an external AGPL process -> normalized source-derived IR; fail closed on unsupported gameplay records)"
 physics_profile = "iwbtg_original_2007 (new; MUST be extracted from the .mfa per docs/fidelity_contract.md before any exactness claim)"
 implementation_status = "selected, not implemented"
 

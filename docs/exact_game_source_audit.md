@@ -7,6 +7,10 @@ live in `third_party/source_manifest.toml`; redistribution policy lives in
 `third_party/SOURCES.md`; what "exact" means lives in
 `docs/fidelity_contract.md`.
 
+Availability recheck: on 2026-09-01 the canonical author-hosted
+`iwbtgbeta(fs).mfa` became reachable and was fetched successfully. Its
+verified identity is recorded below and in both source manifests.
+
 Scope: prepare iwanna-gym to import complete, precisely identified games by
 existing I-Wanna creators, starting with *I Wanna Be The Guy*. This audit
 locates the sources; it does not implement importers.
@@ -39,10 +43,12 @@ source snapshots; the shipped game never carried a clean numeric version
 (a "1.0.0" could not be verified from any primary source; the game's last
 official update was February 2008). **Version identification for
 `iwbtg_original_2007` therefore pins the specific `.mfa` file (fs or slomo)
-by checksum, not a version number.** Checksums of the `.mfa` files could not
-be computed in this audit environment (kayin.moe is not reachable from the
-sandbox; sizes/dates above are from the fetched directory index) — computing
-and recording them is the first step of importer work.
+by checksum, not a version number.** The selected canonical file is now
+pinned byte-for-byte: `iwbtgbeta(fs).mfa`, 85,300,282 bytes, Last-Modified
+`2008-01-31 03:57:52 GMT`, SHA-256
+`c41928c4e6599b3535c7a1d0d4b0df4da6068184e037a899af4282b460678f76`.
+The official Kayin URL is the canonical transport. A mirror is acceptable
+only when it produces this exact digest.
 
 **Terms.** Deliberately informal: "IWBTG is under no particular license, and
 I grant you no particular rights. … *you gotta steal a little*. … **Do as you
@@ -164,12 +170,19 @@ Clickteam/MMF family (for `iwbtg_original_2007` and Boshy):
   commercial dual): Python parsers for MMF2 data (chunk reader, frames,
   object instances, events, images; MMF1.5-era chunks supported). The 2012
   mirror lacks the `.mfa` editor-format module; later decompiler forks carry
-  fuller `.mfa` handling.
+  fuller `.mfa` handling. It is therefore not the primary direct-MFA path.
 - **CTFAK 2.0** ([CTFAK/CTFAK2.0](https://github.com/CTFAK/CTFAK2.0), C#,
   AGPL-3.0, archived/unmaintained): reads built `.exe`/`.ccn`/`.dat` **and
   `.mfa`**, with MMF-1.5-mode switches and MFA-reconstruction output. Best
   current open route into the IWBTG `.mfa`; its archived status is a known
   risk (successor "NebulaFD" is work-in-progress).
+
+The first original-game importer milestone uses CTFAK as an external AGPL
+process to extract a normalized IR. It must inventory frames, objects,
+instances, qualifiers/groups, movements, complete event sheets, globals,
+counters, transitions, extensions, and unknown records. Any unsupported
+gameplay-relevant record fails the build; no silent skip is allowed. A
+compatible Clickteam/MMF export provides an independent validation oracle.
 
 ## 5. Recommended first exact-game target: `iwbtgr_1_5_3`
 

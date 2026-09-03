@@ -18,13 +18,13 @@ exact_version = "beta builds of 2008-01-31: iwbtgbeta(fs).mfa and iwbtgbeta(slom
 author = "Michael 'Kayin' O'Reilly"
 original_format = "Multimedia Fusion 2 project (.mfa); ending.ccn compiled Clickteam file"
 source_location = "https://kayin.moe/iwbtg/source/ (pointer repo: https://github.com/Kayinnasaki/IWBTG, commit bb5a6cb56149a1fb1198843e291af355d51bdfce; Google Drive mirror linked from its README)"
-source_availability = "public, no auth; open directory listing verified 2026-08-27 (fs/slomo .mfa each 81 MB, dated 2008-01-31)"
+source_availability = "public, no auth; canonical fs file fetched successfully from the author host 2026-09-01 (85,300,282 bytes; Last-Modified 2008-01-31 03:57:52 GMT)"
 license_status = "informal non-license by the author ('no particular rights... you gotta steal a little... Do as you will'); non-commercial-without-asking for companies; no crypto/NFT; NOT a redistribution license - do not commit"
-checksum_sha256 = ""
-checksum_status = "pending"  # kayin.moe unreachable from audit sandbox; sizes/dates recorded from fetched index
+checksum_sha256 = "c41928c4e6599b3535c7a1d0d4b0df4da6068184e037a899af4282b460678f76"
+checksum_status = "verified-author-hosted-file-2026-09-01"
 pointer_repo_readme_sha256 = "ee87757b62176534bfeebcfbc710b6212b9291636d3fe5b9cb0a6058801fdc7b"
 contains = "entire authored game: all frames/rooms, object placements, MMF2 event logic (triggers, bosses, saves, difficulty), embedded assets; authoritative source of original-2007 physics (numeric values not yet extracted - see docs/fidelity_contract.md)"
-proposed_importer = "mfa2pack (future): CTFAK 2.0 or mmfparser as external reader -> frames/instances/events -> IWannaGym pack; physics extraction is a prerequisite for any 'exact original physics' claim"
+proposed_importer = "mfa2pack (future): CTFAK 2.0 direct-MFA reader as an external AGPL process -> normalized source-derived IR -> IWannaGym pack; fail closed on unsupported gameplay records; independently validate extraction with compatible Clickteam/MMF tooling"
 known_limitations = "author warns files are best used as reference and partially broken in current MMF2 (vertical platforms); no numeric version scheme (pin by file checksum); irregular MMF2 frame pacing (fs/slomo builds differ)"
 
 [[source]]

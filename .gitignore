@@ -6,3 +6,4 @@ __pycache__/
 build/source_reports/*_code.json
 build/games/
 build/source_reports/k2warped_gms14.instances.json
+build/source_registry/

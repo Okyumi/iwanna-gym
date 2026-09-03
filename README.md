@@ -253,6 +253,14 @@ unsupported-content policy:
 elements the source can't map are reported and block compilation — never
 silently dropped. Regression benchmark: `python scripts/benchmark_env.py`.
 
+Register the original 2007 IWBTG source locally before its future importer
+is run (the `.mfa` is verified but never copied into or committed by this
+repository):
+
+```bash
+python -m tools.iwimport register-iwbtg '/path/to/iwbtgbeta(fs).mfa'
+```
+
 **IWBTGR source inventory (extracted).** The complete IWBTG: Remastered
 1.5.3 GM8.2 source has been inventoried from a locally supplied source
 tree — 27 rooms, 466 objects, 8,212 placed instances, 28,492 tiles, the

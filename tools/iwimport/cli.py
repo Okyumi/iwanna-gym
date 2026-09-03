@@ -5,6 +5,7 @@
     python -m tools.iwimport validate <game.iwgame.json> [--allow-unsupported]
     python -m tools.iwimport compile  <game.iwgame.json> -o game.iwpack [--allow-unsupported]
     python -m tools.iwimport report   <game.iwgame.json>
+    python -m tools.iwimport register-iwbtg /path/to/iwbtgbeta(fs).mfa
 
 See docs/importer_architecture.md for the full workflow.
 """
@@ -119,6 +120,23 @@ def cmd_inventory(args) -> int:
     return 0
 
 
+def cmd_register_iwbtg(args) -> int:
+    """Verify and locally register Kayin's canonical original source."""
+    from tools.iwimport.source_registry import (
+        SourceRegistrationError,
+        register_source,
+    )
+
+    try:
+        record = register_source(args.source, args.registry)
+    except SourceRegistrationError as exc:
+        print(f"registration failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"registered {record['game_id']}: {record['sha256']}")
+    print(f"local record: {args.registry}")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="iwimport", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -163,6 +181,18 @@ def main(argv=None) -> int:
                    help="embed GML bodies (LOCAL inspection only — do not "
                         "commit the resulting file)")
     p.set_defaults(fn=cmd_inventory)
+
+    p = sub.add_parser(
+        "register-iwbtg",
+        help="verify and locally register the canonical original IWBTG .mfa",
+    )
+    p.add_argument("source", help="path to user-fetched iwbtgbeta(fs).mfa")
+    p.add_argument(
+        "--registry",
+        default="build/source_registry/iwbtg_original_2007.json",
+        help="gitignored local metadata record",
+    )
+    p.set_defaults(fn=cmd_register_iwbtg)
 
     args = ap.parse_args(argv)
     return args.fn(args)
