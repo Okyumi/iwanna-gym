@@ -214,6 +214,25 @@ Single core, random actions, headless: **~5.1M steps/sec** (~100,000× real time
 cd c_src && gcc -O2 -DIW_NO_RAYLIB -o bench iwanna_demo.c -lm && ./bench 2
 ```
 
+## The discovery benchmark (design)
+
+The paper's learning problem — *how can an RL agent efficiently adapt
+when failures reveal previously hidden information about the
+environment?* — is formalized in
+[docs/discovery_benchmark_contract.md](docs/discovery_benchmark_contract.md):
+tasks containing multiple attempts (death restores the source-faithful
+checkpoint; agent memory may persist across attempts and must clear on
+task reset; the hidden hazard state is fixed within a task), three
+separately reported suites (IWBTG-native headline — IWBTGR 1.5.3, which
+is *Remastered*, never the original 2007 MMF2 game; controlled research
+rooms; OOD transfer to K2 WARPED), the metric set (Success@K,
+success-vs-attempt AUC, repeated-death rate, post-discovery
+improvement), the anti-leakage rules, and screen+hazard-family splits.
+The audited task inventory (25 accepted native + 16 controlled
+candidates, with exclusions and evidence) is in
+[manifests/discovery_task_candidates.toml](manifests/discovery_task_candidates.toml),
+regenerable via `python scripts/audit_discovery_candidates.py`.
+
 ## Exact-game roadmap
 
 The benchmark is being prepared to import **complete games by existing

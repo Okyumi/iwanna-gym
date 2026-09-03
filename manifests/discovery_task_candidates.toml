@@ -1,0 +1,873 @@
+# Discovery-benchmark task candidates (design/audit milestone, 2026-09-03)
+#
+# Contract: docs/discovery_benchmark_contract.md.  Evidence columns cite
+# the committed audit (`python scripts/audit_discovery_candidates.py` →
+# build/source_reports/discovery_screen_audit.json, regenerated from the
+# source inventory; source files themselves are never committed) and the
+# per-class source semantics in docs/iwbtgr_nonboss_mechanics.md.
+#
+# decision = "accept" means: accepted as a discovery-task candidate for
+# the implementation milestone, CONDITIONAL on (a) the discovery
+# observation profile closing leaks L1/L2 (contract section 7) and
+# (b) per-task scripted-probe validation of claim B2 (an informed probe
+# beats an uninformed probe); probe_status records that state.  Nothing
+# here fabricates original-2007 content: game "iwbtg_original_2007" has
+# NO rows and joins suite S1 only when its import genuinely exists.
+#
+# Screens are 800x608 source pixels, indexed (sx, sy) = (x//800, y//608).
+# checkpoint gives the anchoring save/playerStart at its source
+# coordinates; the runtime checkpoint_id is room:x:y of the STORED
+# player position after activation (action_and_reset_semantics.md).
+# Goals are declared as predicates and runtime-validated at
+# implementation time (reach_region = enter the stated screen-region;
+# activate_save = activate the stated save).
+
+schema_version = 1
+audit_date = 2026-09-03
+contract = "docs/discovery_benchmark_contract.md"
+evidence = "build/source_reports/discovery_screen_audit.json"
+
+[defaults]
+attempts_K = 25
+attempt_frames_H = 2000          # 40 s of room-speed logic frames
+memory_rule = "agent memory may persist across attempt resets; cleared on task reset"
+hidden_state_rule = "theta and the per-task RNG seed are fixed across attempts"
+policy_inputs = "discovery obs profile only; no task/room ids (contract section 7)"
+
+# ============================================================ SUITE S1
+# IWBTG-native (headline): iwbtgr_1_5_3_v1 frozen pack.
+# IWBTGR is *I Wanna Be The Guy: Remastered* 1.5.3 (GM8.2/Yuuutu) —
+# NOT the original 2007 MMF2 game.  Fidelity per task: content-exact
+# under the frozen deviation ledger (docs/iwbtgr_known_deviations.md);
+# provenance: pack af31958a…, source tree b7763bcc…, importer v1.1.0
+# (manifests/iwbtgr_1_5_3_v1.toml).
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.first_screen"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "playerStart", x = 2560, y = 1280 }
+goal = { kind = "activate_save", x = 2432, y = 1632 }
+budget = { K = 25, H = 2000 }
+hazard_families = ["first_room_gotcha", "trigger_region"]
+hidden_info = "which of the innocuous-looking first-screen objects are gotcha spikes/barriers (FirstRoomSpike x3, FirstRoomBarrier x3, FirstRoomSpikeWall markers x5, 2 invisible triggers on screen (3,2))"
+failure_reveals = "the gotcha's position and activation edge; the barrier's true solidity"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (3,2) of rGuy1; audit row + iwbtgr_room_audit clean" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (3,2): 13 hidden-class instances incl. 3 FirstRoomSpike, 3 FirstRoomBarrier"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.cliff_ambush"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "saveMedium", x = 2496, y = 928 }
+goal = { kind = "reach_region", screen = [3, 0] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_fruit", "trigger_region"]
+hidden_info = "which of 15 static cherries on screen (3,1) are wired to the 12 invisible trigger rectangles, and their launch directions (vspeed ±6.25/12.5)"
+failure_reveals = "the trigger rectangle's location (crossing it launched the fruit) and the launched fruit's trajectory"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (3,1) of rGuy1" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (3,1): 15 deliciousFruit + 12 triggers co-located"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.spike_corridor"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "saveMedium", x = 2432, y = 1632 }
+goal = { kind = "reach_region", screen = [1, 2] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["shake_then_fall", "decoy_spike", "fake_block", "event_risers"]
+hidden_info = "which shaking spikes actually fall (FallingSpike10frame x4) vs decoys that shake forever (FakeFallingSpike x3); which blocks are fake (blockNise x3); riser timing (RevealingSpikesUp x2)"
+failure_reveals = "real-vs-decoy identity of each shaker; fake blocks reveal on touch; riser cycle phase"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (2,2) of rGuy1" }
+split = "test"
+held_out_family = "decoy_spike (FakeFallingSpike instances exist only on this screen in the suite)"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (2,2): 17 hidden incl. 3 FakeFallingSpike, 3 blockNise, 4 FallingSpike10frame"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.bolttrap_route"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "saveHard", x = 3424, y = 1632 }
+goal = { kind = "reach_region", screen = [4, 1] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["invisible_until_triggered", "triggered_fruit", "shake_then_fall"]
+hidden_info = "an invisible BoltTrap (visible=0 until its trigger fires, then vspeed 8.75), 6 trigger rectangles, 4 wired cherries, 2 falling spikes on screen (4,2)"
+failure_reveals = "the bolt's existence and drop column; trigger positions"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (4,2) of rGuy1" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (4,2): 13 hidden incl. BoltTrap x1, triggers x6"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.realyoku_shaft"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "saveMedium", x = 2432, y = 1632 }
+goal = { kind = "reach_region", screen = [3, 4] }
+budget = { K = 25, H = 3000 }
+hazard_families = ["toggling_block_sequence", "dormant_shot_gate"]
+hidden_info = "the RealYoku '012345' toggle order and 100-frame period (6 blocks + controller), and that the shaking spike (TheSpikeYouShoot) kills on touch but must be SHOT to open the route"
+failure_reveals = "which block vanishes next; that touching the shaker is lethal while shooting it is the mechanism"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (3,3) of rGuy1" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (3,3): RealYoku x6 + controller + end trigger + TheSpikeYouShoot"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGraveyard.ambush_yard"
+game = "iwbtgr_1_5_3_v1"
+room = "rGraveyard"
+checkpoint = { anchor = "saveVeryHard", x = 1408, y = 480 }
+goal = { kind = "reach_region", screen = [2, 0] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_fruit", "invisible_killer", "triggered_moon", "shake_then_fall"]
+hidden_info = "14 invisible trigger rectangles wiring 13 cherries, an invisible Grabby hand, a triggered MoonSmall drop, 2 falling spikes — the densest ambush screen in the game"
+failure_reveals = "each trigger's rectangle and its wired hazard's trajectory"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (1,0) of rGraveyard" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (1,0): 33 effective hidden (14 triggers + 13 wired fruit + Grabby + MoonSmall + 2 FallingSpike10frame)"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGraveyard.cycle_crypt"
+game = "iwbtgr_1_5_3_v1"
+room = "rGraveyard"
+checkpoint = { anchor = "saveMedium", x = 1504, y = 992 }
+goal = { kind = "reach_region", screen = [2, 1] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["animated_mask_cycle", "touch_armed_delayed_kill"]
+hidden_info = "CycleSpike (6 up + 5 down) 35-frame mask cycles whose animspeed is RETIMED by triggers (0.3/0.7) mid-route; 2 GraveTraps that look like decor until touched (deadly from anim frame 6)"
+failure_reveals = "the retimed cycle phase; that the grave is a trap with a short arming delay"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (1,1) of rGraveyard" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (1,1): 18 hidden incl. 11 CycleSpike, 2 GraveTrap, 4 triggers"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGraveyard.gravetrap_row"
+game = "iwbtgr_1_5_3_v1"
+room = "rGraveyard"
+checkpoint = { anchor = "saveHard", x = 2432, y = 160 }
+goal = { kind = "reach_region", screen = [4, 0] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["touch_armed_delayed_kill", "invisible_killer", "rises_toward_player"]
+hidden_info = "4 GraveTraps among identical decor graves; an invisible Grabby; a SpikeUpExtend that rises toward the player and never retreats"
+failure_reveals = "which graves are traps; the hand's location; the riser's pursuit rule"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (3,0) of rGraveyard" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (3,0): 12 hidden incl. 4 GraveTrap, Grabby, SpikeUpExtend"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGraveyard.ghoul_field"
+game = "iwbtgr_1_5_3_v1"
+room = "rGraveyard"
+checkpoint = { anchor = "saveMedium", x = 2016, y = 128 }
+goal = { kind = "reach_region", screen = [3, 0] }
+budget = { K = 25, H = 2500 }
+hazard_families = ["hidden_spawner", "triggered_moon"]
+hidden_info = "3 GhoulGenerators (wandering, spawn a Ghoul every 175 frames at unknown emergence points), a triggered MoonSmall, a GraveTrap, a triggered PillarMove; per-task seed fixes the ghoul walk durations"
+failure_reveals = "generator locations and the emerge-shake telegraph; moon drop line"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (2,0) of rGraveyard" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (2,0): 8 hidden incl. 3 GhoulGenerator (RNG sites fixed per task per contract section 1)"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rKraidgiefLair.wheel_run"
+game = "iwbtgr_1_5_3_v1"
+room = "rKraidgiefLair"
+checkpoint = { anchor = "saveVeryHard", x = 1376, y = 448 }
+goal = { kind = "reach_region", screen = [4, 0] }
+budget = { K = 25, H = 3000 }
+hazard_families = ["triggered_wheel", "triggered_riser", "triggered_fruit", "shake_then_fall"]
+hidden_info = "a WheelTrap that rolls at 7.5 plowing through destructible blocks once triggered; a FlyingSpike riser; 12 wired cherries across screens (1..3,0)"
+failure_reveals = "the wheel's release point and path; which cherries launch"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (1..3,0) of rKraidgiefLair" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (1,0)+(2,0)+(3,0): 18 effective hidden incl. WheelTrap, FlyingSpike"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rKraidgiefLair.falling_cave"
+game = "iwbtgr_1_5_3_v1"
+room = "rKraidgiefLair"
+checkpoint = { anchor = "saveVeryHard", x = 4992, y = 512 }
+goal = { kind = "reach_region", screen = [7, 0] }
+budget = { K = 25, H = 2500 }
+hazard_families = ["shake_then_fall", "triggered_fruit"]
+hidden_info = "10 FallingCave ceiling chunks (20-frame shake then 7.5 fall) whose real trigger columns are unknown; 7 wired cherries with 7 triggers on the approach screen"
+failure_reveals = "which ceiling sections drop and their shake telegraph timing"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (5,0)+(6,0) of rKraidgiefLair" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (5,0)+(6,0): 24 effective hidden incl. 10 FallingCave"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rKraidgiefLair.tetris_field"
+game = "iwbtgr_1_5_3_v1"
+room = "rKraidgiefLair"
+checkpoint = { anchor = "saveHard", x = 5216, y = 1280 }
+goal = { kind = "reach_region", screen = [7, 1] }
+budget = { K = 25, H = 6000 }
+hazard_families = ["scripted_terrain_timeline"]
+hidden_info = "the tetrisController's ~2520-frame scripted timeline of falling solid pieces, row clears, and the KillPill drop — entirely future schedule on attempt 1"
+failure_reveals = "the timeline prefix up to the death frame; where pieces land and when rows shift"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger; timeline baked offline per deviation E-paths)", provenance = "tetrisController in rKraidgiefLair; offline-simulated timeline (mechanics doc)" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "mechanics doc: per-frame move/rotate/spawn tables to timer≈2520; audit totals rKraidgiefLair"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rMegaman.quicklaser_gauntlet"
+game = "iwbtgr_1_5_3_v1"
+room = "rMegaman"
+checkpoint = { anchor = "saveHard", x = 1664, y = 96 }
+goal = { kind = "reach_region", screen = [3, 0] }
+budget = { K = 25, H = 2500 }
+hazard_families = ["timed_laser_schedule"]
+hidden_info = "the QuickLaser frame table [10,140,200,210,350,400,590] over 7 lasers, started by an unmarked touch region (QuickLaserTimer); laser growth 12.5/frame"
+failure_reveals = "which corridor cell fires at which schedule offset; the timer's start line"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (2,0)+(3,0) of rMegaman" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (2,0)+(3,0): QuickLaser x7 + QuickLaserTimer; frame table cited from source in mechanics doc"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rMegaman.hammer_drop"
+game = "iwbtgr_1_5_3_v1"
+room = "rMegaman"
+checkpoint = { anchor = "saveVeryHard", x = 2336, y = 928 }
+goal = { kind = "reach_region", screen = [1, 1] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_fall_then_solid", "fake_block"]
+hidden_info = "a Hammer that falls on its trigger and then becomes SOLID terrain (route changes shape); one fake block (blockNise)"
+failure_reveals = "the hammer's drop column and its post-drop solidity; the fake block on touch"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (2,1) of rMegaman" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (2,1): Hammer + HammerTrigger + blockNise + trigger"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rMetroid.sinking_shaft"
+game = "iwbtgr_1_5_3_v1"
+room = "rMetroid"
+checkpoint = { anchor = "saveVeryHard", x = 1920, y = 736 }
+goal = { kind = "reach_region", screen = [3, 3] }
+budget = { K = 25, H = 3000 }
+hazard_families = ["sinking_platform", "spawning_trap"]
+hidden_info = "metroidPlatforms sink 2/frame while ridden (indistinguishable from static platforms at rest); metroidTraps despawn on touch and spawn a homing Metroid whose latch is lethal 100 frames after contact"
+failure_reveals = "that platforms sink (dwell budget) and which pickups are traps"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger; Metroid latch = deviation E, lethal deadline preserved)", provenance = "screens (3,1..3) of rMetroid; 30 Hz room logic" }
+split = "test"
+held_out_family = "spawning_trap (metroidTrap) and sinking_platform appear only here in the suite"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (3,1)+(3,2)+(3,3): 42 hidden incl. metroidPlatform x41, metroidTrap x1 (+4 more traps elsewhere in room)"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rMetroid.skwee_gallery"
+game = "iwbtgr_1_5_3_v1"
+room = "rMetroid"
+checkpoint = { anchor = "saveVeryHard", x = 1920, y = 736 }
+goal = { kind = "reach_region", screen = [0, 1] }
+budget = { K = 25, H = 3000 }
+hazard_families = ["hanging_diver"]
+hidden_info = "4 hanging Skwees dive at speed 5 when their trigger fires, aiming 247.5°/292.5° by the player's side — dormant they read as decor"
+failure_reveals = "which hangers dive and the side-dependent dive rule"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (1,1) of rMetroid; 30 Hz room logic" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (1,1): Skwee x4 + SkweeTrigger x4 + trigger"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rFactoryOutskirts.yoku_hall"
+game = "iwbtgr_1_5_3_v1"
+room = "rFactoryOutskirts"
+checkpoint = { anchor = "saveVeryHard", x = 4064, y = 1440 }
+goal = { kind = "reach_region", screen = [4, 1] }
+budget = { K = 25, H = 4000 }
+hazard_families = ["appearing_block_chain"]
+hidden_info = "an 84-block FactoryYoku appearing/disappearing chain: the chain ORDER and the pointer speed (retimed by zones 1/100→1/25) are invisible; un-appeared blocks are non-landable"
+failure_reveals = "the local chain order and cadence around the fall point"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (4,2) of rFactoryOutskirts" }
+split = "test"
+held_out_family = "appearing_block_chain (FactoryYoku) — no training task contains any instance"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (4,2): FactoryYoku x84 + 2 triggers + blockNise"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rFactoryOutskirts.couch_room"
+game = "iwbtgr_1_5_3_v1"
+room = "rFactoryOutskirts"
+checkpoint = { anchor = "saveHard", x = 2272, y = 2880 }
+goal = { kind = "reach_region", screen = [1, 4] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["deceptive_furniture", "drops_when_underneath"]
+hidden_info = "5 couchTraps: touching furniture fires a single-use vspeed=-30 superbounce (into ceiling hazards); a PaintingTrap drops when passed under"
+failure_reveals = "which furniture bounces and the bounce magnitude; the painting's drop cue"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (2,4) of rFactoryOutskirts" }
+split = "test"
+held_out_family = "deceptive_furniture (couchTrap) — no training task contains any instance"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (2,4): couchTrap x5 + PaintingTrap x1"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rFactoryOutskirts.outskirt_collapse"
+game = "iwbtgr_1_5_3_v1"
+room = "rFactoryOutskirts"
+checkpoint = { anchor = "saveVeryHard", x = 1440, y = 2304 }
+goal = { kind = "reach_region", screen = [0, 3] }
+budget = { K = 25, H = 2000 }
+hazard_families = ["collapse_on_land", "trigger_region"]
+hidden_info = "3 OutskirtPlatforms that break on landing (identical to safe platforms at rest); 3 trigger rectangles"
+failure_reveals = "which platforms collapse; trigger locations"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (1,3) of rFactoryOutskirts" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (1,3): OutskirtPlatform x3 + triggers x3"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyFortress1"
+checkpoint = { anchor = "playerStart", x = 32, y = 288 }
+goal = { kind = "activate_save", x = 960, y = 448 }
+budget = { K = 25, H = 2500 }
+hazard_families = ["maskless_until_armed", "flickering_mask", "arming_cascade"]
+hidden_info = "9 Fire hazards with NO collision mask until the FireChalice cascade arms every fire in the room mid-crossing (the room transforms); 2 FireSometimes flicker with empty mask frames"
+failure_reveals = "that the chalice arms the room; which cells become fire; the flicker cadence"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (0,0) of rGuyFortress1; 30 Hz room logic" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (0,0): 17 hidden incl. Fire x9, FireChalice x3, FireSometimes x2"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyFortress1.collapsing_approach"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyFortress1"
+checkpoint = { anchor = "saveMedium", x = 960, y = 448 }
+goal = { kind = "activate_save", x = 2304, y = 96 }
+budget = { K = 25, H = 2500 }
+hazard_families = ["collapse_on_stand", "flicker_inverted", "invisible_killer"]
+hidden_info = "9 FallingForts: solid until stood on, then fall and break; 3 inverted flickering fires; an invisible Grabby"
+failure_reveals = "which floor sections collapse and the collapse delay; the hand's reach"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screen (1,0) of rGuyFortress1; 30 Hz room logic" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screen (1,0): 15 hidden incl. FallingFort x9, FireSometimesUpside x3, Grabby"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyFortress2.arming_corridor"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyFortress2"
+checkpoint = { anchor = "saveVeryHard", x = 0, y = 384 }
+goal = { kind = "activate_save", x = 1600, y = 256 }
+budget = { K = 25, H = 3000 }
+hazard_families = ["maskless_until_armed", "event_risers", "trigger_region"]
+hidden_info = "17 unarmed Fire cells across the corridor armed by 5 trigger rectangles; 2 RevealingSpikesUp risers on a 200-frame sink cycle"
+failure_reveals = "which trigger arms which fire bank; riser phase"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (0,0)+(1,0) of rGuyFortress2; 30 Hz room logic" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (0,0)+(1,0): 24 hidden incl. Fire x17, triggers x5, RevealingSpikesUp x2"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyFortress2.higger_gallery"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyFortress2"
+checkpoint = { anchor = "saveHard", x = 4736, y = 960 }
+goal = { kind = "reach_region", screen = [6, 0] }
+budget = { K = 25, H = 2500 }
+hazard_families = ["falling_painting_swing", "collapse_on_stand", "shake_then_fall", "trigger_region"]
+hidden_info = "a Higger painting whose fall sweeps a growing angular kill arc; 11 FallingForts; 3 falling spikes; 5 triggers across screens (5..6,1)"
+failure_reveals = "the painting's arc geometry; which floor collapses"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (5,1)+(6,1) of rGuyFortress2; 30 Hz room logic" }
+split = "test"
+held_out_family = "falling_painting_swing (Higger) — the only instance in the game"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (5,1)+(6,1): 21 hidden incl. Higger x1, FallingFort x11"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyRoad.cart_dump_run"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyRoad"
+checkpoint = { anchor = "saveMedium", x = 13120, y = 384 }
+goal = { kind = "reach_region", screen = [19, 0] }
+budget = { K = 25, H = 5000 }
+hazard_families = ["cart_floor_vanish", "invisible_decart_strip", "rises_instead_of_falls"]
+hidden_info = "29 DumpMoment gaps where the cart's floor vanishes; invisible CartStopper strips that drop 'carted'; 3 spikes that RISE (FallingSpike10frameUp, one retimed to 12.5 by a trigger) — all against a forced-scroll camera that kills if it passes the player"
+failure_reveals = "gap positions on the road; the riser columns; where dismounts are forced"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (15..18,0) of rGuyRoad; 30 Hz room logic; cart respawn state per room-entry side effects" }
+split = "train"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (15,0)+(17,0)+(18,0): 39 hidden incl. DumpMoment x29"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyRoad.bulletbill_strip"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyRoad"
+checkpoint = { anchor = "saveMedium", x = 8960, y = 384 }
+goal = { kind = "reach_region", screen = [15, 0] }
+budget = { K = 25, H = 5000 }
+hazard_families = ["static_until_cart_trigger", "invisible_decart_strip"]
+hidden_info = "17 RoadBulletBills that read as static props until the cart trips BulletTrigger, then drift left at 1.25; 5 invisible CartStopper strips"
+failure_reveals = "that the props animate, their drift, and the stopper positions"
+status = "source_native"
+fidelity = { label = "exact (under iwbtgr_1_5_3_v1 deviation ledger)", provenance = "screens (12..14,0) of rGuyRoad; 30 Hz room logic" }
+split = "validation"
+decision = "accept"
+probe_status = "pending"
+evidence = "audit screens (12,0)+(13,0)+(14,0): 22 hidden incl. RoadBulletBill x17, CartStopper x5"
+
+# ---- native EXCLUSIONS (precision-only or structurally unsuitable) ----
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuy1.fruit_field"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuy1"
+checkpoint = { anchor = "saveMedium", x = 1600, y = 256 }
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "precision-only: screen (1,0) holds 160 static cherries and ZERO trigger rectangles — a fully visible needle wall; no initially hidden information (contract section 2 criterion (i) fails)"
+evidence = "audit screen (1,0): trigger_dependent=160, triggers=0, intrinsic=0"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyTower.ascent"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyTower"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "precision-only vertical ascent: 1 trigger among 368 instances; hazards are visible spikes/platform cycles"
+evidence = "audit totals rGuyTower: intrinsic=0, triggers=1"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyLabyrinth.maze"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyLabyrinth"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "visible-spike maze (never deactivates); 6 fake blocks spread over 439 instances is below the density that makes failure informative rather than incidental"
+evidence = "audit totals rGuyLabyrinth: intrinsic=6 (all blockNise), triggers=0"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rZelda.lonk_hall"
+game = "iwbtgr_1_5_3_v1"
+room = "rZelda"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "sparse: 2 triggers + Lonk's slash in a small precision room; single-hazard tasks this thin are dominated by motor skill"
+evidence = "audit totals rZelda: intrinsic=1, triggers=2"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.rGuyEntrance.orb_gate"
+game = "iwbtgr_1_5_3_v1"
+room = "rGuyEntrance"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "the EntranceTele kill-without-orbs is deceptive but depends on GLOBAL progression flags, violating the fixed-theta task-local start-state requirement (contract section 1); also a single-decision screen"
+evidence = "audit rGuyEntrance: intrinsic=1 (EntranceTele); mechanics doc: six-orb gate"
+
+[[native]]
+id = "disc.iwbtgr_1_5_3.boss_rooms"
+game = "iwbtgr_1_5_3_v1"
+room = "rMechaBirdoBoss, rKraidgiefBoss, rBowserBoss, rDraculaBoss, rGuyBoss"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "boss fights conflate hazard discovery with long-horizon dexterity, HP state, and phase machines; they remain the existing boss benchmark; recorded as a possible future suite extension"
+evidence = "docs/iwbtgr_boss_coverage.md"
+
+[[native]]
+id = "disc.iwbtg_original_2007.placeholder_policy"
+game = "iwbtg_original_2007"
+room = "none"
+status = "source_native"
+split = "none"
+decision = "exclude"
+reason = "NO original-2007 tasks exist: the .mfa import is gated (docs/iwbtg_mfa_feasibility.md — registration + CTFAK run + independent validation all pending). Rows for this game may be added only from a genuinely extracted, validated pack; nothing is fabricated meanwhile"
+evidence = "docs/iwbtg_mfa_feasibility.md sections 6-8"
+
+# ============================================================ SUITE S2
+# Controlled discovery: iwannagym_research_v1 research rooms (original
+# content in fangame style — explicitly NOT any shipped game) plus the
+# counterfactual variant axes for causal ablations.  probe evidence:
+# scripts/probe_traps.py (every room solvable by a scripted rule
+# policy; 19/20 kill at least one naive baseline — tests/test_events.py).
+
+[controlled_variant_axes]
+axes = ["disarm (hazard removed, decoy appearance kept)",
+        "relocate (same hazard, shifted trigger/drop column)",
+        "retime (same hazard, shifted schedule/delay)",
+        "decoy_swap (real hazard replaced by its never-firing twin)"]
+rule = "variants are generated from the committed room text with a declared edit; a variant shares its base room's split and is never pooled with S1"
+
+[[controlled]]
+id = "disc.research.t01_apple"
+game = "iwannagym_research_v1"
+room = "traps/t01_apple"
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_fruit"]
+hidden_info = "the fruit ahead launches in an arc tuned to land on a constant-speed runner; the pass_x trigger line is invisible"
+failure_reveals = "the trigger line and the arc"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t01_apple.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified (scripts/probe_traps.py)"
+
+[[controlled]]
+id = "disc.research.t02_volley"
+game = "iwannagym_research_v1"
+room = "traps/t02_volley"
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_fruit"]
+hidden_info = "ceiling fruits drop per column band on entry"
+failure_reveals = "which columns are wired"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t02_volley.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t03_riser"
+game = "iwannagym_research_v1"
+room = "traps/t03_riser"
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_riser"]
+hidden_info = "a floor spike rises and freezes mid-air as a wall"
+failure_reveals = "the rise column and final height"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t03_riser.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t04_fall"
+game = "iwannagym_research_v1"
+room = "traps/t04_fall"
+budget = { K = 25, H = 2000 }
+hazard_families = ["collapse_on_land"]
+hidden_info = "platforms collapse 15 frames after landing"
+failure_reveals = "the collapse delay and which platforms are affected"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t04_fall.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t05_door"
+game = "iwannagym_research_v1"
+room = "traps/t05_door"
+budget = { K = 25, H = 2000 }
+hazard_families = ["hidden_gate_rule"]
+hidden_info = "the door slams behind; the exit gate opens only at the save"
+failure_reveals = "the gate's opening condition"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t05_door.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t06_crusher"
+game = "iwannagym_research_v1"
+room = "traps/t06_crusher"
+budget = { K = 25, H = 2000 }
+hazard_families = ["region_triggered_crusher"]
+hidden_info = "a ceiling crusher fires on an invisible region tuned to punish steady walking"
+failure_reveals = "the region boundary and crusher timing"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t06_crusher.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t08_chase"
+game = "iwannagym_research_v1"
+room = "traps/t08_chase"
+budget = { K = 25, H = 2000 }
+hazard_families = ["triggered_chaser"]
+hidden_info = "a same-speed chaser launches when you leave the start (or on a camp timer)"
+failure_reveals = "the launch condition and the no-camping rule"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t08_chase.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t09_fakesave"
+game = "iwannagym_research_v1"
+room = "traps/t09_fakesave"
+budget = { K = 25, H = 2000 }
+hazard_families = ["deceptive_save"]
+hidden_info = "the save is bait: touching it drops fruit on and ahead of it"
+failure_reveals = "that the save is trapped; the drop pattern"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t09_fakesave.txt" }
+split = "validation"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t10_chain"
+game = "iwannagym_research_v1"
+room = "traps/t10_chain"
+budget = { K = 25, H = 2000 }
+hazard_families = ["hidden_causal_chain"]
+hidden_info = "an arcing fruit intercepts runners; its OFFSCREEN CULL is what opens the exit gate"
+failure_reveals = "one link of the causal chain per failure"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t10_chain.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t11_teleport"
+game = "iwannagym_research_v1"
+room = "traps/t11_teleport"
+budget = { K = 25, H = 2000 }
+hazard_families = ["invisible_field"]
+hidden_info = "an invisible ground field teleports the player back to the start"
+failure_reveals = "the field's extent (note: the failure here is NON-LETHAL — a teleport, not a death; the attempt continues, so this room additionally probes whether agents use non-death failure signals)"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t11_teleport.txt" }
+split = "validation"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t12_gauntlet"
+game = "iwannagym_research_v1"
+room = "traps/t12_gauntlet"
+budget = { K = 25, H = 2000 }
+hazard_families = ["timed_drops", "reoriented_trap"]
+hidden_info = "three timed fruit drops tuned to kill constant speed, plus a reoriented ceiling trap"
+failure_reveals = "the drop timing lattice"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t12_gauntlet.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t13_floorgate"
+game = "iwannagym_research_v1"
+room = "traps/t13_floorgate"
+budget = { K = 25, H = 2000 }
+hazard_families = ["hidden_gate_rule"]
+hidden_info = "the gate bridge over spikes opens mid-crossing"
+failure_reveals = "the opening trigger and the jumpable window"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t13_floorgate.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t14_race"
+game = "iwannagym_research_v1"
+room = "traps/t14_race"
+budget = { K = 25, H = 2000 }
+hazard_families = ["hidden_timer_flood"]
+hidden_info = "after 3 s the whole floor floods with rising fruit, start column included (camping is fatal and nothing signals it)"
+failure_reveals = "the deadline's existence and length"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t14_race.txt" }
+split = "train"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t17_wall"
+game = "iwannagym_research_v1"
+room = "traps/t17_wall"
+budget = { K = 25, H = 2000 }
+hazard_families = ["floor_popup", "bullet_wall"]
+hidden_info = "after the visible three-height bullet wall, a fruit pops out of the floor with no telegraph"
+failure_reveals = "the popup cell"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t17_wall.txt" }
+split = "validation"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t18_ladder"
+game = "iwannagym_research_v1"
+room = "traps/t18_ladder"
+budget = { K = 25, H = 2000 }
+hazard_families = ["landing_keyed_bullets"]
+hidden_info = "every landing on the platform ladder calls a bullet at that height — a hidden causal RULE, not a fixed schedule"
+failure_reveals = "the landing→bullet contingency"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t18_ladder.txt" }
+split = "test"
+decision = "accept"
+probe_status = "probe-verified"
+
+[[controlled]]
+id = "disc.research.t20_finale"
+game = "iwannagym_research_v1"
+room = "traps/t20_finale"
+budget = { K = 25, H = 2500 }
+hazard_families = ["combo"]
+hidden_info = "door slam + apple arc + collapsing platform over spikes + save-keyed gate + bullet rain, composed"
+failure_reveals = "one component per failure; the composition demands accumulating evidence across several deaths"
+status = "controlled"
+fidelity = { label = "original research content", provenance = "iwanna_gym/levels/traps/t20_finale.txt" }
+split = "test"
+decision = "accept"
+probe_status = "probe-verified (pinned deterministic replay in tests/test_events.py)"
+
+# ---- controlled EXCLUSIONS ----
+
+[[controlled]]
+id = "disc.research.t07_bullets"
+game = "iwannagym_research_v1"
+room = "traps/t07_bullets"
+status = "controlled"
+split = "none"
+decision = "exclude"
+reason = "the shooter and its period are observable from safety before any commitment — timing/precision content, not discovery (criterion (i) fails)"
+
+[[controlled]]
+id = "disc.research.t15_rain"
+game = "iwannagym_research_v1"
+room = "traps/t15_rain"
+status = "controlled"
+split = "none"
+decision = "exclude"
+reason = "the rain schedule starts at entry and its arcs are visible in flight; pattern is learnable by observation without failure"
+
+[[controlled]]
+id = "disc.research.t16_bridge"
+game = "iwannagym_research_v1"
+room = "traps/t16_bridge"
+status = "controlled"
+split = "none"
+decision = "exclude"
+reason = "platform activation ahead/deactivation behind is visible as it happens on the first crossing; observation, not failure, carries the information"
+
+[[controlled]]
+id = "disc.research.t19_speedgate"
+game = "iwannagym_research_v1"
+room = "traps/t19_speedgate"
+status = "controlled"
+split = "none"
+decision = "exclude"
+reason = "a timing-window room where sprinting is the intended play (the probe suite's own documented exception); no hidden hazard"
+
+# ============================================================ SUITE S3
+# OOD transfer: other imported classics.  NEVER pooled into the
+# headline IWBTG number.  K2W today is a STATIC-WORLD import
+# (docs/k2warped_static_coverage.md): its trap objects are inventoried
+# but not yet dynamic, so every row is `pending` until the K2W
+# dynamics milestone lands — zero accepted S3 tasks exist right now.
+
+[[ood]]
+id = "disc.k2warped_gms14.rStage2GuyTower.fake_tower"
+game = "k2warped_gms14"
+room = "rStage2GuyTower"
+status = "source_native"
+fidelity = { label = "static geometry exact; trap dynamics NOT yet imported", provenance = "pinned commit a6d6dce1; importer gmx2pack 1.0.0" }
+split = "test"
+decision = "pending"
+reason = "556 objBlockFake + 153 objBlockInvis in one room — the strongest OOD fake-block screen set; blocked on the K2W dynamics milestone"
+evidence = "build/source_reports/k2warped_gms14.instances.json (sha pinned in room_graph.json): per-room counts"
+
+[[ood]]
+id = "disc.k2warped_gms14.rStage2DT.invis_maze"
+game = "k2warped_gms14"
+room = "rStage2DT"
+status = "source_native"
+fidelity = { label = "static geometry exact; trap dynamics NOT yet imported", provenance = "pinned commit a6d6dce1" }
+split = "test"
+decision = "pending"
+reason = "73 objBlockFake + 113 objBlockInvis (invisible solids: collision with nothing visible — the inverse deception of fake blocks); blocked on dynamics"
+evidence = "per-room counts as above"
+
+[[ood]]
+id = "disc.k2warped_gms14.rStage1Exp.chm_corridor"
+game = "k2warped_gms14"
+room = "rStage1Exp"
+status = "source_native"
+fidelity = { label = "static geometry exact; trap dynamics NOT yet imported", provenance = "pinned commit a6d6dce1" }
+split = "test"
+decision = "pending"
+reason = "136 objBlock1CHM non-solid trap blocks + 2 fakes; blocked on dynamics"
+evidence = "per-room counts as above"
+
+# ================================================== summary (derived)
+# accepted native (S1):      25   train 14 / validation 6 / test 5
+# excluded native rows:       7
+# accepted controlled (S2):  16   train 11 / validation 3 / test 2
+# excluded controlled:        4
+# OOD (S3):                   3 candidates, all pending, 0 accepted
+# family holdouts (test-only): decoy_spike(FakeFallingSpike),
+#   sinking_platform+spawning_trap(metroidPlatform/metroidTrap),
+#   appearing_block_chain(FactoryYoku), deceptive_furniture(couchTrap),
+#   falling_painting_swing(Higger)

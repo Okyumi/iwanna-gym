@@ -1,0 +1,1890 @@
+{
+ "format": "discovery-screen-audit/1",
+ "rooms": {
+  "rCastlevania": {
+   "dims_px": [
+    1600,
+    1216
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "Witch": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 736.0,
+      "y": 384.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "MedusaMaker": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 96.0,
+      "y": 480.0
+     },
+     "screen": [
+      0,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "MedusaMaker": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 736.0,
+      "y": 384.0
+     },
+     "screen": [
+      1,
+      -1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 13,
+     "intrinsic_hidden": {
+      "MedusaModifier": 1,
+      "SpikeUpExtend": 1,
+      "WitchShadow": 1,
+      "blockNise": 10
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 736.0,
+      "y": 384.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 3
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "FallStair": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1440.0,
+      "y": 928.0
+     },
+     "screen": [
+      1,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 17,
+    "trigger_dependent": 0,
+    "triggers": 3
+   }
+  },
+  "rFactoryOutskirts": {
+   "dims_px": [
+    4800,
+    3648
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "OutskirtPlatform": 3
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1440.0,
+      "y": 2304.0
+     },
+     "screen": [
+      1,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 3
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1280.0,
+      "y": 2880.0
+     },
+     "screen": [
+      1,
+      4
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 928.0,
+      "y": 3456.0
+     },
+     "screen": [
+      1,
+      5
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2112.0,
+      "y": 896.0
+     },
+     "screen": [
+      2,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 14,
+     "intrinsic_hidden": {
+      "FactoryYoku": 12,
+      "FactoryYokuController": 1,
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1632.0,
+      "y": 1728.0
+     },
+     "screen": [
+      2,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "PaintingTrap": 1,
+      "couchTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2048.0,
+      "y": 2208.0
+     },
+     "screen": [
+      2,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 6,
+     "intrinsic_hidden": {
+      "PaintingTrap": 1,
+      "couchTrap": 5
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 2272.0,
+      "y": 2880.0
+     },
+     "screen": [
+      2,
+      4
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "couchTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2048.0,
+      "y": 3488.0
+     },
+     "screen": [
+      2,
+      5
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 25,
+     "intrinsic_hidden": {
+      "FactoryYoku": 25
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 2432.0,
+      "y": 992.0
+     },
+     "screen": [
+      3,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 85,
+     "intrinsic_hidden": {
+      "FactoryYoku": 84,
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4064.0,
+      "y": 1440.0
+     },
+     "screen": [
+      4,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "blockFake": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4064.0,
+      "y": 1440.0
+     },
+     "screen": [
+      5,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "couchTrap": 2
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4064.0,
+      "y": 1440.0
+     },
+     "screen": [
+      5,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 140,
+    "trigger_dependent": 0,
+    "triggers": 11
+   }
+  },
+  "rGraveyard": {
+   "dims_px": [
+    4000,
+    1216
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "Grabby": 1,
+      "HillMove": 1,
+      "MoonSmall": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 128.0,
+      "y": 928.0
+     },
+     "screen": [
+      0,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 19,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 2,
+      "FallingSpike10frameUp": 1,
+      "GhoulGenerator": 1,
+      "Grabby": 1,
+      "MoonSmall": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1408.0,
+      "y": 480.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 13
+     },
+     "triggers": 14
+    },
+    {
+     "discovery_evidence": 14,
+     "intrinsic_hidden": {
+      "CycleSpikeDown": 5,
+      "CycleSpikeUp": 6,
+      "GraveTrap": 2,
+      "MoonSmall": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1504.0,
+      "y": 992.0
+     },
+     "screen": [
+      1,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 4
+    },
+    {
+     "discovery_evidence": 6,
+     "intrinsic_hidden": {
+      "GhoulGenerator": 3,
+      "GraveTrap": 1,
+      "MoonSmall": 1,
+      "PillarMove": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2016.0,
+      "y": 128.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 8,
+     "intrinsic_hidden": {
+      "GhoulGenerator": 1,
+      "Grabby": 1,
+      "GraveTrap": 4,
+      "MoonSmall": 1,
+      "SpikeUpExtend": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 2432.0,
+      "y": 160.0
+     },
+     "screen": [
+      3,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 4
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "FallingBlockTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 2432.0,
+      "y": 160.0
+     },
+     "screen": [
+      4,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 38,
+    "trigger_dependent": 13,
+    "triggers": 27
+   }
+  },
+  "rGuy1": {
+   "dims_px": [
+    4800,
+    2432
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1184.0,
+      "y": 1536.0
+     },
+     "screen": [
+      0,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 2
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1184.0,
+      "y": 1536.0
+     },
+     "screen": [
+      0,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 3
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1600.0,
+      "y": 256.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 160
+     },
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1184.0,
+      "y": 1536.0
+     },
+     "screen": [
+      1,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "BoltTrap": 1,
+      "SpikeTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1600.0,
+      "y": 256.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 4,
+     "intrinsic_hidden": {
+      "KumoPlatform": 4
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1792.0,
+      "y": 768.0
+     },
+     "screen": [
+      2,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 4
+    },
+    {
+     "discovery_evidence": 13,
+     "intrinsic_hidden": {
+      "FakeFallingSpike": 3,
+      "FallingSpike10frame": 4,
+      "FirstRoomSpikeWall": 1,
+      "RevealingSpikesUp": 2,
+      "blockNise": 3
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2432.0,
+      "y": 1632.0
+     },
+     "screen": [
+      2,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 4
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "FallingBrick": 1,
+      "FallingSpike10frame": 1,
+      "triggerLockControls": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 3072.0,
+      "y": 224.0
+     },
+     "screen": [
+      3,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 15,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2496.0,
+      "y": 928.0
+     },
+     "screen": [
+      3,
+      1
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 15
+     },
+     "triggers": 12
+    },
+    {
+     "discovery_evidence": 11,
+     "intrinsic_hidden": {
+      "FirstRoomBarrier": 3,
+      "FirstRoomSpike": 3,
+      "FirstRoomSpikeWall": 5
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 2560.0,
+      "y": 1280.0
+     },
+     "screen": [
+      3,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 9,
+     "intrinsic_hidden": {
+      "RealYoku": 6,
+      "RealYokuController": 1,
+      "RealYokuEndTrigger": 1,
+      "TheSpikeYouShoot": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2432.0,
+      "y": 1632.0
+     },
+     "screen": [
+      3,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 3072.0,
+      "y": 224.0
+     },
+     "screen": [
+      4,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 7,
+     "intrinsic_hidden": {
+      "BoltTrap": 1,
+      "FallingSpike10frame": 2
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 3424.0,
+      "y": 1632.0
+     },
+     "screen": [
+      4,
+      2
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 4
+     },
+     "triggers": 6
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 3424.0,
+      "y": 1632.0
+     },
+     "screen": [
+      4,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 3072.0,
+      "y": 224.0
+     },
+     "screen": [
+      5,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 3
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 3424.0,
+      "y": 1632.0
+     },
+     "screen": [
+      5,
+      2
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 3
+     },
+     "triggers": 4
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 47,
+    "trigger_dependent": 182,
+    "triggers": 46
+   }
+  },
+  "rGuyEntrance": {
+   "dims_px": [
+    800,
+    608
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "EntranceTele": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 672.0,
+      "y": 384.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 1,
+    "trigger_dependent": 0,
+    "triggers": 0
+   }
+  },
+  "rGuyFortress1": {
+   "dims_px": [
+    2400,
+    608
+   ],
+   "room_speed": 30,
+   "screens": [
+    {
+     "discovery_evidence": 15,
+     "intrinsic_hidden": {
+      "Fire": 9,
+      "FireChalice": 3,
+      "FireSometimes": 2,
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 32.0,
+      "y": 288.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 13,
+     "intrinsic_hidden": {
+      "FallingFort": 9,
+      "FireSometimesUpside": 3,
+      "Grabby": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 960.0,
+      "y": 448.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "CatThing": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 2304.0,
+      "y": 96.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 29,
+    "trigger_dependent": 0,
+    "triggers": 5
+   }
+  },
+  "rGuyFortress2": {
+   "dims_px": [
+    5600,
+    1824
+   ],
+   "room_speed": 30,
+   "screens": [
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "RevealingSpikesUp": 2
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 0.0,
+      "y": 384.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 5
+    },
+    {
+     "discovery_evidence": 17,
+     "intrinsic_hidden": {
+      "Fire": 17
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1600.0,
+      "y": 256.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 12,
+     "intrinsic_hidden": {
+      "FallingFort": 12
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 2432.0,
+      "y": 640.0
+     },
+     "screen": [
+      3,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "FallingFort": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 3200.0,
+      "y": 640.0
+     },
+     "screen": [
+      4,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 8,
+     "intrinsic_hidden": {
+      "FallingFort": 7,
+      "MoonSmall": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 4736.0,
+      "y": 960.0
+     },
+     "screen": [
+      5,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "FallingFort": 3
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 4736.0,
+      "y": 960.0
+     },
+     "screen": [
+      5,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 8,
+     "intrinsic_hidden": {
+      "FallingFort": 4,
+      "FallingSpike10frame": 3,
+      "Higger": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 4736.0,
+      "y": 960.0
+     },
+     "screen": [
+      6,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 5
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 51,
+    "trigger_dependent": 0,
+    "triggers": 11
+   }
+  },
+  "rGuyLabyrinth": {
+   "dims_px": [
+    3200,
+    2432
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1824.0,
+      "y": 832.0
+     },
+     "screen": [
+      1,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "blockNise": 2
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1824.0,
+      "y": 832.0
+     },
+     "screen": [
+      1,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "blockNise": 2
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1824.0,
+      "y": 832.0
+     },
+     "screen": [
+      2,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1824.0,
+      "y": 832.0
+     },
+     "screen": [
+      2,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 6,
+    "trigger_dependent": 0,
+    "triggers": 0
+   }
+  },
+  "rGuyRoad": {
+   "dims_px": [
+    30000,
+    608
+   ],
+   "room_speed": 30,
+   "screens": [
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "CartStopper": 3
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 8960.0,
+      "y": 384.0
+     },
+     "screen": [
+      10,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "BulletTrigger": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 8960.0,
+      "y": 384.0
+     },
+     "screen": [
+      11,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 10,
+     "intrinsic_hidden": {
+      "RoadBulletBill": 10
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 8960.0,
+      "y": 384.0
+     },
+     "screen": [
+      12,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 7,
+     "intrinsic_hidden": {
+      "RoadBulletBill": 7
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 11136.0,
+      "y": 384.0
+     },
+     "screen": [
+      13,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 5,
+     "intrinsic_hidden": {
+      "CartStopper": 5
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 11136.0,
+      "y": 384.0
+     },
+     "screen": [
+      14,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 10,
+     "intrinsic_hidden": {
+      "DumpMoment": 10
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 13120.0,
+      "y": 384.0
+     },
+     "screen": [
+      15,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 4,
+     "intrinsic_hidden": {
+      "DumpMoment": 4
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 13120.0,
+      "y": 384.0
+     },
+     "screen": [
+      16,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 19,
+     "intrinsic_hidden": {
+      "CartStopper": 3,
+      "DumpMoment": 13,
+      "FallingSpike10frameUp": 3
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 13120.0,
+      "y": 384.0
+     },
+     "screen": [
+      17,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 6,
+     "intrinsic_hidden": {
+      "DumpMoment": 6
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 13120.0,
+      "y": 384.0
+     },
+     "screen": [
+      18,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "BiggusBrickus": 2
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 22656.0,
+      "y": 448.0
+     },
+     "screen": [
+      22,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "BiggusBrickus": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 22656.0,
+      "y": 448.0
+     },
+     "screen": [
+      23,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "BiggusBrickus": 3
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 22656.0,
+      "y": 448.0
+     },
+     "screen": [
+      24,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 22656.0,
+      "y": 448.0
+     },
+     "screen": [
+      28,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 22656.0,
+      "y": 448.0
+     },
+     "screen": [
+      29,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 72,
+    "trigger_dependent": 0,
+    "triggers": 3
+   }
+  },
+  "rGuyTower": {
+   "dims_px": [
+    1600,
+    3040
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 96.0,
+      "y": 2720.0
+     },
+     "screen": [
+      0,
+      4
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 0,
+    "trigger_dependent": 0,
+    "triggers": 1
+   }
+  },
+  "rKraidgiefLair": {
+   "dims_px": [
+    6400,
+    1824
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "tetrisController": 1
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 240.0,
+      "y": 32.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 1,
+      "FlyingSpike": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1376.0,
+      "y": 448.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 7,
+     "intrinsic_hidden": {
+      "WheelTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1376.0,
+      "y": 448.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 6
+     },
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1376.0,
+      "y": 448.0
+     },
+     "screen": [
+      3,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 6
+     },
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4992.0,
+      "y": 512.0
+     },
+     "screen": [
+      4,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 4
+     },
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 7,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4992.0,
+      "y": 512.0
+     },
+     "screen": [
+      5,
+      0
+     ],
+     "trigger_dependent": {
+      "deliciousFruit": 7
+     },
+     "triggers": 5
+    },
+    {
+     "discovery_evidence": 10,
+     "intrinsic_hidden": {
+      "FallingCave": 10
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 4992.0,
+      "y": 512.0
+     },
+     "screen": [
+      6,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "FallingCave": 1
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 5056.0,
+      "y": 672.0
+     },
+     "screen": [
+      6,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 5216.0,
+      "y": 1280.0
+     },
+     "screen": [
+      6,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "FallingSpike": 2
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 5728.0,
+      "y": 480.0
+     },
+     "screen": [
+      7,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 17,
+    "trigger_dependent": 23,
+    "triggers": 14
+   }
+  },
+  "rMegaman": {
+   "dims_px": [
+    2400,
+    1824
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 32.0,
+      "y": 192.0
+     },
+     "screen": [
+      0,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1664.0,
+      "y": 96.0
+     },
+     "screen": [
+      1,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 6,
+     "intrinsic_hidden": {
+      "QuickLaser": 5,
+      "QuickLaserTimer": 1
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 1664.0,
+      "y": 96.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "Hammer": 1,
+      "HammerTrigger": 1,
+      "blockNise": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 2336.0,
+      "y": 928.0
+     },
+     "screen": [
+      2,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 0,
+     "intrinsic_hidden": {},
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 1632.0,
+      "y": 1472.0
+     },
+     "screen": [
+      2,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "QuickLaser": 2
+     },
+     "nearest_anchor": {
+      "object": "saveMedium",
+      "x": 2304.0,
+      "y": 640.0
+     },
+     "screen": [
+      3,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 11,
+    "trigger_dependent": 0,
+    "triggers": 4
+   }
+  },
+  "rMetroid": {
+   "dims_px": [
+    3200,
+    2432
+   ],
+   "room_speed": 30,
+   "screens": [
+    {
+     "discovery_evidence": 5,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 2,
+      "RevealingSpikesUp": 3
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 256.0,
+      "y": 1856.0
+     },
+     "screen": [
+      0,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 4
+    },
+    {
+     "discovery_evidence": 8,
+     "intrinsic_hidden": {
+      "Skwee": 4,
+      "SkweeTrigger": 4
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      1,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 4,
+     "intrinsic_hidden": {
+      "metroidPlatform": 4
+     },
+     "nearest_anchor": {
+      "object": "saveHard",
+      "x": 256.0,
+      "y": 1856.0
+     },
+     "screen": [
+      1,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 2,
+     "intrinsic_hidden": {
+      "blockNise": 2
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 1984.0,
+      "y": 608.0
+     },
+     "screen": [
+      2,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 2,
+      "metroidTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      2,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    },
+    {
+     "discovery_evidence": 3,
+     "intrinsic_hidden": {
+      "metroidTrap": 3
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      2,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 4,
+     "intrinsic_hidden": {
+      "FallingSpike10frame": 1,
+      "metroidPlatform": 3
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      2,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 1
+    },
+    {
+     "discovery_evidence": 12,
+     "intrinsic_hidden": {
+      "metroidPlatform": 12
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 1984.0,
+      "y": 608.0
+     },
+     "screen": [
+      3,
+      0
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 15,
+     "intrinsic_hidden": {
+      "metroidPlatform": 15
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 1984.0,
+      "y": 608.0
+     },
+     "screen": [
+      3,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 15,
+     "intrinsic_hidden": {
+      "metroidPlatform": 15
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      3,
+      2
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    },
+    {
+     "discovery_evidence": 12,
+     "intrinsic_hidden": {
+      "metroidPlatform": 11,
+      "metroidTrap": 1
+     },
+     "nearest_anchor": {
+      "object": "saveVeryHard",
+      "x": 1920.0,
+      "y": 736.0
+     },
+     "screen": [
+      3,
+      3
+     ],
+     "trigger_dependent": {},
+     "triggers": 0
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 83,
+    "trigger_dependent": 0,
+    "triggers": 8
+   }
+  },
+  "rZelda": {
+   "dims_px": [
+    800,
+    1216
+   ],
+   "room_speed": 50,
+   "screens": [
+    {
+     "discovery_evidence": 1,
+     "intrinsic_hidden": {
+      "Lonk": 1
+     },
+     "nearest_anchor": {
+      "object": "playerStart",
+      "x": 0.0,
+      "y": 980.0
+     },
+     "screen": [
+      0,
+      1
+     ],
+     "trigger_dependent": {},
+     "triggers": 2
+    }
+   ],
+   "totals": {
+    "intrinsic_hidden": 1,
+    "trigger_dependent": 0,
+    "triggers": 2
+   }
+  }
+ },
+ "screen_px": [
+  800,
+  608
+ ]
+}
