@@ -76,6 +76,24 @@ def _load() -> ctypes.CDLL:
         fn.argtypes = [ctypes.c_void_p]
     lib.iw_respawn_face.restype = ctypes.c_double
     lib.iw_respawn_face.argtypes = [ctypes.c_void_p]
+    # discovery task/attempt protocol
+    lib.iw_set_discovery.restype = ctypes.c_int
+    lib.iw_set_discovery.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                     ctypes.c_int, ctypes.c_int]
+    lib.iw_set_obs_mode.restype = ctypes.c_int
+    lib.iw_set_obs_mode.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    lib.iw_set_task_seed.argtypes = [ctypes.c_void_p, ctypes.c_ulonglong]
+    lib.iw_task_seed.restype = ctypes.c_ulonglong
+    lib.iw_task_seed.argtypes = [ctypes.c_void_p]
+    lib.iw_last_task_seed.restype = ctypes.c_ulonglong
+    lib.iw_last_task_seed.argtypes = [ctypes.c_void_p]
+    for name in ("iw_obs_mode", "iw_attempt_ended", "iw_task_ended",
+                 "iw_task_success", "iw_attempt_tick", "iw_attempts_K",
+                 "iw_attempt_frames_H", "iw_last_task_attempts",
+                 "iw_last_task_deaths"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
     for name in ("iw_exact", "iw_xent_count"):
         fn = getattr(lib, name)
         fn.restype = ctypes.c_int
@@ -83,6 +101,8 @@ def _load() -> ctypes.CDLL:
     lib.iw_xents.restype = ctypes.c_int
     lib.iw_xents.argtypes = [ctypes.c_void_p,
                              ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+    lib.iw_xents_drawn.restype = ctypes.c_int
+    lib.iw_xents_drawn.argtypes = [ctypes.c_void_p, u8p, ctypes.c_int]
     lib.iw_bosses.restype = ctypes.c_int
     lib.iw_bosses.argtypes = [ctypes.c_void_p,
                               ctypes.POINTER(ctypes.c_float), ctypes.c_int]
@@ -217,6 +237,14 @@ class CIWanna:
                          max_rows)
         return buf[:n]
 
+    def xents_drawn(self, max_rows: int = 4096) -> "np.ndarray":
+        """Per-xent drawn flags aligned with xents() rows: 1 = the source
+        would draw it now (observable obs may include it), 0 = invisible/
+        unmanifested (must stay hidden). Anti-leakage introspection."""
+        buf = np.zeros(max_rows, dtype=np.uint8)
+        n = LIB.iw_xents_drawn(self._h, buf, max_rows)
+        return buf[:n]
+
     def bosses(self, max_rows: int = 4) -> "np.ndarray":
         """Live boss slots: rows [def,phase,timer,dmg,hp,ent,flags,sprite,
         p0,p2,x,y] (see c_src/boss/boss_types.h)."""
@@ -253,6 +281,53 @@ class CIWanna:
         """True = source-faithful shot-activated saves (exact-game default);
         False = legacy touch saves (research/debug)."""
         LIB.iw_set_save_mode(self._h, int(shoot))
+
+    # ---- discovery task/attempt protocol ----
+    def set_discovery(self, attempts_K: int, attempt_frames_H: int,
+                      obs_mode: int) -> None:
+        """Enable the multi-attempt task protocol (call before reset()):
+        one episode == one task of up to attempts_K death/timeout-bounded
+        attempts; obs_mode 0 = privileged legacy vector, 1 = observable."""
+        if LIB.iw_set_discovery(self._h, int(attempts_K),
+                                int(attempt_frames_H), int(obs_mode)) != 0:
+            raise ValueError(f"invalid obs_mode {obs_mode}")
+
+    def set_obs_mode(self, obs_mode: int) -> None:
+        if LIB.iw_set_obs_mode(self._h, int(obs_mode)) != 0:
+            raise ValueError(f"invalid obs_mode {obs_mode}")
+
+    def set_task_seed(self, seed: int) -> None:
+        """Pin the NEXT task reset's seed (deterministic replay/eval)."""
+        LIB.iw_set_task_seed(self._h, int(seed))
+
+    @property
+    def task_seed(self) -> int: return int(LIB.iw_task_seed(self._h))
+    @property
+    def obs_mode(self) -> int: return LIB.iw_obs_mode(self._h)
+    @property
+    def attempt_ended(self) -> bool:
+        return bool(LIB.iw_attempt_ended(self._h))
+    @property
+    def task_ended(self) -> bool: return bool(LIB.iw_task_ended(self._h))
+    @property
+    def task_success(self) -> bool:
+        return bool(LIB.iw_task_success(self._h))
+    @property
+    def attempt_tick(self) -> int: return LIB.iw_attempt_tick(self._h)
+    @property
+    def attempts_K(self) -> int: return LIB.iw_attempts_K(self._h)
+    @property
+    def attempt_frames_H(self) -> int:
+        return LIB.iw_attempt_frames_H(self._h)
+    @property
+    def last_task_attempts(self) -> int:
+        return LIB.iw_last_task_attempts(self._h)
+    @property
+    def last_task_deaths(self) -> int:
+        return LIB.iw_last_task_deaths(self._h)
+    @property
+    def last_task_seed(self) -> int:
+        return int(LIB.iw_last_task_seed(self._h))
 
     @property
     def attempt(self) -> int: return LIB.iw_attempt(self._h)

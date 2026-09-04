@@ -440,6 +440,94 @@ static inline const IWXMaskRec* iwx_mask(const IWXState* xs, uint16_t id) {
     return id == 0xffff ? NULL : &xs->masks[id];
 }
 
+/* ------------------------------------------------------------------ *
+ * Observable-scene rules (docs/discovery_benchmark_contract.md sec. 7).
+ *
+ * iwx_ent_drawn: would the source game DRAW this entity right now?
+ * The observable observation mode includes an exact-layer entity only
+ * when this returns 1, so invisible triggers/regions, unarmed maskless
+ * fires, invisible bolts/hands, un-appeared yoku blocks, toggled-off
+ * RealYoku blocks, idle QuickLasers and every invisible controller /
+ * spawner stay out of the standard observation until they manifest.
+ * The rule intentionally errs toward EXCLUSION for invisible logic
+ * objects: hiding a visible sprite from the vector obs is a fidelity
+ * bug; leaking an invisible one is a benchmark-validity bug.
+ * ------------------------------------------------------------------ */
+static inline int iwx_ent_drawn(const IWXState* xs, const IWXEnt* e) {
+    (void)xs;
+    switch (e->cls) {
+    /* invisible by design: logic, regions, controllers, spawners */
+    case XB_TRIGGER: case XB_MARKER: case XB_WALLSTRIP: case XB_WATER:
+    case XB_QLTIMER: case XB_FACTORYCTL: case XB_REALYOKUCTL:
+    case XB_CHEEPCTL: case XB_TETRIS: case XB_GHOULGEN:
+    case XB_MEDUSAMAKER: case XB_LOCKCONTROLS: case XB_TOOTHSHOOTER:
+    case XB_RYUWIND: case XB_WATCHFOR:
+        return 0;
+    /* maskless-until-armed animated killers (Fire family, Grabby):
+     * p5 marks the source's sprite_index=-1 idle state */
+    case XB_ANIM_KILLER:
+        return e->armed || e->p[5] == 0.0f;
+    /* invisible until an op arms it (BoltTrap: visible=1 on launch) */
+    case XB_BOLT:
+        return e->armed;
+    /* the laser is drawn only while firing/growing */
+    case XB_QUICKLASER:
+        return e->on;
+    /* the fake error dialog exists visually only once triggered */
+    case XB_ERRORTRAP:
+        return e->on || e->state != 0 || e->t0 > 0;
+    /* appearing-chain blocks are drawn per their appear animation */
+    case XB_FACTORYBLOCK:
+        return e->frame > 0.0f;
+    /* RealYoku blocks toggle visible+solid together */
+    case XB_REALYOKU:
+        return (e->flags & XEF_SOLID) != 0 || e->frame > 0.0f;
+    default:
+        return 1;
+    }
+}
+
+/* Static APPEARANCE ledger: does this class LOOK deadly in the rendered
+ * scene (a spike, a cherry, a fire, an enemy)? This drives the sign of
+ * the observable entity-type channel INSTEAD of the live XEF_KILLER
+ * flag, so deceptive objects keep their innocent appearance: couches,
+ * paintings before they move, graves before they arm, fake exits and
+ * pickup-shaped killers all read as non-deadly until a visible
+ * consequence occurs. Never consulted in privileged mode. */
+static inline int iwx_ent_deadly_appearance(const IWXEnt* e) {
+    switch (e->cls) {
+    /* hazard-shaped: spikes, fruit, fires, projectiles, enemies */
+    case XB_KILLER: case XB_SHAKE_FALL: case XB_SPIKE_EXTEND:
+    case XB_REVEALING: case XB_SPIKETRAP: case XB_QUICKLASER:
+    case XB_KILLPLANE: case XB_WHEEL: case XB_FLYSPIKE:
+    case XB_GUTSMAN: case XB_SPIKESHOOT: case XB_MEDUSA: case XB_BIRD:
+    case XB_GHOUL: case XB_HOVERGUNNER: case XB_HOVERSHOT:
+    case XB_SNIPER: case XB_TOURTURRET: case XB_SKWEE: case XB_CRAWLER:
+    case XB_DUMBBUGZ: case XB_METROID: case XB_SPAGDISP: case XB_SPAG:
+    case XB_ROLLROCK: case XB_PLAYSTATION: case XB_KAMEK:
+    case XB_EGGPLANT: case XB_BOUNCYFRUIT: case XB_WITCH: case XB_LONK:
+    case XB_CHEEP: case XB_BULLETBILL: case XB_KILLPILL: case XB_BOOM:
+    case XB_FRUIT: case XB_MOONSMALL: case XB_MOONBIG: case XB_RYU:
+    case XB_FIRECHALICE: case XB_ERRORTRAP:
+        return 1;
+    /* armed animated killers look deadly once armed (a lit fire, a
+     * cycling spike); touch-armed graves look like decor until then */
+    case XB_ANIM_KILLER:
+        return e->armed;
+    case XB_BOLT:
+        return e->armed;          /* only ever drawn armed anyway */
+    /* deceptive-by-appearance: furniture, paintings and hammers at
+     * rest, pickup-shaped killers, the orb-gated fake exit */
+    case XB_COUCH: case XB_CHOZO: case XB_METROIDTRAP:
+    case XB_ENTRANCETELE:
+        return 0;
+    case XB_PAINTING: case XB_HIGGER: case XB_HAMMER:
+        return e->state != 0 || e->vy != 0.0f;
+    default:
+        return 0;                 /* platforms, solids, pickups, misc */
+    }
+}
+
 static inline int iwx_mask_bit(const IWXState* xs, const IWXMaskRec* m,
                                int frame, int u, int v) {
     if (u < m->bl || u > m->br || v < m->bt || v > m->bb) return 0;

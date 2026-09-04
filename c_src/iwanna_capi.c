@@ -153,6 +153,55 @@ void iw_attempt_reset(void* h) {
     compute_observations(e);
 }
 int iw_attempt(void* h)           { return ((Handle*)h)->env.attempt; }
+
+/* ---- discovery task/attempt protocol (contract section 1) ----
+ * Configure BEFORE iw_reset. K <= 0 = unlimited attempts; H <= 0 = no
+ * per-attempt frame budget; obs_mode 0 = privileged legacy vector
+ * (forbidden for headline runs), 1 = observable vector. */
+int iw_set_discovery(void* h, int attempts_K, int attempt_frames_H,
+                     int obs_mode) {
+    IWanna* e = &((Handle*)h)->env;
+    if (obs_mode != IW_OBS_PRIVILEGED && obs_mode != IW_OBS_OBSERVABLE)
+        return -1;
+    e->discovery = 1;
+    e->attempts_K = attempts_K;
+    e->attempt_frames_H = attempt_frames_H;
+    e->obs_mode = obs_mode;
+    return 0;
+}
+/* observation mode alone (usable without the attempt protocol) */
+int iw_set_obs_mode(void* h, int obs_mode) {
+    IWanna* e = &((Handle*)h)->env;
+    if (obs_mode != IW_OBS_PRIVILEGED && obs_mode != IW_OBS_OBSERVABLE)
+        return -1;
+    e->obs_mode = obs_mode;
+    compute_observations(e);
+    return 0;
+}
+int iw_obs_mode(void* h)          { return ((Handle*)h)->env.obs_mode; }
+/* force the NEXT task reset's seed (deterministic replay / eval) */
+void iw_set_task_seed(void* h, unsigned long long seed) {
+    ((Handle*)h)->env.task_seed_next = seed;
+}
+unsigned long long iw_task_seed(void* h) {
+    return ((Handle*)h)->env.task_seed;
+}
+int iw_attempt_ended(void* h)     { return ((Handle*)h)->env.attempt_ended; }
+int iw_task_ended(void* h)        { return ((Handle*)h)->env.task_ended; }
+int iw_task_success(void* h)      { return ((Handle*)h)->env.task_success; }
+int iw_attempt_tick(void* h)      { return ((Handle*)h)->env.attempt_tick; }
+int iw_attempts_K(void* h)        { return ((Handle*)h)->env.attempts_K; }
+int iw_attempt_frames_H(void* h)  { return ((Handle*)h)->env.attempt_frames_H; }
+/* stats of the most recently ended task (valid on the task_ended step) */
+int iw_last_task_attempts(void* h) {
+    return ((Handle*)h)->env.last_task_attempts;
+}
+int iw_last_task_deaths(void* h) {
+    return ((Handle*)h)->env.last_task_deaths;
+}
+unsigned long long iw_last_task_seed(void* h) {
+    return ((Handle*)h)->env.last_task_seed;
+}
 int iw_save_shoot_mode(void* h)   { return ((Handle*)h)->env.save_shoot_mode; }
 void iw_set_save_mode(void* h, int shoot) {
     ((Handle*)h)->env.save_shoot_mode = shoot ? 1 : 0;
@@ -323,6 +372,21 @@ int iw_xents(void* h, float* out, int max_rows) {
     }
     return n;
 }
+/* drawn-status flags aligned with iw_xents row order: 1 = the source
+ * would draw this entity now (the observable obs may include it),
+ * 0 = invisible/unmanifested (must stay out of observable obs).
+ * Introspection for the anti-leakage tests. */
+int iw_xents_drawn(void* h, unsigned char* out, int max_rows) {
+    IWanna* e = &((Handle*)h)->env;
+    if (!e->xs) return 0;
+    int n = 0;
+    for (int i = 0; i < e->xs->n_ents && n < max_rows; i++) {
+        IWXEnt* x = &e->xs->ents[i];
+        out[n++] = (unsigned char)iwx_ent_drawn(e->xs, x);
+    }
+    return n;
+}
+
 /* live bosses: rows of 12 floats — def, phase, timer, dmg, stage hp,
  * body ent index, flags, sprite, eye_damage(p0), walk_counter(p2),
  * body x, body y */

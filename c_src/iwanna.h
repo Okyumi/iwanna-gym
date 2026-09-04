@@ -221,6 +221,18 @@ typedef struct {
 #define IW_NUM_ACTIONS 12
 #define IW_NUM_ACTIONS_LEGACY 6
 
+/* Observation modes (docs/discovery_benchmark_contract.md section 7).
+ * PRIVILEGED is the historical 101-dim vector, bit-identical to every
+ * pre-discovery experiment; it exposes simulator truth (live deadliness
+ * flags, invisible/unmanifested exact entities) and is therefore
+ * forbidden for headline discovery runs. OBSERVABLE keeps the same
+ * layout but only carries information derivable from the rendered
+ * scene: unmanifested entities are excluded and the entity type
+ * channel's sign comes from a static APPEARANCE table, never from the
+ * live deadly flag. */
+#define IW_OBS_PRIVILEGED 0
+#define IW_OBS_OBSERVABLE 1
+
 /* PufferLib-required log struct: floats only, n last */
 typedef struct {
     float perf;             /* 0-1: goal reached */
@@ -228,6 +240,8 @@ typedef struct {
     float episode_return;
     float episode_length;
     float death;            /* 1.0 if episode ended by dying */
+    float attempts;         /* discovery: attempts used when the task ended */
+    float task_success;     /* discovery: 1.0 if the task ended in success */
     float n;
 } Log;
 
@@ -326,6 +340,37 @@ typedef struct {
     float ep_return;
     int last_event;           /* 0 none, 1 death, 2 goal, 3 timeout,
                                  4 game complete (survives auto-reset) */
+
+    /* ---- discovery task/attempt protocol ----
+     * (docs/discovery_benchmark_contract.md section 1; all zero by
+     * default so classic behavior is bit-identical when unused.)
+     * When `discovery` is set, one PufferLib episode == one TASK: up to
+     * attempts_K death/timeout-bounded attempts from the checkpoint.
+     * terminals[0] fires ONLY at task end (success, attempts exhausted,
+     * or the total max_steps budget), so recurrent trainers naturally
+     * keep state across attempts; attempt boundaries are flagged in
+     * attempt_ended for the training/eval harness. The task's RNG state
+     * is captured at task reset and restored at every attempt reset, so
+     * the hidden configuration and all in-task stochasticity are fixed
+     * across attempts and replay is deterministic from
+     * (task seed, action sequence). */
+    int discovery;            /* 1 = task/attempt protocol active */
+    int attempts_K;           /* attempt budget (<=0: unlimited) */
+    int attempt_frames_H;     /* per-attempt frame budget (<=0: none) */
+    int attempt_tick;         /* frames in the current attempt */
+    int attempt_ended;        /* 1 on the step that ended an attempt */
+    int task_ended;           /* 1 on the step that ended the task */
+    int task_success;         /* 1 if the ending attempt reached the goal */
+    uint64_t task_seed;       /* identity of this task's random stream */
+    uint64_t task_seed_next;  /* 0 = derive at reset; else forced */
+    uint64_t attempt_rng;     /* rng state restored at each attempt start */
+    int obs_mode;             /* IW_OBS_PRIVILEGED / IW_OBS_OBSERVABLE */
+    /* stats of the most recently ENDED task (the auto-reset starts the
+     * next task immediately, so evaluators read the finished task's
+     * attempt/death counts here on the task_ended step) */
+    int last_task_attempts;
+    int last_task_deaths;
+    uint64_t last_task_seed;
 } IWanna;
 
 /* ---------- utilities ---------- */
@@ -1364,6 +1409,16 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
     if (env->pack) {
         iw_pack_copy_room(env, env->respawn_room);
         env->face = env->respawn_face >= 0 ? 1 : -1;
+    } else if (env->discovery) {
+        /* discovery attempts need a repeatable world: classic rooms get
+         * the same full room restore the source retry performs in pack
+         * mode (entities, events, gate-stamped tiles), while the stored
+         * checkpoint (respawn point + activated-save tags) persists —
+         * the world state the source keeps across a retry. */
+        uint64_t saved_tags = env->save_tags;
+        reset_entities(env);
+        reset_events(env);
+        env->save_tags = saved_tags;
     }
     env->x = env->respawn_x;
     env->y = env->respawn_y;
@@ -1383,8 +1438,19 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
 
 /* ---------- observations ---------- */
 
+/* classic-entity appearance ledger for the observable mode: these types
+ * are DRAWN as hazards (spike shapes, hazard/enemy colors), so their
+ * negative sign is visible information; everything else reads positive
+ * regardless of the live EF_DEADLY flag (make_killer/make_harmless and
+ * dormancy are simulator truth, not appearance). */
+static inline int iw_type_deadly_appearance(int type) {
+    return type == E_SPIKEBALL || type == E_TRAP || type == E_PROJECTILE ||
+           type == E_SHOOTER || type == E_ENEMY || type == E_BOSS;
+}
+
 static void compute_observations(IWanna* env) {
     float* o = env->observations;
+    int om = env->obs_mode;
     double W = env->tw * IW_TILE, H = env->th * IW_TILE;
     o[0] = (float)(2.0 * env->x / W - 1.0);
     o[1] = (float)(2.0 * env->y / H - 1.0);
@@ -1404,6 +1470,24 @@ static void compute_observations(IWanna* env) {
             else v = env->tiles[ty * env->tw + tx];
             o[i++] = (float)v / 6.0f;
         }
+
+    /* observable mode: fake blocks (blockNise markers) are DRAWN as
+     * blocks in the source, so their cells must read as blocks in the
+     * tile window — indistinguishable from real solids until touched. */
+    if (om == IW_OBS_OBSERVABLE && env->xs) {
+        IWXState* xs = env->xs;
+        for (int mi = 0; mi < xs->n_idx_marker; mi++) {
+            IWXEnt* e = &xs->ents[xs->idx_marker[mi]];
+            if (!e->alive || (int)e->p[0] != XM_BLOCKNISE) continue;
+            int tx = (int)(e->x / IW_TILE), ty = (int)(e->y / IW_TILE);
+            int dx = tx - ptx, dy = ty - pty;
+            if (dx < -(IW_LOCAL_W / 2) || dx > IW_LOCAL_W / 2 ||
+                dy < -(IW_LOCAL_H / 2) || dy > IW_LOCAL_H / 2) continue;
+            int cell = IW_OBS_BASE +
+                (dy + IW_LOCAL_H / 2) * IW_LOCAL_W + (dx + IW_LOCAL_W / 2);
+            o[cell] = (float)T_BLOCK / 6.0f;
+        }
+    }
 
     /* K nearest active, visible entities (triggers are invisible), sorted by
      * squared distance. Features per slot: dx, dy, vx, vy, signed type
@@ -1439,6 +1523,8 @@ static void compute_observations(IWanna* env) {
             if (!e->alive || !e->active) continue;
             if (e->cls == XB_TRIGGER || e->cls == XB_MARKER ||
                 e->cls == XB_WALLSTRIP || e->cls == XB_WATER) continue;
+            /* observable mode: only entities the source would draw */
+            if (om == IW_OBS_OBSERVABLE && !iwx_ent_drawn(xs, e)) continue;
             float dx = e->x - (float)env->x, dy = e->y - (float)env->y;
             float d2 = dx * dx + dy * dy;
             int key = k + (1 << 20);
@@ -1466,14 +1552,18 @@ static void compute_observations(IWanna* env) {
                 f1 = (float)((e->y - env->y) / H);
                 f2 = e->vx / 10.0f; f3 = e->vy / 10.0f;
                 f4 = 13.0f / IW_OBS_TYPE_NORM;   /* capped to 1.0 below */
-                if (e->flags & XEF_KILLER) f4 = -f4;
+                if (om == IW_OBS_OBSERVABLE
+                        ? iwx_ent_deadly_appearance(e)
+                        : (e->flags & XEF_KILLER) != 0) f4 = -f4;
             } else {
                 IWEntity* e = &env->entities[best[s]];
                 f0 = (float)((e->x - env->x) / W);
                 f1 = (float)((e->y - env->y) / H);
                 f2 = e->vx / 10.0f; f3 = e->vy / 10.0f;
                 f4 = (float)e->type / IW_OBS_TYPE_NORM;
-                if (e->flags & EF_DEADLY) f4 = -f4;
+                if (om == IW_OBS_OBSERVABLE
+                        ? iw_type_deadly_appearance(e->type)
+                        : (e->flags & EF_DEADLY) != 0) f4 = -f4;
             }
             float f[5] = { f0, f1, f2, f3, f4 };
             for (int q = 0; q < IW_OBS_ENT_F; q++) {
@@ -1517,6 +1607,24 @@ static void sample_goal(IWanna* env) {
 }
 
 static void c_reset(IWanna* env) {
+    if (env->discovery) {
+        /* the task now ending (or the pre-reset zeros on first init)
+         * becomes readable as last_task_* on the task_ended step */
+        env->last_task_attempts = env->attempt;
+        env->last_task_deaths = env->deaths;
+        env->last_task_seed = env->task_seed;
+        /* TASK reset: fix this task's random-stream identity first, so
+         * everything the reset consumes (goal sampling, entity init) and
+         * every attempt draw from a stream determined by task_seed. */
+        env->task_seed = env->task_seed_next ? env->task_seed_next
+                                             : iw_rand(env);
+        env->task_seed_next = 0;
+        env->rng = env->task_seed;
+        env->attempt_tick = 0;
+        env->attempt_ended = 0;
+        env->task_ended = 0;
+        env->task_success = 0;
+    }
     if (env->pack) {
         /* pack mode: every episode starts in the start room with a clean
          * progression state (flags, save, transition count). The room is
@@ -1554,7 +1662,19 @@ static void c_reset(IWanna* env) {
     sample_goal(env);
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(dx * dx + dy * dy);
+    /* attempt-start rng snapshot: restored at every attempt reset so
+     * within-task stochasticity is identical across attempts and replay
+     * is deterministic from (task_seed, action sequence) */
+    env->attempt_rng = env->rng;
     compute_observations(env);
+}
+
+/* discovery: end an attempt without ending the task — source-faithful
+ * checkpoint restore + the task's fixed random stream */
+static void iw_discovery_next_attempt(IWanna* env) {
+    iw_respawn_to_checkpoint(env);
+    env->rng = env->attempt_rng;
+    env->attempt_tick = 0;
 }
 
 /* One 50Hz frame. Port of the Renex Player step event + GM8 built-in update. */
@@ -1562,6 +1682,9 @@ static void c_step(IWanna* env) {
     env->rewards[0] = 0;
     env->terminals[0] = 0;
     env->last_event = 0;
+    env->attempt_ended = 0;
+    env->task_ended = 0;
+    env->task_success = 0;
 
     env->prev_x = env->x;            /* for pass_x / pass_y events */
     env->prev_y = env->y;
@@ -1680,6 +1803,26 @@ static void c_step(IWanna* env) {
         (env->xs && iwx_killer_hit(env))) {
         env->rewards[0] = -env->death_penalty;
         env->deaths += 1;
+        if (env->discovery) {
+            /* death = explicit ATTEMPT boundary inside the task */
+            env->ep_return += env->rewards[0];
+            env->attempt_ended = 1;
+            if (env->attempts_K > 0 && env->attempt >= env->attempts_K) {
+                /* attempt budget exhausted: the TASK ends in failure */
+                env->terminals[0] = 1;
+                env->log.attempts += (float)env->attempt;
+                add_log(env, 0.0f, 1.0f);
+                c_reset(env);
+                env->last_event = 1;
+                env->attempt_ended = 1;
+                env->task_ended = 1;
+                return;
+            }
+            iw_discovery_next_attempt(env);
+            env->last_event = 1;
+            compute_observations(env);
+            return;
+        }
         if (env->checkpoint_respawn) {
             /* fangame semantics: respawn at last save, episode continues */
             env->ep_return += env->rewards[0];
@@ -1721,9 +1864,17 @@ static void c_step(IWanna* env) {
         env->rewards[0] += 1.0f;
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;
+        int disc = env->discovery;
+        if (disc) env->log.attempts += (float)env->attempt;
+        if (disc) env->log.task_success += 1.0f;
         add_log(env, 1.0f, 0.0f);
         c_reset(env);
         env->last_event = 2;
+        if (disc) {
+            env->attempt_ended = 1;
+            env->task_ended = 1;
+            env->task_success = 1;
+        }
         return;
     }
 
@@ -1733,20 +1884,60 @@ static void c_step(IWanna* env) {
         env->rewards[0] += 1.0f;
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;
+        int disc = env->discovery;
+        if (disc) env->log.attempts += (float)env->attempt;
+        if (disc) env->log.task_success += 1.0f;
         add_log(env, 1.0f, 0.0f);
         env->last_event = 4;               /* game complete */
         env->game_completions += 1;
         c_reset(env);
+        if (disc) {
+            env->attempt_ended = 1;
+            env->task_ended = 1;
+            env->task_success = 1;
+        }
         return;
     }
 
     env->ep_return += env->rewards[0];
 
+    /* discovery: per-attempt frame budget — a timed-out attempt is
+     * consumed exactly like a death (the world resets, memory persists) */
+    if (env->discovery) {
+        env->attempt_tick += 1;
+        if (env->attempt_frames_H > 0 &&
+            env->attempt_tick >= env->attempt_frames_H) {
+            env->attempt_ended = 1;
+            if (env->attempts_K > 0 && env->attempt >= env->attempts_K) {
+                env->terminals[0] = 1;
+                env->log.attempts += (float)env->attempt;
+                add_log(env, 0.0f, 0.0f);
+                c_reset(env);
+                env->last_event = 3;
+                env->attempt_ended = 1;
+                env->task_ended = 1;
+                return;
+            }
+            /* the respawn increments env->attempt: a timeout consumes
+             * an attempt exactly like a death */
+            iw_discovery_next_attempt(env);
+            env->last_event = 3;
+            compute_observations(env);
+            return;
+        }
+    }
+
     if (env->tick >= env->max_steps) {
         env->terminals[0] = 1;
+        int disc = env->discovery;
+        if (disc) env->log.attempts += (float)env->attempt;
         add_log(env, 0.0f, 0.0f);
         c_reset(env);
         env->last_event = 3;
+        if (disc) {
+            env->attempt_ended = 1;
+            env->task_ended = 1;
+        }
         return;
     }
 

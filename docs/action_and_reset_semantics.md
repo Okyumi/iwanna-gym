@@ -112,6 +112,37 @@ The runtime exposes the two reset kinds explicitly:
   attempt and death counters cleared. Training systems should clear
   adaptation state here.
 
+## Discovery task/attempt protocol (native core)
+
+The multi-attempt protocol of
+[discovery_benchmark_contract.md](discovery_benchmark_contract.md) §1
+runs INSIDE the C core (`discovery=1`), identically under the ctypes
+path, the Gymnasium reference env, and the PufferLib binding:
+
+* one episode == one **task**: up to `attempts_K` attempts, each ended
+  by death or the `attempt_frames_H` per-attempt budget; `terminals`
+  fires only at task end (success, attempts exhausted, or the total
+  `max_steps` budget), so recurrent trainers keep state across attempts
+  and cut it at the episode boundary — the task reset;
+* every attempt reset restores the source-faithful checkpoint state
+  (pack mode as above; classic rooms additionally get the full room
+  restore — entities, events, gate tiles — with the stored checkpoint
+  and activated-save tags persisting) AND the task's random stream:
+  `(task_seed, action sequence)` replays bit-identically, attempts
+  included;
+* `IWannaDiscoveryEnv` is the thin Gymnasium interface: obs modes
+  `observable_vector` (default), `privileged_vector` (oracle/debug,
+  forbidden for headline runs), `pixels`; `reset(options=
+  {"task_seed": s})` pins the task seed; info adds `attempt_ended`,
+  `task_ended`, `task_success`, budgets, `task_seed`, and — on the
+  task-ended step — `final_task_attempts`/`final_task_deaths` for the
+  just-finished task (the core auto-reset has already begun the next);
+* the PufferLib binding exposes the same protocol via `discovery`,
+  `attempts_K`, `attempt_frames_H`, `obs_mode`, `task_seed` in
+  `config/iwanna.ini`, and logs `attempts`/`task_success` per ended
+  task through the Log struct — diagnostics flow only through logs and
+  info, never into policy observations.
+
 Evaluation metadata in `info` (no hidden trap/world state is leaked):
 
 ```

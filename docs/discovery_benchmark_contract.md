@@ -291,27 +291,37 @@ the policy must NOT receive:
 - evaluation-only diagnostics (death attribution, RDR bookkeeping,
   per-hazard exposure state).
 
-**Audit findings against the current runtime (must be fixed before S1
-results are reported; recorded here so they cannot be papered over):**
+**Audit findings against the runtime (found at design time, CLOSED by
+the discovery-runtime milestone; recorded so they cannot recur
+silently):**
 
-- **L1 — structured obs leaks unmanifested entities.** The 6-nearest-
-  entity channels (`c_src/iwanna.h`, obs builder) exclude triggers and
-  markers but include active, invisible exact-layer entities: an
+- **L1 — structured obs leaked unmanifested entities.** The 6-nearest-
+  entity channels (`c_src/iwanna.h`, obs builder) excluded triggers and
+  markers but included active, invisible exact-layer entities: an
   unarmed `Fire` (maskless in source), a `BoltTrap`/`Grabby` before
-  activation, and fake blocks appear as typed entities with a signed
-  "deadly" feature. A discovery observation profile must filter the
-  entity channels by **source visibility/manifestation** (would the
-  source draw it with a live mask this frame?).
-- **L2 — the renderer color-codes dormancy.** `iwanna_gym/render.py`
-  draws classic dormant traps in a distinct `TRAP_DORMANT` color. In
+  activation appeared as typed entities with a signed "deadly" feature.
+  **Fixed**: the `observable_vector` mode filters entity channels by
+  source visibility/manifestation (`iwx_ent_drawn`, `c_src/exact.h`),
+  derives the type-channel sign from a static appearance ledger instead
+  of the live deadly flag, and overlays fake-block (`blockNise`) cells
+  as blocks in the tile window. The legacy vector survives unchanged as
+  `privileged_vector` — debugging/oracle only, forbidden for headline
+  runs, and never silently relabeled as non-privileged.
+- **L2 — the renderer color-coded dormancy.** `iwanna_gym/render.py`
+  drew classic dormant traps in a distinct `TRAP_DORMANT` color. In
   fangames the whole trick is that a trap spike looks exactly like a
-  static spike. The discovery render profile must draw unmanifested
-  hazards as their decoy appearance (or not at all, matching source
-  visibility).
+  static spike. **Fixed**: both trap states now draw in the static
+  spike color (pixel-identical to a spike tile, asserted in
+  `tests/test_discovery_runtime.py`).
 
-Defining `obs_profile="discovery"` (structured + pixel) with these two
-fixes is the first implementation step after this design milestone; S1
-acceptance is conditional on it.
+Paired anti-leakage tests (two tasks with identical visible histories
+but different not-yet-triggered hazards) pin both fixes: standard modes
+produce identical observations until a visible consequence occurs,
+while privileged mode may distinguish them. Known residual limitation:
+`observable_vector`'s tile window carries tile-solidity truth, which
+equals appearance everywhere in currently-accepted tasks except
+invisible-solid content (K2W `objBlockInvis` — future dynamics
+milestone, tracked there).
 
 ## 8. Train/validation/test separation
 

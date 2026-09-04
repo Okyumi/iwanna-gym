@@ -25,8 +25,12 @@ ENT_HW = [0, 16, 10, 0, 16, 4, 12, 11, 14, 14, 16, 16]
 ENT_HH = [0, 8, 10, 0, 16, 4, 12, 14, 14, 14, 16, 16]
 
 PLATFORM_C = np.array([150, 110, 60], np.uint8)
-TRAP_DORMANT = np.array([170, 170, 185], np.uint8)
-TRAP_LIVE = np.array([235, 200, 90], np.uint8)
+# Anti-leakage fix L2 (docs/discovery_benchmark_contract.md section 7):
+# a dormant trap spike must be INDISTINGUISHABLE from a static spike —
+# that is the fangame trick. Both trap states therefore draw in the
+# static SPIKE color; the old dormant/live color split leaked dormancy.
+TRAP_DORMANT = SPIKE
+TRAP_LIVE = SPIKE
 HAZARD = np.array([230, 120, 120], np.uint8)
 ENEMY_C = np.array([190, 80, 190], np.uint8)
 SAVE_C = np.array([90, 160, 220], np.uint8)

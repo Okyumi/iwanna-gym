@@ -127,19 +127,25 @@ class IWannaEnv(gym.Env):
         self.action_space = spaces.Discrete(self.n_actions)
 
     # -- gym api --
+    def _ensure_c(self) -> bool:
+        """Construct the C env on first use; returns True when created."""
+        if self.c is not None:
+            return False
+        cseed = int(self.np_random.integers(1, 2**63 - 1))
+        if self._pack_data is not None:
+            self.c = CIWanna.from_pack(
+                self._pack_data, seed=cseed,
+                start_room=self._start_room,
+                difficulty=self._difficulty, **self._cfg)
+        else:
+            self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
+        if self._save_mode is not None:
+            self.c.set_save_mode(self._save_mode == "shoot")
+        return True
+
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         super().reset(seed=seed)
-        if self.c is None:
-            cseed = int(self.np_random.integers(1, 2**63 - 1))
-            if self._pack_data is not None:
-                self.c = CIWanna.from_pack(
-                    self._pack_data, seed=cseed,
-                    start_room=self._start_room,
-                    difficulty=self._difficulty, **self._cfg)
-            else:
-                self.c = CIWanna(self.level_text, seed=cseed, **self._cfg)
-            if self._save_mode is not None:
-                self.c.set_save_mode(self._save_mode == "shoot")
+        self._ensure_c()
         self.c.reset()
         return self.c.obs.copy(), self._info()
 
@@ -251,6 +257,129 @@ class IWannaGoalEnv(IWannaEnv):
         dx = np.abs(a[..., 0] - d[..., 0]) * (W / 2)
         dy = np.abs(a[..., 1] - d[..., 1]) * (H / 2)
         return ((dx <= GOAL_REACH_X) & (dy <= GOAL_REACH_Y)).astype(np.float32)
+
+
+class IWannaDiscoveryEnv(IWannaEnv):
+    """Multi-attempt discovery task environment
+    (docs/discovery_benchmark_contract.md section 1).
+
+    One Gymnasium episode == one TASK. ``reset()`` is the TASK reset:
+    it fixes the latent task identity (room content + task seed) and is
+    where the agent must clear ALL cross-attempt memory. Death (or the
+    per-attempt frame budget) ends an ATTEMPT: the C core restores the
+    source-faithful checkpoint state, restores the task's random stream,
+    and the episode CONTINUES — ``terminated`` stays False, so recurrent
+    state naturally persists across attempts. The episode terminates
+    only on success or an exhausted budget (``K`` attempts or
+    ``max_steps`` total frames).
+
+    All of that runs inside the shared native core (the same
+    ``c_reset``/``c_step`` the PufferLib binding drives); this class is
+    a thin Gymnasium reference interface over it.
+
+    Observation modes:
+      - ``observable_vector`` (default): the 101-dim vector restricted
+        to information derivable from the visible scene + player
+        proprioception (unmanifested/invisible entities excluded; the
+        entity-type sign comes from appearance, never live deadliness).
+      - ``privileged_vector``: the legacy simulator-truth vector —
+        debugging/oracle only, FORBIDDEN for headline discovery runs.
+      - ``pixels``: the source-faithful visible scene, rendered and
+        downsampled (classic/research rooms; dormant traps draw
+        identically to static spikes).
+
+    The ``info`` dict fields (attempt_id, attempt_ended, task_ended,
+    task_success, death_count, budgets, task_seed) are EVALUATOR-facing
+    task-level logging; per the anti-leakage contract they must never be
+    fed to the policy.
+
+    Deterministic replay: ``reset(options={"task_seed": s})`` pins the
+    task's random stream; (task_seed, action sequence) then reproduces
+    the trajectory bit-for-bit, attempts included.
+    """
+
+    OBS_MODES = ("observable_vector", "privileged_vector", "pixels")
+
+    def __init__(self, *, attempts_K: int = 25,
+                 attempt_frames_H: int = 2000,
+                 obs_mode: str = "observable_vector",
+                 pixels_factor: int = 8,
+                 max_steps: int | None = None, **kw):
+        if obs_mode not in self.OBS_MODES:
+            raise ValueError(f"unknown obs_mode {obs_mode!r}; "
+                             f"choose from {self.OBS_MODES}")
+        if max_steps is None:
+            # total task frame budget defaults to the worst case
+            max_steps = max(attempts_K, 1) * max(attempt_frames_H, 1)
+        super().__init__(max_steps=max_steps, **kw)
+        self.attempts_K = int(attempts_K)
+        self.attempt_frames_H = int(attempt_frames_H)
+        self.obs_mode = obs_mode
+        self._pixels_factor = int(pixels_factor)
+        if obs_mode == "pixels":
+            if self._pack_data is not None:
+                raise NotImplementedError(
+                    "pixels obs for game packs needs the room renderer; "
+                    "use observable_vector for pack tasks in this "
+                    "milestone")
+            rows = [r for r in self.level_text.splitlines()
+                    if r.strip() and not r.lstrip().startswith(("@", "!"))]
+            h = len(rows) * TILE // self._pixels_factor
+            w = max(len(r) for r in rows) * TILE // self._pixels_factor
+            self.observation_space = spaces.Box(0, 255, (h, w, 3), np.uint8)
+
+    # C-side mode codes: 0 privileged, 1 observable (pixels renders the
+    # visible scene; its vector buffer runs observable filtering too)
+    def _c_obs_mode(self) -> int:
+        return 0 if self.obs_mode == "privileged_vector" else 1
+
+    def _obs(self):
+        if self.obs_mode == "pixels":
+            if self._base_img is None:
+                self._base_img = render_tiles(self.c.tiles())
+            img = render_frame(self._base_img, self.c.x, self.c.y,
+                               goal=self.c.goal, entities=self.c.entities())
+            return downsample(img, self._pixels_factor)
+        return self.c.obs.copy()
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        gym.Env.reset(self, seed=seed)
+        created = self._ensure_c()
+        if created:
+            self.c.set_discovery(self.attempts_K, self.attempt_frames_H,
+                                 self._c_obs_mode())
+        if options and "task_seed" in options:
+            self.c.set_task_seed(int(options["task_seed"]))
+        self.c.reset()
+        return self._obs(), self._info()
+
+    def step(self, action: int):
+        self.c.step(int(action))
+        terminated = bool(self.c.term[0])
+        return (self._obs(), float(self.c.rew[0]), terminated, False,
+                self._info())
+
+    def _info(self):
+        info = super()._info()
+        c = self.c
+        info.update(
+            attempt_ended=c.attempt_ended,
+            task_ended=c.task_ended,
+            task_success=c.task_success,
+            attempts_K=self.attempts_K,
+            attempt_frames_H=self.attempt_frames_H,
+            attempt_tick=c.attempt_tick,
+            task_seed=c.task_seed,
+        )
+        if c.task_ended:
+            # the auto-reset already started the next task; these carry
+            # the ENDED task's evaluation stats
+            info.update(
+                final_task_attempts=c.last_task_attempts,
+                final_task_deaths=c.last_task_deaths,
+                final_task_seed=c.last_task_seed,
+            )
+        return info
 
 
 class PixelObsWrapper(gym.ObservationWrapper):

@@ -233,6 +233,35 @@ candidates, with exclusions and evidence) is in
 [manifests/discovery_task_candidates.toml](manifests/discovery_task_candidates.toml),
 regenerable via `python scripts/audit_discovery_candidates.py`.
 
+The **runtime semantics are implemented in the native core** (shared by
+the ctypes path and the PufferLib binding; Gymnasium is a thin
+reference interface):
+
+```python
+env = iw.IWannaDiscoveryEnv(game="iwbtgr_1_5_3", mode="room",
+                            room_id="rGuyFortress1",
+                            obs_mode="observable_vector",   # or pixels /
+                            attempts_K=25,                  # privileged_vector
+                            attempt_frames_H=2000)
+obs, info = env.reset(options={"task_seed": 42})   # TASK reset (clear memory!)
+obs, r, terminated, _, info = env.step(a)
+# death/timeout: info["attempt_ended"], terminated stays False, the
+# checkpoint state and the task's random stream are restored — recurrent
+# state may persist. terminated=True only at task end (success/budget);
+# info["final_task_attempts"]/["final_task_deaths"] carry the ended task.
+```
+
+Observation modes: `observable_vector` filters to what the rendered
+scene shows (invisible/unmanifested hazards excluded, appearance-based
+deadliness, fake blocks read as blocks); `privileged_vector` is the
+unchanged legacy simulator-truth vector (debug/oracle only — forbidden
+for headline discovery runs); `pixels` renders the visible scene
+(dormant traps draw identically to static spikes). Paired anti-leakage
+tests + the protocol suite live in `tests/test_discovery_runtime.py`;
+overhead: `python scripts/bench_discovery.py` (observable filtering is
+within ±3% of legacy; discovery mode is faster per step because deaths
+respawn instead of full-resetting).
+
 ## Exact-game roadmap
 
 The benchmark is being prepared to import **complete games by existing
