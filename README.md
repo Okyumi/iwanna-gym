@@ -251,6 +251,19 @@ obs, r, terminated, _, info = env.step(a)
 # info["final_task_attempts"]/["final_task_deaths"] carry the ended task.
 ```
 
+The **executable suite** (`discovery_suite_v1`) lives in
+`iwanna_gym/discovery/`: a versioned registry over the audited manifest
+feeding both the Gymnasium reference path
+(`IWannaDiscoveryEnv(task="disc….")` / `discovery.make_env`) and the
+PufferLib binding (`discovery.binding_kwargs` + `IWG_PACK`/
+`IWG_LEVEL_FILE`), deterministic splits with family holdouts, committed
+completion witnesses + blind-policy diagnostics per task
+(`manifests/discovery/`), and a library-independent evaluator with
+task-level aggregation and a segregated memory-oracle mode
+(`scripts/run_discovery_eval.py`, `scripts/verify_witnesses.py`).
+Current active counts and the native witness gap:
+[docs/discovery_suite_report.md](docs/discovery_suite_report.md).
+
 Observation modes: `observable_vector` filters to what the rendered
 scene shows (invisible/unmanifested hazards excluded, appearance-based
 deadliness, fake blocks read as blocks); `privileged_vector` is the

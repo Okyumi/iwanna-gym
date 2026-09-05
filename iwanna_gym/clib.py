@@ -87,6 +87,13 @@ def _load() -> ctypes.CDLL:
     lib.iw_task_seed.argtypes = [ctypes.c_void_p]
     lib.iw_last_task_seed.restype = ctypes.c_ulonglong
     lib.iw_last_task_seed.argtypes = [ctypes.c_void_p]
+    lib.iw_set_task_start.restype = ctypes.c_int
+    lib.iw_set_task_start.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                      ctypes.c_double, ctypes.c_double]
+    lib.iw_set_task_goal.restype = ctypes.c_int
+    lib.iw_set_task_goal.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                     ctypes.c_double, ctypes.c_double,
+                                     ctypes.c_double, ctypes.c_double]
     for name in ("iw_obs_mode", "iw_attempt_ended", "iw_task_ended",
                  "iw_task_success", "iw_attempt_tick", "iw_attempts_K",
                  "iw_attempt_frames_H", "iw_last_task_attempts",
@@ -281,6 +288,23 @@ class CIWanna:
         """True = source-faithful shot-activated saves (exact-game default);
         False = legacy touch saves (research/debug)."""
         LIB.iw_set_save_mode(self._h, int(shoot))
+
+    # ---- registry task anchoring (call before reset()) ----
+    def set_task_start(self, room: int, x: float, y: float) -> None:
+        """Anchor the task at a registry checkpoint: episode start and
+        initial respawn move there (room = -1 for classic levels);
+        source content is untouched."""
+        if LIB.iw_set_task_start(self._h, int(room), float(x),
+                                 float(y)) != 0:
+            raise ValueError(f"invalid task start room {room}")
+
+    def set_task_goal(self, room: int, x0: float, y0: float,
+                      x1: float, y1: float) -> None:
+        """Task success = the player origin enters [x0,x1]x[y0,y1]
+        (room px) in `room` (-1 = any room)."""
+        if LIB.iw_set_task_goal(self._h, int(room), float(x0), float(y0),
+                                float(x1), float(y1)) != 0:
+            raise ValueError("invalid task goal rect")
 
     # ---- discovery task/attempt protocol ----
     def set_discovery(self, attempts_K: int, attempt_frames_H: int,

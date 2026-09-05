@@ -1,0 +1,130 @@
+{
+ "format": "discovery-diagnostic/1",
+ "task_id": "disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall",
+ "suite": "iwbtg_native",
+ "task_seed": 1,
+ "blind_runs": [
+  {
+   "policy": "camp_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 182,
+   "death_positions": [
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "hop_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 27,
+   "death_positions": [
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "leap_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 32,
+   "death_positions": [
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 32,
+   "death_positions": [
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ],
+    [
+     48.0,
+     311.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  }
+ ],
+ "trivially_passable": false,
+ "blind_play_fails": true,
+ "some_blind_pattern_survives": false,
+ "deaths_repeatable_under_fixed_theta": true,
+ "witness_exists": true,
+ "note": "informative-failure evidence = blind play dies (and dies repeatably under the fixed hidden configuration) while the committed witness completes the task; the hidden information itself is described in the task manifest row"
+}

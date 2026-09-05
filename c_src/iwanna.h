@@ -371,6 +371,19 @@ typedef struct {
     int last_task_attempts;
     int last_task_deaths;
     uint64_t last_task_seed;
+
+    /* ---- registry-driven task anchoring (suite loader) ----
+     * task_start_set: override the episode start (and initial respawn)
+     * to a registry checkpoint inside the configured start room —
+     * source content is untouched, only where the attempt begins.
+     * task goal: success when the player origin enters the rect
+     * [gx0,gx1]x[gy0,gy1] (room px) in task_goal_room (-1 = any room);
+     * active only while task_goal_set. */
+    int task_start_set;
+    double task_start_x, task_start_y;
+    int task_goal_set;
+    int task_goal_room;
+    double task_gx0, task_gy0, task_gx1, task_gy1;
 } IWanna;
 
 /* ---------- utilities ---------- */
@@ -1392,6 +1405,29 @@ static int iw_load_pack_mem(IWanna* env, const uint8_t* data, size_t len,
     return 0;
 }
 
+/* Load a compiled .iwpack from disk (construction-time only; the step
+ * path stays allocation-free). Used by the PufferLib binding, which
+ * cannot receive byte buffers through numeric kwargs (pack path comes
+ * from the IWG_PACK environment variable), and by iw_new_task_file. */
+static int iw_load_pack_file(IWanna* e, const char* path,
+                             char* err, size_t errlen) {
+    FILE* f = fopen(path, "rb");
+    if (!f) { snprintf(err, errlen, "cannot open pack %s", path); return -1; }
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    uint8_t* buf = len > 0 ? (uint8_t*)malloc((size_t)len) : NULL;
+    if (!buf || fread(buf, 1, (size_t)len, f) != (size_t)len) {
+        fclose(f); free(buf);
+        snprintf(err, errlen, "cannot read pack %s", path);
+        return -1;
+    }
+    fclose(f);
+    int rc = iw_load_pack_mem(e, buf, (size_t)len, err, errlen);
+    free(buf);
+    return rc;
+}
+
 /* Restore the source checkpoint state (death retry / "R" quick-retry):
  * in pack mode the room is FULLY reset (source reset_game does
  * room_goto(saveroom), recreating all room objects; bullets and dynamic
@@ -1431,6 +1467,10 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
     env->attempt += 1;
     env->prev_x = env->x;
     env->prev_y = env->y;
+    if (env->task_goal_set) {
+        env->goal_x = (env->task_gx0 + env->task_gx1) * 0.5;
+        env->goal_y = (env->task_gy0 + env->task_gy1) * 0.5;
+    }
     double rdx = env->goal_x - env->x, rdy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(rdx * rdx + rdy * rdy);
     if (env->xs) iwx_after_spawn(env);
@@ -1654,12 +1694,25 @@ static void c_reset(IWanna* env) {
     env->deaths = 0;
     env->respawn_x = env->start_x;
     env->respawn_y = env->start_y;
+    if (env->task_start_set) {
+        /* registry task anchoring: begin (and initially respawn) at the
+         * task's checkpoint instead of the room's authored start */
+        env->x = env->task_start_x;
+        env->y = env->task_start_y;
+        env->respawn_x = env->task_start_x;
+        env->respawn_y = env->task_start_y;
+    }
     env->prev_x = env->x;
     env->prev_y = env->y;
     reset_entities(env);
     reset_events(env);
     if (env->xs) iwx_after_spawn(env);
     sample_goal(env);
+    if (env->task_goal_set) {
+        /* the goal-delta obs channels point at the task goal */
+        env->goal_x = (env->task_gx0 + env->task_gx1) * 0.5;
+        env->goal_y = (env->task_gy0 + env->task_gy1) * 0.5;
+    }
     double dx = env->goal_x - env->x, dy = env->goal_y - env->y;
     env->prev_goal_dist = sqrt(dx * dx + dy * dy);
     /* attempt-start rng snapshot: restored at every attempt reset so
@@ -1860,7 +1913,12 @@ static void c_step(IWanna* env) {
     }
     env->prev_goal_dist = dist;
 
-    if ((!env->pack || env->room_has_goal) && goal_reached(env)) {
+    int task_goal_hit = env->task_goal_set &&
+        (env->task_goal_room < 0 || env->room_id == env->task_goal_room) &&
+        env->x >= env->task_gx0 && env->x <= env->task_gx1 &&
+        env->y >= env->task_gy0 && env->y <= env->task_gy1;
+    if (task_goal_hit ||
+        ((!env->pack || env->room_has_goal) && goal_reached(env))) {
         env->rewards[0] += 1.0f;
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;

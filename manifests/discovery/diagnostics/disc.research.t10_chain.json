@@ -1,0 +1,130 @@
+{
+ "format": "discovery-diagnostic/1",
+ "task_id": "disc.research.t10_chain",
+ "suite": "controlled",
+ "task_seed": 1,
+ "blind_runs": [
+  {
+   "policy": "camp_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 248,
+   "death_positions": [
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "hop_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 94,
+   "death_positions": [
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "leap_sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 88,
+   "death_positions": [
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "sprint",
+   "success": false,
+   "n_deaths": 5,
+   "first_death_frame": 98,
+   "death_positions": [
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ],
+    [
+     48.0,
+     567.0
+    ]
+   ],
+   "death_spread_px": 0.0
+  }
+ ],
+ "trivially_passable": false,
+ "blind_play_fails": true,
+ "some_blind_pattern_survives": false,
+ "deaths_repeatable_under_fixed_theta": true,
+ "witness_exists": true,
+ "note": "informative-failure evidence = blind play dies (and dies repeatably under the fixed hidden configuration) while the committed witness completes the task; the hidden information itself is described in the task manifest row"
+}

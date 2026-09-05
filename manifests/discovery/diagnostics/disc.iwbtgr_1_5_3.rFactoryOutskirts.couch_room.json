@@ -1,0 +1,46 @@
+{
+ "format": "discovery-diagnostic/1",
+ "task_id": "disc.iwbtgr_1_5_3.rFactoryOutskirts.couch_room",
+ "suite": "iwbtg_native",
+ "task_seed": 1,
+ "blind_runs": [
+  {
+   "policy": "camp_sprint",
+   "success": false,
+   "n_deaths": 0,
+   "first_death_frame": null,
+   "death_positions": [],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "hop_sprint",
+   "success": false,
+   "n_deaths": 0,
+   "first_death_frame": null,
+   "death_positions": [],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "leap_sprint",
+   "success": false,
+   "n_deaths": 0,
+   "first_death_frame": null,
+   "death_positions": [],
+   "death_spread_px": 0.0
+  },
+  {
+   "policy": "sprint",
+   "success": false,
+   "n_deaths": 0,
+   "first_death_frame": null,
+   "death_positions": [],
+   "death_spread_px": 0.0
+  }
+ ],
+ "trivially_passable": false,
+ "blind_play_fails": false,
+ "some_blind_pattern_survives": false,
+ "deaths_repeatable_under_fixed_theta": false,
+ "witness_exists": false,
+ "note": "informative-failure evidence = blind play dies (and dies repeatably under the fixed hidden configuration) while the committed witness completes the task; the hidden information itself is described in the task manifest row"
+}

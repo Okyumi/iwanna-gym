@@ -304,7 +304,18 @@ class IWannaDiscoveryEnv(IWannaEnv):
                  attempt_frames_H: int = 2000,
                  obs_mode: str = "observable_vector",
                  pixels_factor: int = 8,
-                 max_steps: int | None = None, **kw):
+                 max_steps: int | None = None,
+                 task: str | None = None,
+                 _task_spec=None, **kw):
+        # registry-driven construction: IWannaDiscoveryEnv(task="disc….")
+        if task is not None:
+            from .discovery import load_registry, task_env_kwargs
+            _task_spec = load_registry()[task]
+            tk = task_env_kwargs(_task_spec)
+            attempts_K = tk.pop("attempts_K")
+            attempt_frames_H = tk.pop("attempt_frames_H")
+            kw = {**tk, **kw}
+        self._task_spec = _task_spec
         if obs_mode not in self.OBS_MODES:
             raise ValueError(f"unknown obs_mode {obs_mode!r}; "
                              f"choose from {self.OBS_MODES}")
@@ -348,6 +359,9 @@ class IWannaDiscoveryEnv(IWannaEnv):
         if created:
             self.c.set_discovery(self.attempts_K, self.attempt_frames_H,
                                  self._c_obs_mode())
+            if self._task_spec is not None:
+                from .discovery import apply_task_anchors
+                apply_task_anchors(self.c, self._task_spec)
         if options and "task_seed" in options:
             self.c.set_task_seed(int(options["task_seed"]))
         self.c.reset()

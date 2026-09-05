@@ -192,6 +192,32 @@ int iw_task_success(void* h)      { return ((Handle*)h)->env.task_success; }
 int iw_attempt_tick(void* h)      { return ((Handle*)h)->env.attempt_tick; }
 int iw_attempts_K(void* h)        { return ((Handle*)h)->env.attempts_K; }
 int iw_attempt_frames_H(void* h)  { return ((Handle*)h)->env.attempt_frames_H; }
+/* ---- registry task anchoring (suite loader; call before iw_reset) ----
+ * These override only WHERE an attempt begins and WHAT counts as
+ * success; source room content, triggers, physics, save behavior and
+ * hazard timing are untouched. */
+int iw_set_task_start(void* h, int room, double x, double y) {
+    IWanna* e = &((Handle*)h)->env;
+    if (e->pack) {
+        if (room < 0 || room >= (int)e->pack->hdr.n_rooms) return -1;
+        e->start_room = room;
+    }
+    e->task_start_set = 1;
+    e->task_start_x = x;
+    e->task_start_y = y;
+    return 0;
+}
+int iw_set_task_goal(void* h, int room, double x0, double y0,
+                     double x1, double y1) {
+    IWanna* e = &((Handle*)h)->env;
+    if (x1 < x0 || y1 < y0) return -1;
+    e->task_goal_set = 1;
+    e->task_goal_room = room;
+    e->task_gx0 = x0; e->task_gy0 = y0;
+    e->task_gx1 = x1; e->task_gy1 = y1;
+    return 0;
+}
+
 /* stats of the most recently ended task (valid on the task_ended step) */
 int iw_last_task_attempts(void* h) {
     return ((Handle*)h)->env.last_task_attempts;

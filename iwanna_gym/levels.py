@@ -42,6 +42,15 @@ def load_level(name: str) -> str:
     )
 
 
+def level_path(name: str) -> str:
+    """Absolute path of an on-disk level file (no builtins). Used by the
+    discovery registry's PufferLib path (IWG_LEVEL_FILE)."""
+    for cand in (os.path.join(_LEVEL_DIR, name + ".txt"), name):
+        if os.path.isfile(cand):
+            return os.path.abspath(cand)
+    raise FileNotFoundError(f"level file for {name!r} not found")
+
+
 assert NUM_BUILTIN_LEVELS == len(BUILTIN_NAMES)
 
 

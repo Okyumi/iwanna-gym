@@ -36,7 +36,68 @@ static int my_init(Env* env, PyObject* args, PyObject* kwargs) {
     if (env->obs_mode != IW_OBS_PRIVILEGED &&
         env->obs_mode != IW_OBS_OBSERVABLE) return 1;
     if (env->rng == 0) env->rng = 0x9E3779B97F4A7C15ULL ^ (uint64_t)(uintptr_t)env;
-    if (iw_load_builtin(env, level) != 0) return 1;
+
+    /* ---- registry-driven task loading (discovery suite loader) ----
+     * The task registry (iwanna_gym/discovery) resolves a task id to
+     * NUMERIC kwargs (this function) plus the pack file, which cannot
+     * travel through numeric kwargs and therefore comes from the
+     * IWG_PACK environment variable when use_pack=1. The same path
+     * loads ANY compiled .iwpack — a future iwbtg_original_2007 pack
+     * needs a new pack file, not a binding rewrite. Content overrides
+     * touch only where the attempt starts and what counts as success;
+     * source geometry/triggers/physics/timing are untouched. */
+    int use_pack = (int)unpack(kwargs, "use_pack");
+    int use_level_file = (int)unpack(kwargs, "use_level_file");
+    if (use_pack) {
+        const char* p = getenv("IWG_PACK");
+        char err[256];
+        if (!p || iw_load_pack_file(env, p, err, sizeof err) != 0)
+            return 1;
+        env->checkpoint_respawn = 1;
+        int diff = (int)unpack(kwargs, "difficulty");
+        if (diff >= 0 && diff <= 3) env->difficulty = diff;
+    } else if (use_level_file) {
+        /* controlled research rooms are text files; the path comes
+         * from IWG_LEVEL_FILE (kwargs are numeric-only) */
+        const char* p = getenv("IWG_LEVEL_FILE");
+        if (!p) return 1;
+        FILE* f = fopen(p, "rb");
+        if (!f) return 1;
+        fseek(f, 0, SEEK_END);
+        long n = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        char* txt = n > 0 ? (char*)malloc((size_t)n + 1) : NULL;
+        if (!txt || fread(txt, 1, (size_t)n, f) != (size_t)n) {
+            fclose(f); free(txt); return 1;
+        }
+        fclose(f);
+        txt[n] = 0;
+        int rc = iw_load_level(env, txt);
+        free(txt);
+        if (rc != 0) return 1;
+    } else {
+        if (iw_load_builtin(env, level) != 0) return 1;
+    }
+    int ts_room = (int)unpack(kwargs, "task_start_room");
+    if (ts_room >= -1 && (int)unpack(kwargs, "task_start_set")) {
+        if (env->pack && ts_room >= 0) {
+            if (ts_room >= (int)env->pack->hdr.n_rooms) return 1;
+            env->start_room = ts_room;
+        }
+        env->task_start_set = 1;
+        env->task_start_x = unpack(kwargs, "task_start_x");
+        env->task_start_y = unpack(kwargs, "task_start_y");
+    }
+    if ((int)unpack(kwargs, "task_goal_set")) {
+        env->task_goal_set = 1;
+        env->task_goal_room = (int)unpack(kwargs, "task_goal_room");
+        env->task_gx0 = unpack(kwargs, "task_gx0");
+        env->task_gy0 = unpack(kwargs, "task_gy0");
+        env->task_gx1 = unpack(kwargs, "task_gx1");
+        env->task_gy1 = unpack(kwargs, "task_gy1");
+        if (env->task_gx1 < env->task_gx0 ||
+            env->task_gy1 < env->task_gy0) return 1;
+    }
     return 0;
 }
 
