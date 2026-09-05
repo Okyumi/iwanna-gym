@@ -1,0 +1,19 @@
+{
+ "policy": "gru",
+ "tasks": ["disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall"],
+ "obs_mode": "observable_vector",
+ "headline": true,
+ "n_envs": 16,
+ "rollout_T": 128,
+ "hid": 128,
+ "lr": 0.0003,
+ "gamma": 0.999,
+ "lam": 0.95,
+ "clip": 0.2,
+ "ent_coef": 0.01,
+ "vf_coef": 0.5,
+ "epochs": 2,
+ "seed": 1,
+ "env_step_budget": 500000,
+ "ckpt_every": 10
+}

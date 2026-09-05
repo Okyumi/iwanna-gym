@@ -1,0 +1,19 @@
+{
+ "policy": "deathmem",
+ "tasks": ["disc.research.t01_apple","disc.research.t02_volley","disc.research.t03_riser","disc.research.t04_fall","disc.research.t06_crusher","disc.research.t09_fakesave","disc.research.t10_chain","disc.research.t11_teleport","disc.research.t12_gauntlet","disc.research.t13_floorgate","disc.research.t14_race","disc.research.t17_wall","disc.research.t18_ladder","disc.research.t20_finale"],
+ "obs_mode": "observable_vector",
+ "headline": true,
+ "n_envs": 28,
+ "rollout_T": 128,
+ "hid": 128,
+ "lr": 0.0003,
+ "gamma": 0.999,
+ "lam": 0.95,
+ "clip": 0.2,
+ "ent_coef": 0.01,
+ "vf_coef": 0.5,
+ "epochs": 2,
+ "seed": 1,
+ "env_step_budget": 2000000,
+ "ckpt_every": 20
+}

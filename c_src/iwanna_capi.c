@@ -289,6 +289,54 @@ void iw_delete(void* handle) {
 void iw_reset(void* handle) { c_reset(&((Handle*)handle)->env); }
 void iw_step(void* handle)  { c_step(&((Handle*)handle)->env); }
 
+/* ---- native vectorized stepping (heterogeneous tasks) ----
+ * One call per frame for the whole batch: no Python callback, no
+ * allocation. Each env is independent (its own pack/room/task/seed);
+ * observations/actions/rewards/terminals live in caller-owned
+ * contiguous batch buffers set at construction. Per-env discovery
+ * boundary flags are written into the caller's uint8 arrays so
+ * recurrent trainers can carry state across attempt deaths and cut it
+ * at task boundaries without any per-env getter calls. */
+void iw_vec_step(void** handles, int n,
+                 unsigned char* attempt_ended,
+                 unsigned char* task_ended,
+                 unsigned char* task_success) {
+    for (int i = 0; i < n; i++) {
+        IWanna* e = &((Handle*)handles[i])->env;
+        c_step(e);
+        if (attempt_ended) attempt_ended[i] = (unsigned char)e->attempt_ended;
+        if (task_ended)    task_ended[i]    = (unsigned char)e->task_ended;
+        if (task_success)  task_success[i]  = (unsigned char)e->task_success;
+    }
+}
+
+void iw_vec_reset(void** handles, int n) {
+    for (int i = 0; i < n; i++)
+        c_reset(&((Handle*)handles[i])->env);
+}
+
+/* vectorized pure-C benchmark: `steps` frames of the whole batch with
+ * xorshift-random actions; returns elapsed seconds */
+double iw_vec_bench(void** handles, int n, long steps,
+                    unsigned long long seed, int n_actions) {
+    if (n_actions <= 0 || n_actions > IW_NUM_ACTIONS)
+        n_actions = IW_NUM_ACTIONS;
+    uint64_t r = seed ? seed : 7;
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (long s = 0; s < steps; s++) {
+        for (int i = 0; i < n; i++) {
+            r ^= r >> 12; r ^= r << 25; r ^= r >> 27;
+            IWanna* e = &((Handle*)handles[i])->env;
+            e->actions[0] =
+                (int)((r * 0x2545F4914F6CDD1DULL) % (uint64_t)n_actions);
+            c_step(e);
+        }
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0.tv_sec) + 1e-9 * (t1.tv_nsec - t0.tv_nsec);
+}
+
 /* ---- state getters for rendering / debugging / goal relabeling ---- */
 double iw_x(void* h)        { return ((Handle*)h)->env.x; }
 double iw_y(void* h)        { return ((Handle*)h)->env.y; }

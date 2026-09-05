@@ -264,6 +264,16 @@ task-level aggregation and a segregated memory-oracle mode
 Current active counts and the native witness gap:
 [docs/discovery_suite_report.md](docs/discovery_suite_report.md).
 
+**Training path**: `iwanna_gym/discovery/vector.py` steps heterogeneous
+task batches with one C call per frame (3.6M steps/s controlled, 41–131k
+steps/s on real IWBTGR rooms, 3.3× the reference Gymnasium loop on the
+same exact-game task); `train_discovery.py` + `configs/discovery/` run
+the numpy-PPO baselines (feed-forward, recurrent-across-attempts, the
+reset-on-death ablation, explicit death-memory) with checkpoints,
+evaluator-format outputs, annotated rollout GIFs for every task type and
+a static dashboard — numbers in
+[docs/discovery_training_report.md](docs/discovery_training_report.md).
+
 Observation modes: `observable_vector` filters to what the rendered
 scene shows (invisible/unmanifested hazards excluded, appearance-based
 deadliness, fake blocks read as blocks); `privileged_vector` is the

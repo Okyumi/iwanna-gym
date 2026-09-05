@@ -140,6 +140,14 @@ def _load() -> ctypes.CDLL:
         ctypes.c_void_p, ctypes.c_double, ctypes.c_double,
         ctypes.c_double, ctypes.c_double, ctypes.c_int,
     ]
+    lib.iw_vec_step.argtypes = [ctypes.POINTER(ctypes.c_void_p),
+                                ctypes.c_int, u8p, u8p, u8p]
+    lib.iw_vec_reset.argtypes = [ctypes.POINTER(ctypes.c_void_p),
+                                 ctypes.c_int]
+    lib.iw_vec_bench.restype = ctypes.c_double
+    lib.iw_vec_bench.argtypes = [ctypes.POINTER(ctypes.c_void_p),
+                                 ctypes.c_int, ctypes.c_long,
+                                 ctypes.c_ulonglong, ctypes.c_int]
     lib.iw_obs_size.restype = ctypes.c_int
     lib.iw_num_actions.restype = ctypes.c_int
     lib.iw_num_levels.restype = ctypes.c_int
@@ -172,11 +180,19 @@ class CIWanna:
         seed: int = 0,
         checkpoint_respawn: bool = False,
         pack_data: bytes | None = None,
+        buffers: tuple | None = None,
     ):
-        self.obs = np.zeros(OBS_SIZE, dtype=np.float32)
-        self.act = np.zeros(1, dtype=np.int32)
-        self.rew = np.zeros(1, dtype=np.float32)
-        self.term = np.zeros(1, dtype=np.uint8)
+        # `buffers` (obs_row, act_row, rew_row, term_row): caller-owned
+        # contiguous views into batch arrays — the native vector path
+        # (CVecIWanna) shares one (N, OBS) block across envs so a frame
+        # costs one C call and zero Python-side copies.
+        if buffers is not None:
+            self.obs, self.act, self.rew, self.term = buffers
+        else:
+            self.obs = np.zeros(OBS_SIZE, dtype=np.float32)
+            self.act = np.zeros(1, dtype=np.int32)
+            self.rew = np.zeros(1, dtype=np.float32)
+            self.term = np.zeros(1, dtype=np.uint8)
         if pack_data is not None:
             self._h = LIB.iw_new_pack(
                 pack_data, len(pack_data),
