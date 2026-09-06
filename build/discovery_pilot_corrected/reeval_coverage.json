@@ -1,0 +1,318 @@
+{
+ "note": "Old-vs-corrected re-evaluation of every on-disk pilot checkpoint through the repaired evaluator (deterministic replay, NO retraining). Success-family fields do not read death positions; position-derived fields (RDR, post_discovery_improvement) do.",
+ "checkpoints_covered": 4,
+ "pilots_covered": [
+  "P1"
+ ],
+ "pilots_not_in_this_pass": [
+  "P2",
+  "P3"
+ ],
+ "policies_eligible_for_unchanged_claim": [
+  "ff",
+  "gru",
+  "gru_reset"
+ ],
+ "deathmem_excluded_reason": "trained with the timeout-as-death bug; re-eval cannot restore the intended agent \u2014 H3 requires a retrain",
+ "success_family_bit_identical_across_all_eligible_runs": true,
+ "success_family_fields": [
+  "success",
+  "attempts_to_success",
+  "frames_to_success",
+  "n_attempts",
+  "n_deaths",
+  "censored"
+ ],
+ "position_derived_fields_changed": [
+  "repeated_death_rate",
+  "post_discovery_improvement"
+ ],
+ "eval_task_seeds": [
+  11,
+  12,
+  13
+ ],
+ "runs": [
+  {
+   "pilot": "P1",
+   "policy": "deathmem",
+   "seed": 1,
+   "task_runs_matched": 42,
+   "old_format": "discovery-eval/1",
+   "fields": {
+    "success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "attempts_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "frames_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_attempts": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_deaths": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "censored": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "repeated_death_rate": {
+     "same": 38,
+     "diff": 4,
+     "examples": [
+      {
+       "task": "disc.research.t09_fakesave",
+       "seed": 13,
+       "old": 1.0,
+       "new": 0.0
+      },
+      {
+       "task": "disc.research.t20_finale",
+       "seed": 11,
+       "old": 1.0,
+       "new": 0.8333333333333334
+      }
+     ]
+    },
+    "post_discovery_improvement": {
+     "same": 15,
+     "diff": 27,
+     "examples": [
+      {
+       "task": "disc.research.t02_volley",
+       "seed": 11,
+       "old": -0.30702035864979427,
+       "new": -0.3037300984528717
+      },
+      {
+       "task": "disc.research.t02_volley",
+       "seed": 12,
+       "old": -0.2455365682137891,
+       "new": -0.26304142053447177
+      }
+     ]
+    }
+   }
+  },
+  {
+   "pilot": "P1",
+   "policy": "ff",
+   "seed": 1,
+   "task_runs_matched": 42,
+   "old_format": "discovery-eval/1",
+   "fields": {
+    "success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "attempts_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "frames_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_attempts": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_deaths": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "censored": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "repeated_death_rate": {
+     "same": 35,
+     "diff": 7,
+     "examples": [
+      {
+       "task": "disc.research.t04_fall",
+       "seed": 11,
+       "old": 1.0,
+       "new": 0.9523809523809523
+      },
+      {
+       "task": "disc.research.t04_fall",
+       "seed": 13,
+       "old": 1.0,
+       "new": 0.9545454545454546
+      }
+     ]
+    },
+    "post_discovery_improvement": {
+     "same": 30,
+     "diff": 12,
+     "examples": [
+      {
+       "task": "disc.research.t04_fall",
+       "seed": 11,
+       "old": 0.13890274261603508,
+       "new": 0.1368071026722938
+      },
+      {
+       "task": "disc.research.t04_fall",
+       "seed": 12,
+       "old": 0.024560478199715186,
+       "new": 0.031360759493667234
+      }
+     ]
+    }
+   }
+  },
+  {
+   "pilot": "P1",
+   "policy": "gru_reset",
+   "seed": 1,
+   "task_runs_matched": 42,
+   "old_format": "discovery-eval/1",
+   "fields": {
+    "success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "attempts_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "frames_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_attempts": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_deaths": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "censored": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "repeated_death_rate": {
+     "same": 39,
+     "diff": 3,
+     "examples": [
+      {
+       "task": "disc.research.t20_finale",
+       "seed": 11,
+       "old": 1.0,
+       "new": 0.9583333333333334
+      },
+      {
+       "task": "disc.research.t20_finale",
+       "seed": 12,
+       "old": 1.0,
+       "new": 0.9583333333333334
+      }
+     ]
+    },
+    "post_discovery_improvement": {
+     "same": 38,
+     "diff": 4,
+     "examples": [
+      {
+       "task": "disc.research.t02_volley",
+       "seed": 13,
+       "old": 0.5230879043600543,
+       "new": 0.5240738396624454
+      },
+      {
+       "task": "disc.research.t12_gauntlet",
+       "seed": 12,
+       "old": 0.1480822081575205,
+       "new": 0.15379462025316037
+      }
+     ]
+    }
+   }
+  },
+  {
+   "pilot": "P1",
+   "policy": "gru",
+   "seed": 1,
+   "task_runs_matched": 42,
+   "old_format": "discovery-eval/1",
+   "fields": {
+    "success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "attempts_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "frames_to_success": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_attempts": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "n_deaths": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "censored": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    },
+    "repeated_death_rate": {
+     "same": 41,
+     "diff": 1,
+     "examples": [
+      {
+       "task": "disc.research.t20_finale",
+       "seed": 11,
+       "old": 1.0,
+       "new": 0.9583333333333334
+      }
+     ]
+    },
+    "post_discovery_improvement": {
+     "same": 42,
+     "diff": 0,
+     "examples": []
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,362 @@
+{
+ "note": "Informative-failure positive control: a scripted agent using ONLY observed death positions (terminal-event snapshot) vs the byte-identical agent with that memory erased each attempt. No RL, no training. 'separates' = memory solves within K, erased does not. Establishes exploitable failure information independent of converged training.",
+ "inputs_used_by_agent": [
+  "own x/room per step",
+  "observed prior-attempt death term_x/term_y/term_room"
+ ],
+ "forbidden_inputs_not_used": [
+  "hazard identities",
+  "hidden task parameters",
+  "trigger rectangles",
+  "dormant flags"
+ ],
+ "tasks_with_reproducible_separation_all_3_seeds": [
+  "t01_apple",
+  "t03_riser",
+  "t06_crusher",
+  "t09_fakesave",
+  "t10_chain",
+  "t12_gauntlet",
+  "t13_floorgate",
+  "t17_wall",
+  "t20_finale"
+ ],
+ "results": [
+  {
+   "task": "disc.research.t01_apple",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 4,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 4,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 4,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t02_volley",
+   "seeds_separating": 0,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    }
+   }
+  },
+  {
+   "task": "disc.research.t03_riser",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t04_fall",
+   "seeds_separating": 0,
+   "per_seed": {
+    "11": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t06_crusher",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t09_fakesave",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 3,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 3,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 3,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t10_chain",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 6,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t11_teleport",
+   "seeds_separating": 0,
+   "per_seed": {
+    "11": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t12_gauntlet",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 11,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 11,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 11,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t13_floorgate",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 2,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t14_race",
+   "seeds_separating": 0,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 1,
+     "erased_succ": true,
+     "erased_attempts": 1
+    }
+   }
+  },
+  {
+   "task": "disc.research.t17_wall",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 7,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 7,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 7,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t18_ladder",
+   "seeds_separating": 0,
+   "per_seed": {
+    "11": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": false,
+     "mem_attempts": 25,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  },
+  {
+   "task": "disc.research.t20_finale",
+   "seeds_separating": 3,
+   "per_seed": {
+    "11": {
+     "mem_succ": true,
+     "mem_attempts": 9,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "12": {
+     "mem_succ": true,
+     "mem_attempts": 9,
+     "erased_succ": false,
+     "erased_attempts": 25
+    },
+    "13": {
+     "mem_succ": true,
+     "mem_attempts": 9,
+     "erased_succ": false,
+     "erased_attempts": 25
+    }
+   }
+  }
+ ]
+}

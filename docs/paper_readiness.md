@@ -35,12 +35,21 @@ by current evidence.
   can move — which the pilot has not yet shown.
 - Deaths recur under fixed hidden state (corrected repeated-death rate
   ~0.93–0.99; the pre-repair RDR ≈ 1.0 is superseded — see the
-  measurement-repair note). **This does not by itself establish that
-  the tasks contain informative failure**: RDR is a spatial proxy for
-  "died at the same hazard again", not evidence that a death trajectory
-  carried usable information. The informative-failure claim needs the
-  causal memory-vs-ablation gap (H1) or the informed-vs-blind scripted
-  probe (B2), neither of which the pilot has yet demonstrated.
+  measurement-repair note). RDR is a spatial proxy for "died at the
+  same hazard again", not by itself proof of informative failure.
+- **The tasks contain EXPLOITABLE failure information (scripted
+  positive control, no RL).** A deterministic agent conditioning only
+  on OBSERVED death positions (the corrected terminal-event snapshot)
+  solves **9 of 14** active controlled tasks within K attempts, while
+  the byte-identical agent with that memory erased each attempt fails
+  all 25 attempts — reproducibly across 3 seeds
+  (`iwanna_gym/discovery/probes.py`,
+  `build/discovery_positive_control/results.json`,
+  `tests/test_positive_control.py`). This is the informed-vs-blind
+  control (B2-style) done without converged training: it establishes
+  that the failure history carries usable information an agent CAN
+  exploit — independent of whether any particular *learned* agent
+  does. It uses no hazard identities or hidden parameters.
 
 ## Unsupported claims (do NOT write these today)
 

@@ -6,23 +6,34 @@
 > `death_xy` in the original pilot records is the CHECKPOINT, not the
 > death location. This affected **only position-derived metrics**:
 > **repeated-death rate (RDR)** and the "deaths are repeatable" and H3
-> readings below are **SUPERSEDED**. The success-family metrics
-> (Success@K, S(k), normalized AUC, adaptation gain AUC−S(1),
-> attempts- and frames-to-first-success) never depended on death
-> positions — a verification re-evaluation of the existing checkpoints
-> through the repaired evaluator reproduced them **identically** (ff
-> S@K 0.643→0.643, AUC 0.640→0.640; gru 0.286→0.286; gru_reset
-> 0.281→0.281 AUC; `build/discovery_pilot_corrected/verification.json`)
-> — so **H1, H2, H4 verdicts stand**. The corrected RDR for the
-> memoryless/recurrent runs shifts modestly (ff 0.991→0.934, gru
-> 1.0→0.990, gru_reset 1.0→0.969) via real terminal positions gated by
-> room id. **H3 requires a full rerun**: the `deathmem` agent was
-> *trained* with a second bug (timeouts counted as deaths in its
-> episodic memory), so its behavior — not just its metrics — is
-> affected, and re-evaluation cannot fix it. Both bugs are fixed at the
-> repair commit; a rerun is deferred (this milestone stops before
-> another training pilot). The original pilot data and this report's
-> pre-repair numbers are preserved below as the historical record.
+> readings below are **SUPERSEDED**. **Verified scope of the "unchanged" claim** (do not read it more
+> broadly): a per-field old-vs-corrected re-evaluation covered the
+> **P1 suite, seed-1 training checkpoints, all four policies, 42
+> task-runs each (14 eval tasks x 3 eval seeds) = 168 task-runs**
+> (`scripts/verify_reeval.py` ->
+> `build/discovery_pilot_corrected/reeval_coverage.json`). Across every
+> eligible (non-deathmem) run in that scope the success-family fields:
+> `success`, `attempts_to_success`, `frames_to_success`, `n_attempts`,
+> `n_deaths`, `censored` are **bit-identical** old vs corrected, while
+> `repeated_death_rate` changed. The aggregate check
+> (`verification.json`) additionally confirms Success@K and AUC
+> identical for ff/gru/gru_reset seed-1 (ff 0.643/0.640, gru 0.286/
+> 0.286, gru_reset AUC 0.281). Because those success-family metrics are
+> what H1/H2/H4 rest on and are verified unchanged in this scope, **the
+> H1, H2, H4 verdicts stand** for the reported P1 results. NOT verified
+> per-field in this pass: seeds 2-3 and pilots P2/P3; the argument
+> that they cannot read death positions still holds, but treat their
+> success-family numbers as argued-unchanged, not verified-unchanged.
+> Corrected RDR (position-fixed, room-gated): ff 0.991->0.934,
+> gru 1.0->0.990, gru_reset 1.0->0.969. **H3 remains REQUIRING A
+> RETRAIN**: the `deathmem` agent was *trained* with a second bug
+> (timeouts counted as deaths in its episodic memory), so its behavior,
+> not merely its metrics, is affected; re-evaluation cannot restore
+> the intended agent, and `deathmem` is excluded from every "unchanged"
+> claim above. Both bugs are fixed at the repair commit; a rerun is
+> deferred (this milestone stops before another training pilot). The
+> original pilot data and this report's pre-repair numbers are
+> preserved below as the historical record.
 
 Pre-registration: [discovery_pilot_prereg.md](discovery_pilot_prereg.md)
 (committed one commit before any result in `build/discovery_pilot/`).
