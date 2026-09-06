@@ -1,0 +1,12 @@
+{
+ "note": "simulation-only steps/s (pure C, no learner); controlled vs native reported SEPARATELY; do not extrapolate synthetic to classic.",
+ "hardware": "2 CPU cores (authoring sandbox)",
+ "vector_width": 16,
+ "obs_mode": "observable_vector",
+ "controlled_t06_crusher_sps": 3567428,
+ "native_rGuyFortress1_sps": 121619,
+ "offline_viz": {
+  "controlled_gif": "build/pufferlib_smoke/controlled_rollout.gif",
+  "native_gif": "build/pufferlib_smoke/native_rollout.gif"
+ }
+}

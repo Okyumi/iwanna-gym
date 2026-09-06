@@ -10,3 +10,6 @@ build/source_registry/
 build/iwbtg_mfa/
 build/discovery_runs/**/checkpoint.npz
 build/discovery_pilot/**/checkpoint.npz
+
+# offline viz of source-derived native rooms (renders copyrighted game geometry)
+build/pufferlib_smoke/native_rollout.gif

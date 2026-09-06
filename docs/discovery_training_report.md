@@ -59,10 +59,17 @@ the observation, cleared at task reset).
 End-to-end training speed (2 cores, 28 envs, controlled suite): env
 collection ~120k SPS; learner ~24k SPS (GRU/BPTT) — end-to-end ~15–20k
 SPS recurrent, ~105k SPS feed-forward; 2M env steps take 19 s (ff) /
-~2.3 min (gru) wall-clock. Checkpoint/resume is exact for parameters,
-optimizer moments and counters (`--resume`), and post-training
-evaluation writes milestone-15 evaluator records (`eval.jsonl` →
-`aggregate()`).
+~2.3 min (gru) wall-clock. **Resume semantics (documented, tested):**
+`--resume` restores the policy parameters, the Adam optimizer moments,
+and the iteration/env-step counters, then continues with FRESH rollouts
+— it is NOT trajectory-exact (the vectorized env RNG state and in-flight
+rollout are not serialized). This is the promised behavior and is
+asserted by `tests/test_discovery_training.py::
+test_checkpoint_resume_roundtrip` (params, Adam m/v, and counters match
+after a save/resume round-trip). Post-training evaluation writes
+milestone-15 evaluator records (`eval.jsonl` → `aggregate()`). The real
+PufferLib path uses its own CleanRL checkpointing (torch) with the same
+param/optimizer-restoration semantics.
 
 **Smoke-budget results** (2M env steps — far below convergence; these
 validate the machinery and MAKE NO scientific claim): active controlled

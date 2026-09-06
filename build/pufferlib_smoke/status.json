@@ -1,0 +1,27 @@
+{
+ "pinned_pufferlib": "42f70d6932c30ac977736f861006809c50168ba9",
+ "pinned_version": "4.0.0",
+ "binding": "c_src/puffer/binding.c (+ iwanna_puffer.h adapter)",
+ "config": "config/iwanna_puffer.ini",
+ "have_torch": false,
+ "have_pufferlib": false,
+ "verified": false,
+ "blocker": "torch and/or pufferlib not importable, and pypi is blocked in this environment (pip install fails, no wheels). A real `puffer train` run is therefore not executable here.",
+ "external_run_command": [
+  "# 1. stage the env into a pinned PufferLib checkout:",
+  "bash scripts/setup_pufferlib.sh $HOME/PufferLib",
+  "# 2. controlled-room smoke (real puffer train + eval):",
+  "export IWG_LEVEL_FILE=$PWD/iwanna_gym/levels/traps/t06_crusher.txt",
+  "cd $HOME/PufferLib && puffer build iwanna && \\",
+  "  puffer train iwanna --train.total-timesteps 2000000 \\",
+  "                      --track.eval-frequency 200",
+  "# 3. native task smoke (needs a locally-built iwbtgr pack;",
+  "#    emit its kwargs+IWG_PACK via",
+  "#    iwanna_gym.discovery.binding_kwargs(task_id), then train)."
+ ],
+ "what_is_verified_here": [
+  "the 4.0.0 binding compiles against the pinned PufferLib headers (tests/test_pufferlib_binding.py)",
+  "every [env] kwarg the binding reads is present in the config",
+  "simulation-only throughput (scripts/bench_discovery_vec.py)"
+ ]
+}

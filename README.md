@@ -423,17 +423,33 @@ mapping plan in
 
 ## PufferLib integration
 
-The core follows the [PufferLib Ocean](https://github.com/PufferAI/PufferLib) native-env convention (`c_reset`/`c_step`/`c_render`/`c_close`, external buffers, internal auto-reset, `Log` struct):
+Real training runs through **PufferLib Ocean**, pinned to version
+**4.0.0** (commit `42f70d6932c30ac977736f861006809c50168ba9`). The
+4.0.0 Ocean API (`vecenv.h`, `Dict* kwargs`, `dict_get`/`dict_set`,
+float `actions`/`terminals`, OBS/ACT macros) differs from the older
+`env_binding.h` convention; the current binding lives in
+`c_src/puffer/` and wraps the unmodified IWanna core, translating the
+buffers each frame so the ctypes `CVecIWanna` reference path is
+untouched. (The retired `c_src/binding.c` targeted the old API and no
+longer builds against 4.0.0.)
 
 ```bash
-git clone https://github.com/PufferAI/PufferLib && cd PufferLib
-mkdir pufferlib/ocean/iwanna
-cp <this-repo>/c_src/{iwanna.h,binding.c} pufferlib/ocean/iwanna/
-cp -r <this-repo>/c_src/gamepack pufferlib/ocean/iwanna/gamepack   # iwanna.h includes gamepack/iwpack.h
-cp <this-repo>/c_src/iwanna_demo.c pufferlib/ocean/iwanna/iwanna.c
-cp <this-repo>/config/iwanna.ini config/
-puffer build iwanna && puffer train puffer_iwanna
+# stage the iwanna env into the pinned PufferLib checkout
+bash scripts/setup_pufferlib.sh $HOME/PufferLib
+
+# controlled research room
+export IWG_LEVEL_FILE=$PWD/iwanna_gym/levels/traps/t06_crusher.txt
+cd $HOME/PufferLib
+puffer build iwanna && puffer train iwanna --train.total-timesteps 2000000
 ```
+
+Full run instructions (including native source-derived packs), the
+pinned config (`config/iwanna_puffer.ini`), the self-verifying smoke
+harness (`scripts/puffer_smoke.py`), throughput methodology, and the
+learner-validation notes are in
+[docs/pufferlib_integration.md](docs/pufferlib_integration.md). The
+custom NumPy PPO is retained only as the reference/parity
+implementation, not the training path.
 
 ## Baselines and results
 
