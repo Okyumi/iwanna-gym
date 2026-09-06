@@ -36,7 +36,10 @@ from typing import Any, Callable
 from . import registry as R
 
 RDR_RADIUS_PX = 32.0
-RESULT_FORMAT = "discovery-eval/1"
+# v2: per-attempt records carry the terminal-event snapshot (attempt_event,
+# term_xy, term_room) captured before respawn. v1 records (the pre-repair
+# pilot) stored checkpoint coordinates as death_xy and are NOT comparable.
+RESULT_FORMAT = "discovery-eval/2"
 
 
 class NullMemory:
@@ -49,63 +52,71 @@ class NullMemory:
         pass
 
 
-def run_task(task_id: str,
+def run_task(task,
              policy: Callable[[Any, dict, Any], int],
              memory=None,
              task_seed: int = 1,
              obs_mode: str = "observable_vector",
              oracle: bool = False,
              registry: dict[str, R.TaskSpec] | None = None) -> dict:
-    """One full task (K attempts or success); returns the task record."""
+    """One full task (K attempts or success); returns the task record.
+    `task` is a registry task id (str) or a raw task spec dict
+    ({level|game+room, K, H, suite, split})."""
     reg = registry if registry is not None else R.load_registry()
-    spec = reg[task_id]
     if oracle:
         obs_mode = "privileged_vector"
     memory = memory if memory is not None else NullMemory()
-    env = R.make_env(task_id, obs_mode=obs_mode, registry=reg)
+    env, meta = _make_env(task, obs_mode, reg)
+    K = meta["attempts_K"]
     obs, info = env.reset(seed=0, options={"task_seed": task_seed})
-    memory.reset_task()                       # the ONLY reset point
+    memory.reset_task()                       # the ONLY memory reset
 
-    gcx = gcy = None
-    if spec.goal_rect:
-        gcx = (spec.goal_rect[0] + spec.goal_rect[2]) / 2
-        gcy = (spec.goal_rect[1] + spec.goal_rect[3]) / 2
-    else:
-        gcx, gcy = info["goal"]
+    gcx, gcy = _goal_center(meta, info)
     d0 = abs(gcx - info["x"]) + abs(gcy - info["y"])
 
     attempts: list[dict] = []
     cur = {"frames": 0, "min_goal_dist": d0}
-    traj_index = 0
-    total = spec.attempts_K * spec.attempt_frames_H
+    env_frame = 0                             # real trajectory index
+    total = K * meta["attempt_frames_H"]
     if oracle:
         # upper-bound diagnostic: privileged hazard memory
         memory.oracle_entities = env.c.entities().tolist()
         memory.oracle_deaths = []
 
-    while traj_index < total + spec.attempts_K:
-        a = policy(obs, {"attempt_id": info["attempt_id"]}, memory)
+    while env_frame < total + K + 2:
+        a = policy(obs, info, memory)
         obs, r, term, trunc, info = env.step(int(a))
-        traj_index += 1
+        env_frame += 1
         cur["frames"] += 1
-        d = abs(gcx - info["x"]) + abs(gcy - info["y"])
+        if info["attempt_ended"]:
+            # on the boundary step info["x"]/["y"] is the RESPAWN point;
+            # the terminal position lives in the terminal-event snapshot
+            px, py = info["term_x"], info["term_y"]
+        else:
+            px, py = info["x"], info["y"]
+        d = abs(gcx - px) + abs(gcy - py)
         cur["min_goal_dist"] = min(cur["min_goal_dist"], d)
         memory.observe(info)
         if info["attempt_ended"]:
-            outcome = ("success" if info.get("task_success")
-                       else ("death" if info["last_event"] == 1
-                             else "timeout"))
+            ev = info["attempt_event"]        # 1 death 2 succ 3 timeout 4 complete
+            outcome = {1: "death", 2: "success", 3: "timeout",
+                       4: "success"}[ev]
+            term_dist = abs(gcx - px) + abs(gcy - py)
             rec = {
                 "outcome": outcome,
+                "attempt_event": ev,
                 "frames": cur["frames"],
-                "traj_index": traj_index,
+                "traj_index": env_frame,      # real cumulative env frame
+                "term_xy": [px, py],
+                "term_room": info["term_room"],
                 "min_goal_dist": cur["min_goal_dist"],
+                "term_goal_dist": term_dist,
                 "progress": 1.0 - cur["min_goal_dist"] / max(d0, 1e-9),
+                "task_exhausted": bool(info.get("task_exhausted")),
             }
-            if outcome == "death":
-                rec["death_xy"] = [info["x"], info["y"]]
+            if outcome == "death":            # death-only bookkeeping
                 if oracle:
-                    memory.oracle_deaths.append(rec["death_xy"])
+                    memory.oracle_deaths.append(rec["term_xy"])
             attempts.append(rec)
             cur = {"frames": 0, "min_goal_dist": d0}
         if term:
@@ -115,16 +126,53 @@ def run_task(task_id: str,
     return {
         "format": RESULT_FORMAT,
         "suite_version": R.SUITE_VERSION,
-        "task_id": spec.task_id,
-        "suite": spec.suite,
-        "split": spec.split,
+        "task_id": meta["task_id"],
+        "suite": meta["suite"],
+        "split": meta["split"],
         "task_seed": task_seed,
         "obs_mode": obs_mode,
         "oracle": bool(oracle),
-        "attempts_K": spec.attempts_K,
+        "attempts_K": K,
         "attempts": attempts,
-        **task_metrics(attempts, spec.attempts_K),
+        **task_metrics(attempts, K),
     }
+
+
+def _make_env(task, obs_mode: str, reg):
+    """Build a discovery env for either a registry task id or a raw task
+    spec dict ({level|game/room, K, H}); return (env, meta)."""
+    from iwanna_gym.env import IWannaDiscoveryEnv
+    if isinstance(task, str):
+        spec = reg[task]
+        env = R.make_env(task, obs_mode=obs_mode, registry=reg)
+        return env, {"task_id": spec.task_id, "suite": spec.suite,
+                     "split": spec.split, "attempts_K": spec.attempts_K,
+                     "attempt_frames_H": spec.attempt_frames_H,
+                     "goal_rect": spec.goal_rect}
+    t = dict(task)
+    K = int(t.get("K", 25))
+    H = int(t.get("H", 2000))
+    if "level" in t:
+        env = IWannaDiscoveryEnv(level=t["level"], obs_mode=obs_mode,
+                                 attempts_K=K, attempt_frames_H=H,
+                                 reward_mode="sparse")
+        tid = t.get("task_id", t["level"])
+    else:
+        env = IWannaDiscoveryEnv(game=t["game"], mode="room",
+                                 room_id=t["room"], obs_mode=obs_mode,
+                                 attempts_K=K, attempt_frames_H=H,
+                                 reward_mode="sparse")
+        tid = t.get("task_id", f"{t['game']}:{t['room']}")
+    return env, {"task_id": tid, "suite": t.get("suite", "raw"),
+                 "split": t.get("split", "n/a"), "attempts_K": K,
+                 "attempt_frames_H": H, "goal_rect": None}
+
+
+def _goal_center(meta, info):
+    gr = meta.get("goal_rect")
+    if gr:
+        return (gr[0] + gr[2]) / 2, (gr[1] + gr[3]) / 2
+    return info["goal"]
 
 
 # ------------------------------------------------------------------ #
@@ -142,12 +190,22 @@ def task_metrics(attempts: list[dict], K: int) -> dict:
             frames_to_success = frames_cum
             break
     deaths = [a for a in attempts if a["outcome"] == "death"]
-    # repeated-death rate: deaths after the first within RDR_RADIUS_PX
-    # of ANY earlier death in this task
+    # Repeated-death rate (a documented PROXY, not proof of informative
+    # failure): a death after the first counts as "repeated" iff an
+    # earlier death in this task occurred in the SAME ROOM within
+    # RDR_RADIUS_PX of it. Coordinates from different rooms share a
+    # coordinate frame in the source but are different places, so room
+    # id gates the proximity test — spatial proximity alone would
+    # conflate them. Proximity is a spatial proxy for "the same hazard",
+    # not a hazard-identity check; true hazard identity would require
+    # the simulator-only attribution the anti-leakage contract keeps out
+    # of policy inputs (available to this evaluator, future work).
     repeated = 0
-    for i, d in enumerate(deaths[1:], start=1):
-        x, y = d["death_xy"]
-        if any(math.hypot(x - p["death_xy"][0], y - p["death_xy"][1])
+    for i, dcur in enumerate(deaths[1:], start=1):
+        x, y = dcur["term_xy"]
+        room = dcur.get("term_room")
+        if any(p.get("term_room") == room and
+               math.hypot(x - p["term_xy"][0], y - p["term_xy"][1])
                <= RDR_RADIUS_PX for p in deaths[:i]):
             repeated += 1
     rdr = repeated / max(len(deaths) - 1, 1) if len(deaths) > 1 else None

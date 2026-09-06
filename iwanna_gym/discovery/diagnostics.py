@@ -62,7 +62,7 @@ def run_blind(spec: R.TaskSpec, policy_name: str, task_seed: int = 1,
     fn = BLIND_POLICIES[policy_name]
     env = R.make_env(spec.task_id, obs_mode="observable_vector")
     env.reset(seed=0, options={"task_seed": task_seed})
-    deaths: list[list[float]] = []
+    deaths: list[list[float]] = []            # [x, y, room] TERMINAL pos
     first_death_frame = None
     success = False
     t_in_attempt = 0
@@ -73,11 +73,15 @@ def run_blind(spec: R.TaskSpec, policy_name: str, task_seed: int = 1,
         frames += 1
         t_in_attempt += 1
         if info["attempt_ended"]:
-            if info.get("task_success"):
+            ev = info["attempt_event"]
+            if ev in (2, 4):                  # success / game complete
                 success = True
                 break
-            if info["last_event"] == 1:
-                deaths.append([round(info["x"], 1), round(info["y"], 1)])
+            if ev == 1:                       # death (NOT timeout)
+                # terminal position captured before respawn, with room
+                deaths.append([round(info["term_x"], 1),
+                               round(info["term_y"], 1),
+                               int(info["term_room"])])
                 if first_death_frame is None:
                     first_death_frame = t_in_attempt
             t_in_attempt = 0
@@ -86,10 +90,13 @@ def run_blind(spec: R.TaskSpec, policy_name: str, task_seed: int = 1,
         if term:
             break
     env.close()
-    # repeatability: max pairwise distance between death positions
+    # repeatability: max pairwise distance between SAME-ROOM death
+    # positions (cross-room coordinates are different places)
     spread = 0.0
     for i in range(len(deaths)):
         for j in range(i + 1, len(deaths)):
+            if deaths[i][2] != deaths[j][2]:
+                continue
             dx = deaths[i][0] - deaths[j][0]
             dy = deaths[i][1] - deaths[j][1]
             spread = max(spread, (dx * dx + dy * dy) ** 0.5)

@@ -384,6 +384,26 @@ typedef struct {
     int task_goal_set;
     int task_goal_room;
     double task_gx0, task_gy0, task_gx1, task_gy1;
+
+    /* ---- terminal-event snapshot (measurement correctness) ----
+     * Captured at the instant an attempt ends, BEFORE the respawn or
+     * task auto-reset overwrites the live player state, so evaluators
+     * read the TERMINAL position and room, never the checkpoint the
+     * player was respawned to. Valid on every step where
+     * attempt_ended==1 (survives the in-step auto-reset until the next
+     * step clears it). attempt_event: 0 none, 1 death, 2 success,
+     * 3 attempt timeout, 4 game complete. term_attempt is the 1-based
+     * index of the attempt that just ended; term_frames its length;
+     * task_exhausted marks a task that ended by exhausting its attempt
+     * or step budget (a failure) rather than by success. Positions and
+     * room are gameplay-visible facts (where the Kid died / finished),
+     * NOT simulator-only hazard identities. */
+    int attempt_event;
+    double term_x, term_y;
+    int term_room;
+    int term_attempt;
+    int term_frames;
+    int task_exhausted;
 } IWanna;
 
 /* ---------- utilities ---------- */
@@ -1476,6 +1496,21 @@ static void iw_respawn_to_checkpoint(IWanna* env) {
     if (env->xs) iwx_after_spawn(env);
 }
 
+/* Snapshot the terminal state of the attempt that is ending THIS frame,
+ * before any respawn / task reset moves the player. `event` is the
+ * outcome code (1 death, 2 success, 3 timeout, 4 game complete);
+ * `exhausted` is 1 when this also ends the task in failure. Must be
+ * called while env->x/env->y still hold the terminal position. */
+static void iw_capture_terminal(IWanna* env, int event, int exhausted) {
+    env->attempt_event = event;
+    env->term_x = env->x;
+    env->term_y = env->y;
+    env->term_room = env->room_id;
+    env->term_attempt = env->attempt;
+    env->term_frames = env->attempt_tick + 1;
+    env->task_exhausted = exhausted;
+}
+
 /* ---------- observations ---------- */
 
 /* classic-entity appearance ledger for the observable mode: these types
@@ -1738,6 +1773,8 @@ static void c_step(IWanna* env) {
     env->attempt_ended = 0;
     env->task_ended = 0;
     env->task_success = 0;
+    env->attempt_event = 0;          /* terminal snapshot valid only on
+                                        the boundary step it is set */
 
     env->prev_x = env->x;            /* for pass_x / pass_y events */
     env->prev_y = env->y;
@@ -1857,11 +1894,13 @@ static void c_step(IWanna* env) {
         env->rewards[0] = -env->death_penalty;
         env->deaths += 1;
         if (env->discovery) {
-            /* death = explicit ATTEMPT boundary inside the task */
+            /* death = explicit ATTEMPT boundary inside the task. Capture
+             * the terminal (death) position BEFORE any respawn/reset. */
             env->ep_return += env->rewards[0];
             env->attempt_ended = 1;
             if (env->attempts_K > 0 && env->attempt >= env->attempts_K) {
                 /* attempt budget exhausted: the TASK ends in failure */
+                iw_capture_terminal(env, 1, 1);
                 env->terminals[0] = 1;
                 env->log.attempts += (float)env->attempt;
                 add_log(env, 0.0f, 1.0f);
@@ -1871,6 +1910,7 @@ static void c_step(IWanna* env) {
                 env->task_ended = 1;
                 return;
             }
+            iw_capture_terminal(env, 1, 0);
             iw_discovery_next_attempt(env);
             env->last_event = 1;
             compute_observations(env);
@@ -1923,8 +1963,11 @@ static void c_step(IWanna* env) {
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;
         int disc = env->discovery;
-        if (disc) env->log.attempts += (float)env->attempt;
-        if (disc) env->log.task_success += 1.0f;
+        if (disc) {
+            iw_capture_terminal(env, 2, 0);   /* success: keep goal pos */
+            env->log.attempts += (float)env->attempt;
+            env->log.task_success += 1.0f;
+        }
         add_log(env, 1.0f, 0.0f);
         c_reset(env);
         env->last_event = 2;
@@ -1943,8 +1986,11 @@ static void c_step(IWanna* env) {
         env->ep_return += env->rewards[0];
         env->terminals[0] = 1;
         int disc = env->discovery;
-        if (disc) env->log.attempts += (float)env->attempt;
-        if (disc) env->log.task_success += 1.0f;
+        if (disc) {
+            iw_capture_terminal(env, 4, 0);
+            env->log.attempts += (float)env->attempt;
+            env->log.task_success += 1.0f;
+        }
         add_log(env, 1.0f, 0.0f);
         env->last_event = 4;               /* game complete */
         env->game_completions += 1;
@@ -1967,6 +2013,7 @@ static void c_step(IWanna* env) {
             env->attempt_tick >= env->attempt_frames_H) {
             env->attempt_ended = 1;
             if (env->attempts_K > 0 && env->attempt >= env->attempts_K) {
+                iw_capture_terminal(env, 3, 1);   /* timeout, exhausts */
                 env->terminals[0] = 1;
                 env->log.attempts += (float)env->attempt;
                 add_log(env, 0.0f, 0.0f);
@@ -1977,7 +2024,8 @@ static void c_step(IWanna* env) {
                 return;
             }
             /* the respawn increments env->attempt: a timeout consumes
-             * an attempt exactly like a death */
+             * an attempt exactly like a death (but is NOT a death) */
+            iw_capture_terminal(env, 3, 0);
             iw_discovery_next_attempt(env);
             env->last_event = 3;
             compute_observations(env);
@@ -1988,7 +2036,12 @@ static void c_step(IWanna* env) {
     if (env->tick >= env->max_steps) {
         env->terminals[0] = 1;
         int disc = env->discovery;
-        if (disc) env->log.attempts += (float)env->attempt;
+        if (disc) {
+            /* total step budget exhausted mid-attempt: a timeout that
+             * ends the task in failure */
+            iw_capture_terminal(env, 3, 1);
+            env->log.attempts += (float)env->attempt;
+        }
         add_log(env, 0.0f, 0.0f);
         c_reset(env);
         env->last_event = 3;

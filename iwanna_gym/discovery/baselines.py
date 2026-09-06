@@ -206,14 +206,22 @@ class DeathMemory:
         self.buf[:, -1] = obs
         self.fill = np.minimum(self.fill + 1, self.window)
 
-    def on_boundaries(self, attempt_ended, task_ended, deaths_so_far):
-        died = (attempt_ended == 1) & (task_ended == 0)
+    def on_boundaries(self, attempt_event, task_ended, deaths_so_far):
+        """attempt_event is the C terminal-event code per env
+        (0 none, 1 death, 2 success, 3 timeout, 4 complete). ONLY a
+        death (1) that does not end the task writes a death-context
+        summary — a timed-out attempt is not a death and must not
+        (this was the pre-repair bug). The pre-death observation window
+        still clears on any nonfinal boundary so it never bleeds a
+        timed-out attempt's context into the next death's summary."""
+        died = (attempt_event == 1) & (task_ended == 0)
         for i in np.nonzero(died)[0]:
             w = int(self.fill[i])
             if w:
                 self.summary[i, :-1] = self.buf[i, -w:].mean(0)
             self.summary[i, -1] = min(deaths_so_far[i] / 10.0, 1.0)
-            self.fill[i] = 0
+        nonfinal = (attempt_event > 0) & (task_ended == 0)
+        self.fill[nonfinal] = 0                # reset window each attempt
         ends = task_ended == 1
         self.summary[ends] = 0.0
         self.fill[ends] = 0
@@ -302,13 +310,16 @@ class PPOTrainer:
             if self.deathmem:
                 self.deathmem.push(self.vec.obs.copy())
             _, rew, term, ae, te, ts = self.vec.step(acts)
+            ev = self.vec.attempt_event         # 1 death 2 succ 3 timeout 4 complete
             RW[t] = rew
             DONE[t] = te
             self.env_steps += N
-            # task bookkeeping (cheap array ops only)
-            died = (ae == 1) & (te == 0)
+            # task bookkeeping (cheap array ops only): a death is
+            # event==1, NOT merely an attempt boundary (timeouts are
+            # ae==1 too and must not be counted as deaths)
+            died = (ev == 1) & (te == 0)
             self.deaths_in_task += died
-            self.attempts_in_task += ae
+            self.attempts_in_task += (ae == 1)
             for i in np.nonzero(te)[0]:
                 self.finished_tasks.append(dict(
                     task_id=self.vec.task_ids[i],
@@ -319,7 +330,7 @@ class PPOTrainer:
                 self.deaths_in_task[i] = 0
                 self.attempts_in_task[i] = 1
             if self.deathmem:
-                self.deathmem.on_boundaries(ae, te, self.deaths_in_task)
+                self.deathmem.on_boundaries(ev, te, self.deaths_in_task)
             cut = (te == 1)
             if self.policy == "gru_reset":
                 cut = cut | (ae == 1)
@@ -476,3 +487,48 @@ class PPOTrainer:
             a, _, _ = sample_actions(logits, self.rng)
             a = int(a[0])
         return a, (hn[0] if hn is not None else None)
+
+
+class TrainerEvalMemory:
+    """Shared adapter that drives a trained PPOTrainer under the
+    evaluator's memory protocol (used by both scripts/run_pilot.py and
+    train_discovery.py so evaluation is not re-implemented). Holds the
+    recurrent hidden state and, for the deathmem policy, the bounded
+    death-memory summary populated from real terminal events. The
+    evaluator owns reset_task()/observe() timing; this object only
+    enacts the memory rule."""
+
+    def __init__(self, tr: "PPOTrainer"):
+        self.tr = tr
+        self.dm = (DeathMemory(1, OBS_SIZE) if tr.deathmem is not None
+                   else None)
+        self._deaths = np.zeros(1, np.int64)
+        self.reset_task()
+
+    def reset_task(self):
+        self.h = None
+        self._deaths[0] = 0
+        if self.dm is not None:                # force-clear summary+buf
+            self.dm.on_boundaries(np.array([2], np.uint8),
+                                  np.array([1], np.uint8), self._deaths)
+
+    def observe(self, info):
+        if not info.get("attempt_ended"):
+            return
+        ev = int(info.get("attempt_event", 0))
+        te = 1 if info.get("task_ended") else 0
+        if ev == 1 and not te:
+            self._deaths[0] += 1
+        if self.dm is not None:
+            self.dm.on_boundaries(np.array([ev], np.uint8),
+                                  np.array([te], np.uint8), self._deaths)
+        if self.tr.policy == "gru_reset" and not te:
+            self.h = None                       # causal-reset ablation
+
+    def act(self, obs):
+        ob = obs
+        if self.dm is not None:
+            self.dm.push(obs[None].copy())
+            ob = np.concatenate([obs, self.dm.summary[0]])
+        a, self.h = self.tr.act(ob, self.h)
+        return a

@@ -61,7 +61,9 @@ def _entry_spec(entry: Any, reg) -> dict:
         e.setdefault("action_n", 12 if "pack_path" in e else 6)
         if "level" in e:
             from iwanna_gym.levels import load_level
-            e["level_text"] = load_level(e.pop("level"))
+            lvl = e.pop("level")
+            # accept inline level text (contains newlines) or a name/path
+            e["level_text"] = lvl if "\n" in lvl else load_level(lvl)
         return e
     raise TypeError(f"bad vector entry {entry!r}")
 
@@ -87,6 +89,9 @@ class CVecIWanna:
         self.attempt_ended = np.zeros(n, np.uint8)
         self.task_ended = np.zeros(n, np.uint8)
         self.task_success = np.zeros(n, np.uint8)
+        # per-env terminal-event code: 0 none 1 death 2 success
+        # 3 timeout 4 game complete (written by iw_vec_step_ev)
+        self.attempt_event = np.zeros(n, np.uint8)
         om = 0 if obs_mode == "privileged_vector" else 1
 
         pack_cache: dict[str, bytes] = {}
@@ -132,16 +137,18 @@ class CVecIWanna:
         self.attempt_ended[:] = 0
         self.task_ended[:] = 0
         self.task_success[:] = 0
+        self.attempt_event[:] = 0
         return self.obs
 
     def step(self, actions: np.ndarray):
         """One frame for the whole batch: exactly one C call. Returns
         (obs, rewards, task_terminals, attempt_ended, task_ended,
-        task_success) — obs/rew/term are views into the shared block."""
+        task_success) — obs/rew/term are views into the shared block.
+        self.attempt_event carries the per-env terminal-event code."""
         self.act[:, 0] = actions
-        LIB.iw_vec_step(self._handles, self.n,
-                        self.attempt_ended, self.task_ended,
-                        self.task_success)
+        LIB.iw_vec_step_ev(self._handles, self.n,
+                           self.attempt_ended, self.task_ended,
+                           self.task_success, self.attempt_event)
         return (self.obs, self.rew[:, 0], self.term[:, 0],
                 self.attempt_ended, self.task_ended, self.task_success)
 

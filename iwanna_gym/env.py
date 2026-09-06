@@ -385,6 +385,20 @@ class IWannaDiscoveryEnv(IWannaEnv):
             attempt_tick=c.attempt_tick,
             task_seed=c.task_seed,
         )
+        if c.attempt_ended:
+            # terminal-event snapshot: outcome + TERMINAL position/room
+            # captured in C before respawn (never the checkpoint the
+            # player was moved back to). Evaluator-facing diagnostics —
+            # not part of the policy observation.
+            tx, ty = c.term_xy
+            info.update(
+                attempt_event=c.attempt_event,   # 1 death 2 succ 3 timeout 4 complete
+                term_x=tx, term_y=ty,
+                term_room=c.term_room,
+                term_attempt=c.term_attempt,
+                term_frames=c.term_frames,
+                task_exhausted=c.task_exhausted,
+            )
         if c.task_ended:
             # the auto-reset already started the next task; these carry
             # the ENDED task's evaluation stats

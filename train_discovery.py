@@ -105,40 +105,16 @@ def train(cfg: dict, out_dir: str, resume: str | None = None) -> dict:
 def evaluate(cfg: dict, out_dir: str, n_seeds: int = 3) -> str:
     """Post-training evaluation through the milestone-15 evaluator
     (records consumable by evaluator.aggregate())."""
+    from iwanna_gym.discovery.baselines import TrainerEvalMemory
     tr = PPOTrainer.resume(os.path.join(out_dir, "checkpoint.npz"))
-
-    class Mem:
-        def __init__(self):
-            self.h = None
-
-        def reset_task(self):
-            self.h = None
-
-        def observe(self, info):
-            if tr.policy == "gru_reset" and info.get("attempt_ended") \
-                    and not info.get("task_ended"):
-                self.h = None                    # the ablation boundary
-
-    def policy(obs, info, memory):
-        if tr.deathmem is not None:
-            # single-env eval uses a zero death-memory channel; the
-            # deathmem baseline's eval path augments with zeros unless
-            # extended — recorded in the run summary
-            obs = np.concatenate(
-                [obs, np.zeros(tr.deathmem.dim, np.float32)])
-        a, h = tr.act(obs, memory.h)
-        memory.h = h
-        return a
-
+    obs_mode = cfg.get("obs_mode", "observable_vector")
     records = []
     for tid in cfg["tasks"]:
         for seed in range(1, n_seeds + 1):
-            records.append(E.run_task(tid, policy, memory=Mem(),
-                                      task_seed=seed,
-                                      obs_mode=cfg.get(
-                                          "obs_mode",
-                                          "observable_vector"),
-                                      oracle=tr.oracle))
+            mem = TrainerEvalMemory(tr)         # shared eval adapter
+            records.append(E.run_task(
+                tid, policy=lambda o, i, m: m.act(o), memory=mem,
+                task_seed=seed, obs_mode=obs_mode, oracle=tr.oracle))
     return E.write_jsonl(records, os.path.join(out_dir, "eval.jsonl"))
 
 

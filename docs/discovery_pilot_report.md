@@ -1,5 +1,29 @@
 # Discovery pilot report — results against the pre-registration
 
+> **CORRECTION NOTICE (measurement repair, supersedes parts of this
+> report).** A post-pilot audit found the discovery evaluator read the
+> player position AFTER the C core had already respawned, so every
+> `death_xy` in the original pilot records is the CHECKPOINT, not the
+> death location. This affected **only position-derived metrics**:
+> **repeated-death rate (RDR)** and the "deaths are repeatable" and H3
+> readings below are **SUPERSEDED**. The success-family metrics
+> (Success@K, S(k), normalized AUC, adaptation gain AUC−S(1),
+> attempts- and frames-to-first-success) never depended on death
+> positions — a verification re-evaluation of the existing checkpoints
+> through the repaired evaluator reproduced them **identically** (ff
+> S@K 0.643→0.643, AUC 0.640→0.640; gru 0.286→0.286; gru_reset
+> 0.281→0.281 AUC; `build/discovery_pilot_corrected/verification.json`)
+> — so **H1, H2, H4 verdicts stand**. The corrected RDR for the
+> memoryless/recurrent runs shifts modestly (ff 0.991→0.934, gru
+> 1.0→0.990, gru_reset 1.0→0.969) via real terminal positions gated by
+> room id. **H3 requires a full rerun**: the `deathmem` agent was
+> *trained* with a second bug (timeouts counted as deaths in its
+> episodic memory), so its behavior — not just its metrics — is
+> affected, and re-evaluation cannot fix it. Both bugs are fixed at the
+> repair commit; a rerun is deferred (this milestone stops before
+> another training pilot). The original pilot data and this report's
+> pre-repair numbers are preserved below as the historical record.
+
 Pre-registration: [discovery_pilot_prereg.md](discovery_pilot_prereg.md)
 (committed one commit before any result in `build/discovery_pilot/`).
 Raw per-attempt records, per-seed aggregates, the analysis JSON, tables
@@ -68,12 +92,17 @@ observations matter for the paper's framing:
    claims must always be read as differences against the
    ablation/memoryless control; the benchmark provides exactly that
    control, and at this scale the difference is zero.
-2. **RDR ≈ 1.0 everywhere** confirms the tasks' failures ARE repeatable
-   (fixed hidden state) and that no pilot agent converts a revealed
-   hazard into avoidance — the phenomenon the benchmark exists to
-   measure remains unexploited by these baselines, which is a capability
-   gap in the agents (or a budget gap), not evidence the benchmark
-   works or fails.
+2. **High RDR** (corrected ~0.93–0.99; the pre-repair 1.0 figures are
+   superseded) is consistent with agents re-dying at the same place,
+   but — per the correction — a high repeated-death rate is a spatial
+   PROXY and does **not by itself prove informative failure**: it shows
+   deaths recur near one another (now gated by room), not that a
+   failure trajectory carried usable information the agent could have
+   exploited. Establishing informative failure requires the H1-style
+   causal comparison (memory vs ablation) or the scripted informed-vs-
+   blind probe (B2) — not RDR. What RDR does show at this scale: no
+   pilot agent reduces repeated deaths, a capability/budget gap, not a
+   verdict on the benchmark.
 
 ## Qualitative trajectories (own schematic renderer; no third-party assets)
 

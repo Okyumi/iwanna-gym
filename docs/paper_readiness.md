@@ -23,12 +23,24 @@ by current evidence.
 - The suite machinery works as designed: audited task selection with
   committed evidence, completion witnesses, blind-policy diagnostics
   that removed two tasks for insufficient hidden information, and
-  screen+hazard-family splits that H4 shows produce large,
-  consistent train→holdout drops for every policy (memorization is
-  measurable and controlled).
-- Failures are repeatable under fixed hidden state (RDR ≈ 1.0 for all
-  pilot agents), i.e. the informative-failure structure is present in
-  the tasks.
+  screen+hazard-family splits that H4 shows produce large, consistent
+  train→holdout drops for every policy. This demonstrates the splits
+  are NON-TRIVIAL — training-task skill does not transfer — which is a
+  NECESSARY condition for isolating memorization, but **holdout
+  collapse alone does not prove memorization is isolated**: it is also
+  consistent with the held-out tasks simply being harder or
+  out-of-distribution for the trained features. Proving isolation
+  additionally needs held-out performance that a within-task
+  adaptation signal (present under memory, absent under the ablation)
+  can move — which the pilot has not yet shown.
+- Deaths recur under fixed hidden state (corrected repeated-death rate
+  ~0.93–0.99; the pre-repair RDR ≈ 1.0 is superseded — see the
+  measurement-repair note). **This does not by itself establish that
+  the tasks contain informative failure**: RDR is a spatial proxy for
+  "died at the same hazard again", not evidence that a death trajectory
+  carried usable information. The informative-failure claim needs the
+  causal memory-vs-ablation gap (H1) or the informed-vs-blind scripted
+  probe (B2), neither of which the pilot has yet demonstrated.
 
 ## Unsupported claims (do NOT write these today)
 
@@ -87,11 +99,16 @@ evidence supports a benchmark paper (exact-game environment + audited
 discovery suite + causal evaluation protocol + demonstrated
 anti-memorization controls + a documented null at pilot scale as the
 open challenge). It does not support an algorithmic-finding paper, and
-the framing should not promise one. Revise rather than stop: the two
-structural risks surfaced by the pilot — recurrence optimization costs
-masking memory effects, and stochastic-retry inflation of S(k) — are
-both addressable inside the current contract (report ablation-relative
-gains only; add greedy-eval and matched-capacity controls to the
-protocol). Stop is not indicated: no evidence contradicts the premise
-that the tasks contain exploitable failure information (RDR ≈ 1.0 shows
-it is simply unexploited so far).
+the framing should not promise one. Revise rather than stop: the
+structural risks surfaced so far — recurrence optimization costs
+masking memory effects, stochastic-retry inflation of S(k), and (from
+the measurement audit) evaluation that must read terminal state before
+respawn — are all addressable inside the current contract (report
+ablation-relative gains only; add greedy-eval and matched-capacity
+controls; the terminal-event capture is now fixed and tested). Stop is
+not indicated, but the premise that the tasks contain *exploitable*
+failure information is **not yet demonstrated** — it must be shown by
+the H1 causal gap or the B2 informed-vs-blind probe, not asserted from
+RDR. The honest status is: the benchmark's machinery is sound and its
+controls are real; whether agents can exploit the failure structure is
+the open empirical question the paper would pose, not answer.

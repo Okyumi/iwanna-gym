@@ -97,9 +97,15 @@ def _load() -> ctypes.CDLL:
     for name in ("iw_obs_mode", "iw_attempt_ended", "iw_task_ended",
                  "iw_task_success", "iw_attempt_tick", "iw_attempts_K",
                  "iw_attempt_frames_H", "iw_last_task_attempts",
-                 "iw_last_task_deaths"):
+                 "iw_last_task_deaths", "iw_attempt_event",
+                 "iw_term_room", "iw_term_attempt", "iw_term_frames",
+                 "iw_task_exhausted"):
         fn = getattr(lib, name)
         fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
+    for name in ("iw_term_x", "iw_term_y"):
+        fn = getattr(lib, name)
+        fn.restype = ctypes.c_double
         fn.argtypes = [ctypes.c_void_p]
     for name in ("iw_exact", "iw_xent_count"):
         fn = getattr(lib, name)
@@ -142,6 +148,8 @@ def _load() -> ctypes.CDLL:
     ]
     lib.iw_vec_step.argtypes = [ctypes.POINTER(ctypes.c_void_p),
                                 ctypes.c_int, u8p, u8p, u8p]
+    lib.iw_vec_step_ev.argtypes = [ctypes.POINTER(ctypes.c_void_p),
+                                   ctypes.c_int, u8p, u8p, u8p, u8p]
     lib.iw_vec_reset.argtypes = [ctypes.POINTER(ctypes.c_void_p),
                                  ctypes.c_int]
     lib.iw_vec_bench.restype = ctypes.c_double
@@ -352,6 +360,26 @@ class CIWanna:
     @property
     def task_success(self) -> bool:
         return bool(LIB.iw_task_success(self._h))
+    @property
+    def attempt_event(self) -> int:
+        """Terminal outcome of the attempt that ended this step
+        (0 none, 1 death, 2 success, 3 timeout, 4 game complete)."""
+        return LIB.iw_attempt_event(self._h)
+    @property
+    def term_xy(self) -> tuple[float, float]:
+        """TERMINAL position captured before respawn (valid on the
+        attempt_ended step) — where the Kid actually died/finished."""
+        return LIB.iw_term_x(self._h), LIB.iw_term_y(self._h)
+    @property
+    def term_room(self) -> int: return LIB.iw_term_room(self._h)
+    @property
+    def term_attempt(self) -> int: return LIB.iw_term_attempt(self._h)
+    @property
+    def term_frames(self) -> int: return LIB.iw_term_frames(self._h)
+    @property
+    def task_exhausted(self) -> bool:
+        return bool(LIB.iw_task_exhausted(self._h))
+
     @property
     def attempt_tick(self) -> int: return LIB.iw_attempt_tick(self._h)
     @property

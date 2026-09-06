@@ -189,6 +189,15 @@ unsigned long long iw_task_seed(void* h) {
 int iw_attempt_ended(void* h)     { return ((Handle*)h)->env.attempt_ended; }
 int iw_task_ended(void* h)        { return ((Handle*)h)->env.task_ended; }
 int iw_task_success(void* h)      { return ((Handle*)h)->env.task_success; }
+/* terminal-event snapshot (valid on the attempt_ended step): the
+ * outcome and the TERMINAL position/room captured before respawn. */
+int iw_attempt_event(void* h)     { return ((Handle*)h)->env.attempt_event; }
+double iw_term_x(void* h)         { return ((Handle*)h)->env.term_x; }
+double iw_term_y(void* h)         { return ((Handle*)h)->env.term_y; }
+int iw_term_room(void* h)         { return ((Handle*)h)->env.term_room; }
+int iw_term_attempt(void* h)      { return ((Handle*)h)->env.term_attempt; }
+int iw_term_frames(void* h)       { return ((Handle*)h)->env.term_frames; }
+int iw_task_exhausted(void* h)    { return ((Handle*)h)->env.task_exhausted; }
 int iw_attempt_tick(void* h)      { return ((Handle*)h)->env.attempt_tick; }
 int iw_attempts_K(void* h)        { return ((Handle*)h)->env.attempts_K; }
 int iw_attempt_frames_H(void* h)  { return ((Handle*)h)->env.attempt_frames_H; }
@@ -307,6 +316,24 @@ void iw_vec_step(void** handles, int n,
         if (attempt_ended) attempt_ended[i] = (unsigned char)e->attempt_ended;
         if (task_ended)    task_ended[i]    = (unsigned char)e->task_ended;
         if (task_success)  task_success[i]  = (unsigned char)e->task_success;
+    }
+}
+
+/* like iw_vec_step, plus the per-env terminal-event code (0/1/2/3/4) so
+ * a batched trainer can distinguish death from timeout without a
+ * per-env getter (death-memory needs death-only boundaries). */
+void iw_vec_step_ev(void** handles, int n,
+                    unsigned char* attempt_ended,
+                    unsigned char* task_ended,
+                    unsigned char* task_success,
+                    unsigned char* attempt_event) {
+    for (int i = 0; i < n; i++) {
+        IWanna* e = &((Handle*)handles[i])->env;
+        c_step(e);
+        if (attempt_ended) attempt_ended[i] = (unsigned char)e->attempt_ended;
+        if (task_ended)    task_ended[i]    = (unsigned char)e->task_ended;
+        if (task_success)  task_success[i]  = (unsigned char)e->task_success;
+        if (attempt_event) attempt_event[i] = (unsigned char)e->attempt_event;
     }
 }
 

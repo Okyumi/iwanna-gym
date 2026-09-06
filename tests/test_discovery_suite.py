@@ -132,11 +132,13 @@ def test_flagged_trivial_tasks_are_not_active():
 # evaluator math (hand-computed fixtures)
 # ------------------------------------------------------------------ #
 
-def _att(outcome, frames=100, xy=(50.0, 50.0), progress=0.5):
-    a = {"outcome": outcome, "frames": frames, "traj_index": 0,
-         "min_goal_dist": 10.0, "progress": progress}
+def _att(outcome, frames=100, xy=(50.0, 50.0), progress=0.5, room=0):
+    ev = {"death": 1, "success": 2, "timeout": 3}[outcome]
+    a = {"outcome": outcome, "attempt_event": ev, "frames": frames,
+         "traj_index": frames, "min_goal_dist": 10.0, "progress": progress}
     if outcome == "death":
-        a["death_xy"] = list(xy)
+        a["term_xy"] = list(xy)
+        a["term_room"] = room
     return a
 
 
@@ -230,7 +232,7 @@ def test_evaluator_attempt_accounting_on_real_task():
     assert mem.task_resets == 1                  # exactly one task boundary
     # every attempt's record carries frames + death position
     for a in rec["attempts"]:
-        assert a["frames"] > 0 and "death_xy" in a
+        assert a["frames"] > 0 and "term_xy" in a and "term_room" in a
 
 
 def test_evaluator_records_witness_success():

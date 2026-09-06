@@ -1,0 +1,27 @@
+{
+ "note": "verification re-eval of EXISTING pilot checkpoints through the repaired evaluator (deterministic replay, NO retraining). ff/gru/gru_reset training was NOT affected by the death-memory timeout bug, so re-eval alone corrects their position-derived metrics. deathmem's TRAINING used the buggy death-memory, so it needs a full rerun (out of scope: stop before another training pilot).",
+ "ff": {
+  "corrected_successK": 0.643,
+  "old_successK": 0.643,
+  "corrected_auc": 0.64,
+  "old_auc": 0.64,
+  "corrected_RDR": 0.934,
+  "old_RDR": 0.991
+ },
+ "gru": {
+  "corrected_successK": 0.286,
+  "old_successK": 0.286,
+  "corrected_auc": 0.286,
+  "old_auc": 0.286,
+  "corrected_RDR": 0.99,
+  "old_RDR": 1.0
+ },
+ "gru_reset": {
+  "corrected_successK": 0.286,
+  "old_successK": 0.286,
+  "corrected_auc": 0.281,
+  "old_auc": 0.281,
+  "corrected_RDR": 0.969,
+  "old_RDR": 1.0
+ }
+}

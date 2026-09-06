@@ -23,10 +23,9 @@ import numpy as np
 
 sys.path.insert(0, ".")
 import iwanna_gym.discovery as d                          # noqa: E402
-from iwanna_gym.clib import OBS_SIZE                      # noqa: E402
 from iwanna_gym.discovery import evaluator as E           # noqa: E402
-from iwanna_gym.discovery.baselines import (DeathMemory,  # noqa: E402
-                                            PPOTrainer)
+from iwanna_gym.discovery.baselines import (PPOTrainer,   # noqa: E402
+                                            TrainerEvalMemory)
 from train_discovery import train                         # noqa: E402
 
 OUT = os.path.join("build", "discovery_pilot")
@@ -71,79 +70,22 @@ EVAL_TASK_SEEDS = (11, 12, 13)
 # evaluation that handles registry ids AND raw precision rooms
 # ------------------------------------------------------------------ #
 
-def _make_eval_env(task, obs_mode):
-    from iwanna_gym.env import IWannaDiscoveryEnv
-    if isinstance(task, str):
-        return d.make_env(task, obs_mode=obs_mode), task
-    return (IWannaDiscoveryEnv(level=task["level"], obs_mode=obs_mode,
-                               attempts_K=task["K"],
-                               attempt_frames_H=task["H"],
-                               reward_mode="sparse"),
-            task["level"])
-
-
 def eval_checkpoint(ckpt: str, tasks, suite_label: str,
                     obs_mode="observable_vector") -> list[dict]:
+    """Evaluate a trained checkpoint through the SHARED evaluator
+    (E.run_task) — no duplicated loop, real trajectory indices, terminal
+    events, and the corrected metrics."""
     tr = PPOTrainer.resume(ckpt)
-    reg = d.load_registry()
     records = []
     for task in tasks:
+        # tag raw precision rooms with the pilot's suite label/split
+        if isinstance(task, dict):
+            task = dict(task, suite=suite_label, split="n/a")
         for tseed in EVAL_TASK_SEEDS:
-            env, tid = _make_eval_env(task, obs_mode)
-            obs, info = env.reset(seed=0, options={"task_seed": tseed})
-            h = None
-            dm = (DeathMemory(1, OBS_SIZE) if tr.deathmem is not None
-                  else None)
-            spec = reg.get(tid) if isinstance(task, str) else None
-            split = spec.split if spec else "n/a"
-            K = spec.attempts_K if spec else task["K"]
-            gx, gy = info["goal"]
-            d0 = abs(gx - info["x"]) + abs(gy - info["y"])
-            attempts, cur = [], {"frames": 0, "best": d0}
-            deaths = np.zeros(1, np.int64)
-            for _ in range(K * (spec.attempt_frames_H if spec
-                                else task["H"]) + K):
-                ob = obs
-                if dm is not None:
-                    dm.push(ob[None].copy())
-                    ob = np.concatenate([ob, dm.summary[0]])
-                a, h = tr.act(ob, h)
-                obs, r, term, tru, info = env.step(a)
-                cur["frames"] += 1
-                dist = abs(gx - info["x"]) + abs(gy - info["y"])
-                cur["best"] = min(cur["best"], dist)
-                if info["attempt_ended"]:
-                    out = ("success" if info.get("task_success") else
-                           ("death" if info["last_event"] == 1
-                            else "timeout"))
-                    rec = {"outcome": out, "frames": cur["frames"],
-                           "traj_index": 0,
-                           "min_goal_dist": cur["best"],
-                           "progress": 1.0 - cur["best"] / max(d0, 1e-9)}
-                    if out == "death":
-                        rec["death_xy"] = [info["x"], info["y"]]
-                        deaths[0] += 1
-                    attempts.append(rec)
-                    cur = {"frames": 0, "best": d0}
-                    if dm is not None:
-                        dm.on_boundaries(
-                            np.array([1], np.uint8),
-                            np.array([1 if term else 0], np.uint8),
-                            deaths)
-                    if tr.policy == "gru_reset" and not term:
-                        h = None                 # the ablation boundary
-                if term:
-                    break
-            env.close()
-            records.append({
-                "format": E.RESULT_FORMAT,
-                "suite_version": d.SUITE_VERSION,
-                "task_id": tid, "suite": suite_label, "split": split,
-                "task_seed": tseed, "obs_mode": obs_mode,
-                "oracle": False, "attempts_K": K,
-                "attempts": attempts,
-                **E.task_metrics(attempts, K),
-            })
+            mem = TrainerEvalMemory(tr)
+            records.append(E.run_task(
+                task, policy=lambda o, i, m: m.act(o), memory=mem,
+                task_seed=tseed, obs_mode=obs_mode))
     return records
 
 
