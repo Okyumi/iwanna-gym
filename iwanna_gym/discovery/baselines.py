@@ -176,7 +176,8 @@ def sample_actions(logits, rng):
     prob /= prob.sum(1, keepdims=True)
     u = rng.random(logits.shape[0])
     cum = prob.cumsum(1)
-    acts = (u[:, None] > cum).sum(1)
+    # float rounding can leave cum[-1] < 1; clip the rare overflow draw
+    acts = np.minimum((u[:, None] > cum).sum(1), logits.shape[1] - 1)
     logp = np.log(prob[np.arange(len(acts)), acts] + 1e-10)
     return acts.astype(np.int32), logp, prob
 

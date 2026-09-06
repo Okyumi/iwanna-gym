@@ -1,0 +1,73 @@
+{
+ "suite": "iwbtg_native",
+ "oracle": false,
+ "n_task_runs": 3,
+ "success_at_K": {
+  "mean": 0.0,
+  "sem": 0.0,
+  "n": 3
+ },
+ "success_by_attempt": [
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0
+ ],
+ "auc": 0.0,
+ "s1": 0.0,
+ "adaptation_gain": 0.0,
+ "attempts_to_success": {
+  "mean": null,
+  "sem": null,
+  "n": 0
+ },
+ "frames_to_success": {
+  "mean": null,
+  "sem": null,
+  "n": 0
+ },
+ "censored_rate": {
+  "mean": 1.0,
+  "sem": 0.0,
+  "n": 3
+ },
+ "repeated_death_rate": {
+  "mean": null,
+  "sem": null,
+  "n": 0
+ },
+ "post_discovery_improvement": {
+  "mean": -0.00012345679012348842,
+  "sem": 0.00012345679012348842,
+  "n": 3
+ },
+ "by_split": {
+  "train": {
+   "n": 3,
+   "s1": 0.0,
+   "auc": 0.0,
+   "adaptation_gain": 0.0
+  }
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "config": {
+  "obs_mode": "observable_vector",
+  "n_envs": 24,
+  "rollout_T": 128,
+  "hid": 128,
+  "lr": 0.0003,
+  "gamma": 0.999,
+  "lam": 0.95,
+  "clip": 0.2,
+  "ent_coef": 0.01,
+  "vf_coef": 0.5,
+  "epochs": 2,
+  "ckpt_every": 50,
+  "policy": "gru_reset",
+  "tasks": [
+   {
+    "level": "traps/t07_bullets",
+    "K": 25,
+    "H": 2000
+   },
+   {
+    "level": "traps/t15_rain",
+    "K": 25,
+    "H": 2000
+   },
+   {
+    "level": "traps/t16_bridge",
+    "K": 25,
+    "H": 2000
+   },
+   {
+    "level": "traps/t19_speedgate",
+    "K": 25,
+    "H": 2000
+   }
+  ],
+  "seed": 2,
+  "env_step_budget": 3000000,
+  "headline": true
+ },
+ "out_dir": "build/discovery_pilot/P2/gru_reset_s2",
+ "env_steps": 3001344,
+ "wall_s": 132.6,
+ "overall_sps": 22630,
+ "oracle": false
+}
