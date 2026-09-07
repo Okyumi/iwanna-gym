@@ -67,6 +67,7 @@ dump_contract = "ctfak-inventory-dump/1 (metadata only: names, handles, coordina
 inventory_contract = "iwbtg-normalized-inventory/1 (per-record provenance to MFA identities; CoverageError fails closed on unparsed/unknown/unsupported gameplay records)"
 independent_validation = "UNRESOLVED GATE: CTFAK output not yet cross-checked against any independent Clickteam tooling; inventory must be treated as single-source until resolved"
 never_committed = ["iwbtgbeta(fs).mfa", "extracted assets", "build/iwbtg_mfa/", "build/source_registry/"]
+reverified_2026_09_07 = "Re-checked this milestone (Prompt 3). CORRECTION to registration_status above: kayin.moe now RESOLVES + connects on :443 from the sandbox, so network egress is no longer the blocker. Extraction still PENDING/BLOCKED on artifacts that must not be fabricated or autonomously fetched: (1) a USER-provided byte-verified iwbtgbeta(fs).mfa staged in the sandbox — repo policy is that the importer consumes a user-fetched copy; autonomously downloading the 85 MB copyrighted binary is out of scope; (2) an external CTFAK 2.0 build at IWG_CTFAK_DIR (not present); (3) the extracted iwbtg_original_2007 physics profile. Parser/normalizer are validated on synthetic dumps only — a parser contract is NOT a successful extraction. See docs/coverage_table.md."
 
 [[selected]]
 slot = "CLASSIC_GAME_2"

@@ -83,3 +83,26 @@ def test_binding_pins_pufferlib_version():
     for f in ("scripts/setup_pufferlib.sh", "scripts/puffer_smoke.py",
               "docs/pufferlib_integration.md"):
         assert PIN in open(f, encoding="utf-8").read(), f
+
+
+def test_launcher_emits_valid_config_for_both_task_types(tmp_path=None):
+    # the single launcher (scripts/puffer_launch.py) writes a task-specific
+    # config whose [env] covers every key the binding reads, for BOTH a
+    # controlled and a native task.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "puffer_launch", "scripts/puffer_launch.py")
+    launch = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(launch)
+    keys = _binding_dict_keys()
+    for tid in ("disc.research.t06_crusher",
+                "disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall"):
+        out = f"build/puffer_launch/_test_{tid}.ini"
+        env = launch._write_config(tid, out, timesteps=100000)
+        cp = configparser.ConfigParser()
+        cp.optionxform = str
+        cp.read(out)
+        env_keys = set(cp["env"].keys())
+        assert not (keys - env_keys), (tid, keys - env_keys)
+        assert env  # non-empty file-path env vars (IWG_PACK / IWG_LEVEL_FILE)
+        os.remove(out)

@@ -37,19 +37,26 @@ by current evidence.
   ~0.93–0.99; the pre-repair RDR ≈ 1.0 is superseded — see the
   measurement-repair note). RDR is a spatial proxy for "died at the
   same hazard again", not by itself proof of informative failure.
-- **The tasks contain EXPLOITABLE failure information (scripted
-  positive control, no RL).** A deterministic agent conditioning only
-  on OBSERVED death positions (the corrected terminal-event snapshot)
-  solves **9 of 14** active controlled tasks within K attempts, while
-  the byte-identical agent with that memory erased each attempt fails
-  all 25 attempts — reproducibly across 3 seeds
-  (`iwanna_gym/discovery/probes.py`,
-  `build/discovery_positive_control/results.json`,
-  `tests/test_positive_control.py`). This is the informed-vs-blind
-  control (B2-style) done without converged training: it establishes
-  that the failure history carries usable information an agent CAN
-  exploit — independent of whether any particular *learned* agent
-  does. It uses no hazard identities or hidden parameters.
+- **The tasks contain EXPLOITABLE, OBSERVATION-ACCESSIBLE failure
+  information (observation-matched scripted control, no RL).** On the
+  ambiguous-hidden-state controlled rooms (`levels/informative/`), where
+  the trap is INVISIBLE in the observation until it kills, an agent
+  conditioning only on its OWN observed failure location solves **7 of
+  7** rooms in ~1 death; the byte-identical memory-erased twin solves
+  **0 of 7**; and BOTH a fixed blind schedule and an attempt-counter
+  control solve only the single room whose trap coincides with their
+  fixed guess (`iwanna_gym/discovery/informative.py`,
+  `build/informative_control/results.json`,
+  `tests/test_informative_control.py`,
+  `docs/informative_failure_control.md`). This isolates the OBSERVED
+  death LOCATION as the cause — not memorization, not the attempt
+  counter, not vision of a visible hazard. It uses no privileged fields
+  (the earlier `probes.py` agent, which read the exact terminal snapshot
+  `term_x`/`term_room`, is retained only as a labeled PRIVILEGED ORACLE
+  upper bound). Scope: this shows the failure history CARRIES usable
+  information an agent CAN exploit; it does NOT claim a *learned* agent
+  will — that is the open question the scaled experiment
+  (`docs/discovery_prereg_v2.md`) poses.
 
 ## Unsupported claims (do NOT write these today)
 
@@ -83,8 +90,11 @@ by current evidence.
 
 ## Remaining experiments for a conference submission
 
-1. Witness the 24 pending native tasks (human-play capture is the
-   direct path) — the headline suite must be scoreable end to end.
+1. Witness the 24 pending native tasks — human-play capture is the
+   direct path. Automated beam-search witnessing did NOT find a solution
+   for a diverse sample within a bounded in-sandbox budget (e.g. the
+   game's first room, 150s → pending), so these remain pending_witness,
+   kept visible; the headline suite is not yet scoreable end to end.
 2. Scale the pilot to convergence budgets on real hardware
    (≥64 cores, 10⁸–10⁹ steps, ≥5 seeds) — the pilot's null H1 at
    3–5M steps on 2 cores is uninformative about the hypothesis itself.
@@ -93,8 +103,11 @@ by current evidence.
    mean-window baseline, and the memory-oracle upper bound run — if
    even the oracle cannot exploit revealed hazards, the task design
    needs revision before any agent claim.
-4. The B2 informed-vs-blind scripted probe comparison across all
-   native tasks (currently probe-status pending).
+4. The informed-vs-blind scripted probe across native tasks. NOT
+   justified on the only witnessed native task today (`chalice_hall`):
+   its witness completes with 0 deaths, so there is no failure to inform
+   from on that path. Native probes await tasks that are witnessed AND
+   require a death — reported honestly, not forced.
 5. Counterfactual variants (disarm/relocate/retime) on controlled
    tasks for the causal "the agent used the death" analysis.
 6. IWBTGR held-out native transfer once witnesses exist (H4's native
@@ -115,9 +128,16 @@ the measurement audit) evaluation that must read terminal state before
 respawn — are all addressable inside the current contract (report
 ablation-relative gains only; add greedy-eval and matched-capacity
 controls; the terminal-event capture is now fixed and tested). Stop is
-not indicated, but the premise that the tasks contain *exploitable*
-failure information is **not yet demonstrated** — it must be shown by
-the H1 causal gap or the B2 informed-vs-blind probe, not asserted from
-RDR. The honest status is: the benchmark's machinery is sound and its
-controls are real; whether agents can exploit the failure structure is
-the open empirical question the paper would pose, not answer.
+not indicated. The premise that the tasks contain *exploitable,
+observation-accessible* failure information is now **demonstrated in the
+controlled laboratory** by the observation-matched four-arm control
+(7/7 vs 0/7, confounds ruled out) — not asserted from RDR. What remains
+open is the LEARNED-agent question: whether a trained policy discovers
+and uses that structure, and whether the effect holds on native IWBTG
+content. The honest status is unchanged in spirit: the benchmark's
+machinery is sound, its controls are real and now include a passing
+positive control, and whether *learned* agents exploit the failure
+structure is the empirical question the scaled experiment
+(`docs/discovery_prereg_v2.md`) poses. Content coverage — Original vs
+Remastered kept distinct, extraction/witness/scoring status per family —
+is tabulated in `docs/coverage_table.md`.

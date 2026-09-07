@@ -1,0 +1,62 @@
+{
+  "counts": {
+    "native_accepted": 25,
+    "native_witnessed": 1,
+    "native_active": 1,
+    "controlled_accepted": 16,
+    "controlled_witnessed": 16,
+    "controlled_active": 14
+  },
+  "ctfak_available": false,
+  "families": [
+    {
+      "family": "iwbtg_original_2007 (ORIGINAL)",
+      "role": "future headline; distinct from Remastered",
+      "source_pin": "https://kayin.moe/iwbtg/source/iwbtgbeta(fs).mfa sha256=c41928c4e659\u2026 (85300282 B, Multimedia Fusion 2 .mfa)",
+      "extraction_status": "BLOCKED \u2014 no byte-verified .mfa in sandbox; importer needs a USER-provided copy + external CTFAK 2.0. Parser/normalizer validated on synthetic dumps only (NOT an extraction).",
+      "fidelity": "n/a (nothing extracted)",
+      "witness": "n/a (no tasks)",
+      "scored_tasks": 0,
+      "puffer_exec": "n/a (no content)"
+    },
+    {
+      "family": "iwbtgr_1_5_3 (REMASTERED)",
+      "role": "source-native headline suite",
+      "source_pin": "itch source-of-record (checksum pending) + tested mirror github aut0mat1clol/IWBTGR-Autosplitter-mod @244c325; pack sha256 c5dafc88\u2026 (expected_pack pin)",
+      "extraction_status": "pack built locally, present on disk",
+      "fidelity": "source-exact: 20/20 room audits, 24/24 differential checks, classified deviation ledger",
+      "witness": "1/25 witnessed (24 pending_witness \u2014 kept visible)",
+      "scored_tasks": 1,
+      "puffer_exec": "4.0.0 binding compiles vs pinned headers; sim-only throughput measured; real `puffer train` UNVERIFIED (torch blocked in-sandbox)"
+    },
+    {
+      "family": "controlled (iwannagym_research_v1)",
+      "role": "experimental laboratory; never IWBTG content",
+      "source_pin": "authored research rooms (scripts/make_trap_rooms.py, make_informative_rooms.py)",
+      "extraction_status": "n/a (authored, not extracted)",
+      "fidelity": "n/a (not source content); deterministic + leak-free observation modes (paired anti-leakage tests)",
+      "witness": "16/16 accepted witnessed; +7 informative-failure control fixtures (not scored)",
+      "scored_tasks": 14,
+      "puffer_exec": "4.0.0 binding + config exercised; controlled sim throughput measured; real train UNVERIFIED (torch)"
+    },
+    {
+      "family": "k2warped_gms14 (OOD)",
+      "role": "OOD transfer only; never pooled into headline",
+      "source_pin": "SUDALV92/K2W GMS1.4 .gmx @ commit a6d6dce1\u2026 tree 72c80cc3\u2026",
+      "extraction_status": "STATIC ONLY \u2014 pack on disk, but dynamics NOT imported (gameplay records mapping_status=unsupported)",
+      "fidelity": "static structure only (rooms, dims, room order, boss locations, event/code inventory)",
+      "witness": "0 (no executable tasks)",
+      "scored_tasks": 0,
+      "puffer_exec": "n/a (no accepted tasks; dynamics gate open)"
+    }
+  ],
+  "extraction_gate": {
+    "registration_command": "python -m tools.iwimport register-iwbtg '<path>/iwbtgbeta(fs).mfa'",
+    "remaining_artifacts": [
+      "a USER-provided byte-verified iwbtgbeta(fs).mfa (sha256 c41928c4\u2026, 85.3 MB) staged in the sandbox \u2014 the importer consumes a user-fetched copy; autonomous download of the copyrighted binary is out of scope",
+      "an external CTFAK 2.0 build at IWG_CTFAK_DIR (pinned commit f38ba79) \u2014 AGPL, run as a separate process",
+      "the iwbtg_original_2007 physics profile extracted per docs/fidelity_contract.md before any exactness claim"
+    ],
+    "network_note": "kayin.moe is reachable from the sandbox at the network level (re-verified this milestone), so egress is no longer the blocker; the blockers above are the user-provided file + external tool + physics extraction."
+  }
+}

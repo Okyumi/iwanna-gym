@@ -1,0 +1,186 @@
+{
+  "n_rooms": 7,
+  "solved": {
+    "obs_memory": 7,
+    "erased": 0,
+    "fixed": 1,
+    "attempt_counter": 1
+  },
+  "mean_deaths_to_success": {
+    "obs_memory": 1.0,
+    "erased": null,
+    "fixed": 0.0,
+    "attempt_counter": 1.0
+  },
+  "separates": [
+    "informative/hidden_spike_0",
+    "informative/hidden_spike_1",
+    "informative/hidden_spike_2",
+    "informative/hidden_spike_4",
+    "informative/hidden_spike_5",
+    "informative/hidden_spike_6"
+  ],
+  "rows": [
+    {
+      "level": "informative/hidden_spike_0",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    },
+    {
+      "level": "informative/hidden_spike_1",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    },
+    {
+      "level": "informative/hidden_spike_2",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    },
+    {
+      "level": "informative/hidden_spike_3",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": true,
+        "deaths": 0,
+        "attempts_used": 1
+      },
+      "attempt_counter": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      }
+    },
+    {
+      "level": "informative/hidden_spike_4",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    },
+    {
+      "level": "informative/hidden_spike_5",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    },
+    {
+      "level": "informative/hidden_spike_6",
+      "obs_memory": {
+        "success": true,
+        "deaths": 1,
+        "attempts_used": 2
+      },
+      "erased": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "fixed": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "attempt_counter": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      }
+    }
+  ]
+}

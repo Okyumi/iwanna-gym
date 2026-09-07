@@ -37,6 +37,30 @@ path this milestone establishes.
 
 ## Reproducible run (on a training-capable machine)
 
+**Single launcher (preferred).** `scripts/puffer_launch.py <task_id>`
+resolves the task's kwargs + file-path env vars, builds the native pack
+from a local source checkout when needed, writes a task-specific config,
+and emits/executes the exact `puffer build` / `puffer train` /
+evaluation command — for a controlled OR a native task, one command:
+
+```bash
+# controlled research room
+python scripts/puffer_launch.py disc.research.t06_crusher \
+    --pufferlib-dir $HOME/PufferLib
+# native source-derived task (builds the pack from a local checkout)
+python scripts/puffer_launch.py \
+    disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall \
+    --pufferlib-dir $HOME/PufferLib \
+    --source-checkout $HOME/IWBTGR-Autosplitter-mod
+```
+
+Add `--dry-run` to resolve paths, build the pack, and print the exact
+commands WITHOUT torch (verified in-sandbox for both task types by
+`tests/test_pufferlib_binding.py`). Evaluation runs through the shared
+evaluator (`scripts/puffer_eval.py` → `evaluator.task_metrics`), so
+PufferLib numbers are directly comparable to the reference agents. The
+manual steps below are the same operations spelled out.
+
 Requires torch + PufferLib 4.0.0 installed and a C toolchain with
 OpenMP. Not runnable in the sandbox this was authored in (no torch;
 pypi blocked) — see "Blocked here".
@@ -80,10 +104,21 @@ blocker, and the exact external command above; on a torch-capable
 machine the same script runs the real short train + eval and records
 throughput.
 
-What IS verified here, torch-free:
-- the 4.0.0 binding compiles against the pinned PufferLib headers;
+**Scope of "verified" (Prompt-2 item 1 — read carefully).** Nothing
+below runs the real PufferLib PPO learner or the adapter's `c_step`
+under `puffer train`; that path needs torch and is UNVERIFIED here. The
+checks split into two groups:
+
+*Exercising the real 4.0.0 adapter surface (torch-free):*
+- the 4.0.0 binding **compiles** against the pinned PufferLib headers
+  (`tests/test_pufferlib_binding.py`);
 - every `[env]` kwarg the binding reads is present in the config and is
-  emitted by the registry for both a controlled and a native task;
+  emitted by the registry for both a controlled and a native task
+  (`tests/test_pufferlib_binding.py`).
+
+*Exercising the shared C core via the ctypes reference/native path
+(`CVecIWanna`) and the reference Gymnasium env — NOT the PufferLib
+adapter or its learner:*
 - simulation-only throughput on controlled and native workloads
   (`scripts/bench_discovery_vec.py`);
 - task/attempt termination, recurrent-state resets, terminal
@@ -94,6 +129,14 @@ What IS verified here, torch-free:
 - the observable-vector observation contract — offscreen/inactive
   entities, invisible/unarmed hazards, dormant state, camera visibility
   (`tests/test_observation_contract.py`).
+
+The adapter wraps the *same* C core these tests drive, so the core's
+verified behavior carries over; but "the real PufferLib env steps and
+learns correctly end to end" is NOT among the claims — it awaits the
+external run. The recurrent **input protocol**
+(`iwanna_gym/discovery/input_protocol.py`) is likewise a documented,
+unit-tested SPEC, not a wired learner feature — see
+`docs/discovery_training_report.md` §3b.
 
 ## Throughput methodology
 

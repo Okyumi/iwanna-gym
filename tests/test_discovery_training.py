@@ -212,6 +212,80 @@ def test_ff_policy_gradient_matches_finite_differences():
         assert abs(num - g[k][idx]) < 5e-3, (k, num, g[k][idx])
 
 
+def test_gru_bptt_gradient_matches_finite_differences():
+    # finite-difference check of the RECURRENT (BPTT) gradients through the
+    # exact gru_step / gru_backward_step / _loss_heads code path used by
+    # _update_gru, including a memory cut at one boundary.
+    rng = np.random.default_rng(1)
+    T, N, obs_dim, act_n, hid = 4, 3, 6, 5, 8
+    p = B.init_params("gru", obs_dim, act_n, hid, seed=5)
+    O = rng.standard_normal((T, N, obs_dim)).astype(np.float32)
+    A = rng.integers(0, act_n, (T, N))
+    ADV = rng.standard_normal((T, N)).astype(np.float32)
+    RET = rng.standard_normal((T, N)).astype(np.float32)
+    LP = rng.standard_normal((T, N)).astype(np.float32)
+    cuts = np.zeros((T, N), np.float32)
+    cuts[1, 0] = 1.0                       # a memory cut at t=1 for env 0
+    H0 = np.zeros((N, hid), np.float32)
+
+    tr = B.PPOTrainer.__new__(B.PPOTrainer)
+    tr.params = p
+    tr.kind = "gru"
+    tr.cfg = dict(clip=0.2, ent_coef=0.01, vf_coef=0.5)
+
+    def analytic():
+        h = H0.copy()
+        caches, feats = [], np.zeros((T, N, hid), np.float32)
+        for t in range(T):
+            h, cache = B.gru_step(p, O[t], h)
+            caches.append(cache)
+            feats[t] = h
+            h = h * (1.0 - cuts[t][:, None])
+        g = {k: np.zeros_like(v) for k, v in p.items()}
+        dfeats = np.zeros_like(feats)
+        for t in range(T):
+            gh, dfeat = tr._loss_heads(feats[t], A[t], ADV[t], RET[t], LP[t])
+            for k in gh:
+                g[k] += gh[k]
+            dfeats[t] = dfeat
+        dh = np.zeros((N, hid), np.float32)
+        for t in range(T - 1, -1, -1):
+            dh = dh * (1.0 - cuts[t][:, None])
+            dh = B.gru_backward_step(p, caches[t], dh + dfeats[t], g)
+        return g
+
+    def loss(params):
+        # scalar objective _update_gru descends: sum_t mean_i ppo_loss
+        h = H0.copy()
+        total = 0.0
+        for t in range(T):
+            h, _ = B.gru_step(params, O[t], h)
+            logits, val = B.head(params, h)
+            z = logits - logits.max(1, keepdims=True)
+            prob = np.exp(z); prob /= prob.sum(1, keepdims=True)
+            logp_all = np.log(prob + 1e-10)
+            lp = logp_all[np.arange(N), A[t]]
+            ratio = np.exp(lp - LP[t])
+            surr = -np.minimum(ratio * ADV[t],
+                               np.clip(ratio, 0.8, 1.2) * ADV[t])
+            ent = -(prob * logp_all).sum(1)
+            total += float((surr - 0.01 * ent
+                            + 0.5 * (val - RET[t]) ** 2).mean())
+            h = h * (1.0 - cuts[t][:, None])
+        return total
+
+    g = analytic()
+    eps = 1e-4
+    for k in ("We", "Wz", "Wr", "Wh", "Wpi", "Wv"):
+        for _ in range(3):
+            idx = tuple(rng.integers(0, s) for s in p[k].shape)
+            p[k][idx] += eps; up = loss(p)
+            p[k][idx] -= 2 * eps; dn = loss(p)
+            p[k][idx] += eps
+            num = (up - dn) / (2 * eps)
+            assert abs(num - g[k][idx]) < 5e-3, (k, idx, num, g[k][idx])
+
+
 def test_death_memory_bounded_and_cleared():
     dm = B.DeathMemory(2, 4, window=5)
     for t in range(9):

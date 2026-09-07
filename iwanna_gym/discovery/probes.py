@@ -1,23 +1,25 @@
-"""Informative-failure positive control — no RL, no training.
+"""PRIVILEGED (oracle) failure-memory probe — no RL, no training.
 
-A deterministic scripted agent that uses ONLY its OBSERVED failure
-history (the terminal death position/room/frame from the corrected
-terminal-event snapshot — all gameplay-visible facts a human sees when
-they die) versus the byte-identical agent with that memory ERASED at
-every attempt. If the memory agent solves a task within K attempts and
-the memory-erased twin does not, the task provably contains failure
-information an agent can exploit — establishing the benchmark's premise
-WITHOUT a large RL run or converged training.
+NOTE (leakage audit, docs/informative_failure_control.md): this agent
+reads the exact terminal-event snapshot ``term_x``/``term_room`` — an
+EVALUATOR-FACING interface that is NOT part of the policy observation
+vector (which carries only a normalized player position, ~one frame
+stale, and no room index). Because the exact terminal coordinate is
+slightly more precise than anything an observation-only policy sees, this
+agent is a PRIVILEGED UPPER BOUND, not the headline positive control. Its
+tasks (the t01..t20 rooms) also use VISIBLE hazards, so their hidden state
+is not "initially ambiguous". The headline, observation-matched control —
+which conditions only on the agent's OWN observations and runs on rooms
+whose trap is invisible until it kills — lives in
+``iwanna_gym/discovery/informative.py``.
 
-The agent is given NO hazard identities and NO hidden task parameters:
-it sees where its previous attempts ended (death x/y/room and frame),
-nothing the anti-leakage contract forbids. Its strategy is a simple
-"remember where I died, and act earlier next time": sprint toward the
-goal; when the run approaches a remembered same-room death location,
-escalate an avoidance maneuver (brake, then hop, then wait-then-go),
-cycling the maneuver across attempts until one clears the hazard.
-
-This is a POSITIVE CONTROL for the metric, not a benchmark baseline.
+This module is retained as the labeled oracle bound and for reproducing
+the earlier privileged-probe numbers. A deterministic agent conditioning
+on the exact death position solves 9/14 active controlled tasks within K
+attempts while its memory-erased twin fails all attempts; that shows an
+agent WITH privileged failure coordinates can exploit them — a strictly
+weaker claim than the observation-matched control, which is why the
+headline result is the latter.
 """
 from __future__ import annotations
 

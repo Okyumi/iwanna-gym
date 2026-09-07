@@ -13,3 +13,6 @@ build/discovery_pilot/**/checkpoint.npz
 
 # offline viz of source-derived native rooms (renders copyrighted game geometry)
 build/pufferlib_smoke/native_rollout.gif
+
+# ephemeral per-task launcher configs (regenerate via scripts/puffer_launch.py)
+build/puffer_launch/

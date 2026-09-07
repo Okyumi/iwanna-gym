@@ -85,6 +85,49 @@ ORACLE in every output, refuses the headline label, and its eval
 records land in `*.oracle.jsonl` which `aggregate()` will not mix with
 standard records.
 
+## 3b. Learner validation (Prompt-2 item 4 — explicit status)
+
+- **Gradient checks — DONE (both paths).** The feed-forward
+  policy+value gradients are finite-difference checked
+  (`test_ff_policy_gradient_matches_finite_differences`, tol 5e-3). The
+  **recurrent (GRU/BPTT) gradients are now finite-difference checked**
+  through the exact `gru_step`/`gru_backward_step`/`_update_gru` code
+  path, including a memory cut at an attempt boundary
+  (`test_gru_bptt_gradient_matches_finite_differences`, tol 5e-3). This
+  was the outstanding gap; before this milestone only the FF path was
+  FD-verified.
+- **Loss normalization — DONE (documented choice).** Advantages are
+  normalized once per batch, `(ADV - mean)/(std + 1e-8)`
+  (`baselines.PPOTrainer.update`), NOT per-minibatch; rewards are not
+  normalized (sparse task reward); value loss weight `vf_coef=0.5`,
+  entropy `ent_coef` as configured. GAE(γ,λ) with per-env masking at
+  `done`.
+- **Update schedule / counts — DONE (auditable).** `epochs` passes per
+  batch (default 2); the FF path shuffles and splits each epoch into 4
+  minibatches; the GRU path does full-sequence BPTT per epoch (no
+  minibatching, so the recurrence is unbroken). The `iteration` and
+  `env_steps` counters advance once per `update` and are checkpointed
+  (asserted by `test_checkpoint_resume_roundtrip`).
+- **Recurrent input protocol — SPEC + UNIT TESTS ONLY, NOT wired into
+  the learner.** `iwanna_gym/discovery/input_protocol.py` defines the
+  permitted previous-action / clipped-reward / attempt-boundary inputs
+  and is unit-tested (`tests/test_input_protocol.py`), but it is **not**
+  consumed by `PPOTrainer` today. It is therefore a documented,
+  validated input contract — NOT an implemented, trained learner
+  feature. Enabling it changes the input dimension, so it defines a new
+  agent that must be reported separately from the observation-only
+  baseline; the revised preregistration
+  (`docs/discovery_prereg_v2.md`) is where that wiring is scheduled.
+- **Reference vs maintained learner.** The custom NumPy PPO above is the
+  reference/parity implementation and is retained for reproducing the
+  legacy pilot numbers; the maintained training path is PufferLib's
+  CleanRL PPO (real `puffer train` UNVERIFIED in-sandbox — torch
+  blocked). The pilot's null H1 is **not** attributed to optimization:
+  the learner's gradients are FD-validated, so the null is not a
+  gradient bug, but at 2 cores / 2–5M steps the budget is the confound,
+  and the null is treated as uninformative about the hypothesis rather
+  than as evidence that optimization masks a memory effect.
+
 ## 4. Visualization (never in the training loop)
 
 `iwanna_gym/discovery/viz.py`: one renderer for every task type —
