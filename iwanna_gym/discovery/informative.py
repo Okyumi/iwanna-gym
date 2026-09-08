@@ -136,6 +136,68 @@ class FixedScheduleAgent:
         return self._jc.step(obs, self.guess_x, active=True)
 
 
+class ContinuousJumpAgent:
+    """Competing strategy #1: stay airborne as much as the physics allow —
+    jump the instant it is grounded and use the air-jump when available
+    (obs[4]) — with NO memory and NO death location. Tests whether simply
+    jumping constantly clears the traps without any failure information.
+    This is the strongest *position-independent* continuous jumper (it is
+    airborne as often as possible), chosen to give the strategy a fair
+    shot — not tuned to fail."""
+
+    def __init__(self):
+        self.reset_task()
+
+    def reset_task(self):
+        self._prev_jump = False
+
+    def observe_step(self, obs):
+        pass
+
+    def on_boundary(self, success: bool):
+        self._prev_jump = False
+
+    def act(self, obs) -> int:
+        grounded = _on_ground(obs)
+        air_jump = float(obs[4]) > 0.5          # djump < MAXJUMPS -> can jump
+        # press (rising edge) whenever grounded, or in the air if an air-jump
+        # is available and we are not already holding jump
+        press = grounded or (air_jump and not self._prev_jump)
+        self._prev_jump = press
+        return A_JUMP if press else A_RUN
+
+
+class LocationSearchAgent:
+    """Competing strategy #2: attempt-based search over jump locations. No
+    observation of WHERE it died — it just tries a DIFFERENT fixed jump
+    column on each successive attempt, cycling a fixed grid. This is the
+    'attempt counter that enumerates' strategy: given enough attempts it
+    can stumble onto the trap column, so its death COST (attempts wasted
+    before the right column) is the honest comparison against the memory
+    agent's single death."""
+
+    #: candidate jump columns in px, ~every 1.5 tiles across the corridor
+    GRID = [int((5 + 1.5 * i) * 32 + 16) for i in range(11)]  # ~cols 5..20
+
+    def __init__(self):
+        self.reset_task()
+
+    def reset_task(self):
+        self.attempt = 0
+        self._jc = _JumpController()
+
+    def observe_step(self, obs):
+        pass
+
+    def on_boundary(self, success: bool):
+        self.attempt += 1
+        self._jc = _JumpController()      # fresh jump state each attempt
+
+    def act(self, obs) -> int:
+        target = self.GRID[self.attempt % len(self.GRID)]
+        return self._jc.step(obs, target, active=True)
+
+
 class AttemptCounterAgent:
     """Attempt-counter control: jumps on attempt >= 2 exactly like the
     memory agent, but at a FIXED guessed column INDEPENDENT of the observed
@@ -192,14 +254,23 @@ def run_arm(level: str, agent, K: int = 25, H: int = 400) -> dict:
             "attempts_used": attempts_used}
 
 
+#: every arm, in report order. obs_memory is the headline; the rest are
+#: controls / competing strategies whose COST bounds the interpretation.
+ARMS = ("obs_memory", "erased", "fixed", "attempt_counter",
+        "continuous_jump", "location_search")
+
+
 def informative_control(level: str, K: int = 25, H: int = 400) -> dict:
-    """All four arms on one informative room."""
+    """All arms on one informative room, including the two competing
+    strategies (continuous jump, attempt-based location search)."""
     return {
         "level": level,
         "obs_memory": run_arm(level, ObsMemoryAgent(True), K, H),
         "erased": run_arm(level, ObsMemoryAgent(False), K, H),
         "fixed": run_arm(level, FixedScheduleAgent(), K, H),
         "attempt_counter": run_arm(level, AttemptCounterAgent(), K, H),
+        "continuous_jump": run_arm(level, ContinuousJumpAgent(), K, H),
+        "location_search": run_arm(level, LocationSearchAgent(), K, H),
     }
 
 
@@ -228,15 +299,13 @@ def informative_suite(K: int = 25, H: int = 400) -> dict:
         return (sum(ds) / len(ds)) if ds else None
     summary = {
         "n_rooms": len(rows),
-        "solved": {a: solved(a) for a in
-                   ("obs_memory", "erased", "fixed", "attempt_counter")},
-        "mean_deaths_to_success": {
-            a: mean_deaths_to_success(a) for a in
-            ("obs_memory", "erased", "fixed", "attempt_counter")},
-        "separates": [
+        "solved": {a: solved(a) for a in ARMS},
+        "mean_deaths_to_success": {a: mean_deaths_to_success(a) for a in ARMS},
+        # rooms where obs_memory solves and the memory-erased twin does NOT
+        # (the necessary contrast: identical agent, memory the only change)
+        "separates_vs_erased": [
             r["level"] for r in rows
             if r["obs_memory"]["success"] and not r["erased"]["success"]
-            and not r["fixed"]["success"] and not r["attempt_counter"]["success"]
         ],
         "rows": rows,
     }

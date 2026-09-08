@@ -48,14 +48,18 @@ by current evidence.
   fixed guess (`iwanna_gym/discovery/informative.py`,
   `build/informative_control/results.json`,
   `tests/test_informative_control.py`,
-  `docs/informative_failure_control.md`). This isolates the OBSERVED
-  death LOCATION as the cause — not memorization, not the attempt
-  counter, not vision of a visible hazard. It uses no privileged fields
-  (the earlier `probes.py` agent, which read the exact terminal snapshot
+  `docs/informative_failure_control.md`). The claim is **efficiency, not
+  uniqueness**: a blind `location_search` enumerator ALSO solves all 7
+  rooms but pays ~4.3 deaths on average vs the memory agent's 1.0, and a
+  continuous-jump strategy solves 0/7 — so the observed failure location
+  buys a ~4× interaction-cost reduction, and the necessary contrast
+  (identical agent, memory the only change: 7/7 vs 0/7) shows that memory
+  is what enables the efficient solve. It uses no privileged fields (the
+  earlier `probes.py` agent, which read the exact terminal snapshot
   `term_x`/`term_room`, is retained only as a labeled PRIVILEGED ORACLE
   upper bound). Scope: this shows the failure history CARRIES usable
-  information an agent CAN exploit; it does NOT claim a *learned* agent
-  will — that is the open question the scaled experiment
+  information an agent CAN exploit more efficiently; it does NOT claim a
+  *learned* agent will — that is the open question the scaled experiment
   (`docs/discovery_prereg_v2.md`) poses.
 
 ## Unsupported claims (do NOT write these today)
@@ -103,11 +107,17 @@ by current evidence.
    mean-window baseline, and the memory-oracle upper bound run — if
    even the oracle cannot exploit revealed hazards, the task design
    needs revision before any agent claim.
-4. The informed-vs-blind scripted probe across native tasks. NOT
-   justified on the only witnessed native task today (`chalice_hall`):
-   its witness completes with 0 deaths, so there is no failure to inform
-   from on that path. Native probes await tasks that are witnessed AND
-   require a death — reported honestly, not forced.
+4. The informed-vs-blind scripted probe across native tasks.
+   `chalice_hall` is a PLAUSIBLE candidate, not a dead one: its 0-death
+   witness proves solvability via one clean path but not that failure is
+   uninformative — its hazards are `maskless_until_armed` /
+   `flickering_mask` / `arming_cascade`, and deviating from the witnessed
+   path is lethal at well-defined arming locations (verified). An
+   initially-uninformed agent would die on the cascade; whether that
+   failure is exploitable depends on the observability of the arming
+   state (open, testable). A proper probe needs an uninformed agent that
+   reaches and dies there (human witness or navigation policy) — see
+   `docs/native_witness_workflow.md`.
 5. Counterfactual variants (disarm/relocate/retime) on controlled
    tasks for the causal "the agent used the death" analysis.
 6. IWBTGR held-out native transfer once witnesses exist (H4's native

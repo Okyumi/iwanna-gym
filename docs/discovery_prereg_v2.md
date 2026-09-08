@@ -135,6 +135,29 @@ arbitrary 10⁸–10⁹ target:
   synthetic-room throughput to native rooms (budget native runs from
   native throughput).
 
+## Execution order (corrected — do NOT jump to multi-seed)
+
+The scaled multi-seed study is LAST, not next. Staged order:
+
+1. **Real PufferLib smoke run** on a capable machine — one controlled +
+   one witnessed native task — verifying collection/updates, finite
+   losses + changing params, termination/truncation + value bootstrap,
+   checkpoint reload + shared-evaluator eval, and end-to-end throughput
+   (`scripts/puffer_launch.py` → `puffer_smoke.py` → `puffer_verify.py`).
+   **Blocking wiring first** (surfaced by `puffer_verify.py`): (a) expose
+   `task_exhausted` as a truncation signal so value bootstraps on
+   exhausted tasks; (b) wire the reset-memory (`gru_reset`) ablation
+   (zero recurrent state at attempt boundaries — `gru_carry` already
+   comes free from the task-end terminal); (c) wire the `input_protocol`
+   extras into the policy for the `+proto` agents. Until (a)–(c) land and
+   the smoke passes, the ablation cannot run correctly.
+2. **Small learning diagnostic** — a few-million-step run on the
+   controlled suite (incl. the `informative` rooms) to confirm the
+   learning curve MOVES and to locate the plateau region that sets the
+   budget. Not a hypothesis test; a scale/behavior check.
+3. **Preregistered multi-seed study** (H1–H4) — only after 1–2 pass,
+   with ≥5 seeds and the plateau stop rule below.
+
 ## Primary analysis and decision
 
 Confirm H1 iff the separately-trained carry-vs-reset adaptation-gain gap

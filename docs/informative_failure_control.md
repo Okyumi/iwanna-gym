@@ -74,28 +74,61 @@ before a failed attempt — never `term_x`. Four arms:
 
 ## 3. Result (`build/informative_control/results.json`)
 
-7 rooms, K=25 attempts, H=400 frames, observable_vector, deterministic:
+7 rooms, K=25 attempts, H=400 frames, observable_vector, deterministic.
+Six arms — the memory agent, its erased twin, two blind controls, and two
+COMPETING strategies (a continuous jumper and an attempt-based location
+search) added so the interpretation is bounded, not inflated:
 
 | arm | rooms solved | mean deaths-to-success |
 |---|---|---|
-| `obs_memory` | **7 / 7** | **1.0** |
-| `erased` | 0 / 7 | — (25 deaths, no success) |
-| `fixed` | 1 / 7 | 0.0 (the one room whose trap = the guess) |
-| `attempt_counter` | 1 / 7 | 1.0 (only the aligned room) |
+| `obs_memory` (headline) | **7 / 7** | **1.0** |
+| `erased` (same agent, memory cut) | 0 / 7 | — (no success) |
+| `fixed` (one blind program) | 1 / 7 | 0.0 (trap = the guess) |
+| `attempt_counter` (jump-on-≥2, fixed column) | 1 / 7 | 1.0 (aligned room) |
+| `continuous_jump` (maximally airborne, no memory) | 0 / 7 | — |
+| `location_search` (enumerate jump column by attempt) | **7 / 7** | **4.3** |
 
-6 of 7 rooms **separate cleanly**: `obs_memory` solves, `erased` fails,
-and BOTH blind controls fail. The 7th (`hidden_spike_3`, trap at the room
-center) is solved by the blind arms too because their fixed guess is the
-center — correctly excluded from `separates`.
+**Interpretation — efficiency, not uniqueness (bounded).** The headline
+claim is NOT "only the memory agent can solve these". It is that the
+memory agent uses the OBSERVED failure location to solve with MINIMAL
+interaction cost. Two facts fix the interpretation:
 
-**Interpretation, scoped.** The observed failure location is *sufficient*
-for a scripted agent to solve every room in a single death; removing that
-memory (erased twin) removes all success; and neither a fixed action
-sequence nor an attempt counter reproduces it (each clears only the
-coincidentally-aligned room). This establishes that the tasks contain
-**exploitable, observation-accessible failure information** — without any
-converged training. It does **not** claim that a *learned* agent will
-discover this policy; that remains the open empirical question for the
-scaled experiment. Repeatability alone is excluded as evidence: the erased
-twin fails just as reproducibly, so the reported signal is success **and**
-the death-cost gap (1 vs 25), not repetition.
+1. **Necessary contrast (identical agent).** `obs_memory` solves 7/7;
+   its byte-identical memory-erased twin solves 0/7. The only difference
+   is whether the observed death location is remembered across attempts —
+   so that memory is what enables the solve. All 7 rooms separate on this
+   contrast (`separates_vs_erased`).
+2. **The observed location buys efficiency, not a capability others
+   lack.** A blind `location_search` enumerator ALSO solves all 7 rooms —
+   by trying a different fixed jump column each attempt — but pays **~4.3
+   deaths** on average versus the memory agent's **1.0**. So the honest
+   claim is a ~4× interaction-cost reduction from using the observed
+   failure, not that the failure information is strictly required to ever
+   succeed. Meanwhile a `continuous_jump` strategy (as airborne as the
+   physics allow, no location) clears **0/7** — constant jumping is not a
+   shortcut — and a single `fixed`/`attempt_counter` column clears only
+   the coincidentally-aligned room.
+
+This establishes that the tasks contain **exploitable,
+observation-accessible failure information whose use is measurably more
+efficient** — without any converged training. It does **not** claim a
+*learned* agent will discover this policy; that is the open question for
+the scaled experiment. Repeatability alone is excluded as evidence (the
+erased twin fails just as reproducibly): the reported signals are the
+memory-vs-erased separation AND the death-cost gap (1.0 vs 4.3), not
+repetition.
+
+## 3a. Are the scripted agent's signals available to the learner?
+
+The `obs_memory` agent reads only `obs[0]` (player x) and `obs[5]`
+(on-ground) — both inside the observation vector — plus the success flag
+and the attempt-boundary flag (`input_protocol`, a permitted observed
+input). Every per-step signal it uses is therefore available to the RL
+learner too. The one thing it additionally does is RETAIN the death
+location across attempts; the learner has no free channel for that — it
+must retain it through recurrent hidden state (`gru_carry`) or the
+explicit `deathmem` feature. That retention is exactly the capability
+H1/H2 test, so the scripted control does not hand the learner anything the
+learner cannot in principle compute; it shows the information is present
+and useful, and leaves "does a trained net actually retain and use it" as
+the open question.

@@ -104,6 +104,50 @@ blocker, and the exact external command above; on a torch-capable
 machine the same script runs the real short train + eval and records
 throughput.
 
+### Required hardware + artifacts, single command, and known wiring gaps
+
+**Deps/hardware here:** torch=absent, pufferlib=absent, 2 CPU cores, no
+GPU — the learner cannot run in this sandbox (confirmed by
+`scripts/puffer_verify.py`). **Required on the provisioned machine:**
+torch + PufferLib 4.0.0 (@ 42f70d69), a C toolchain with OpenMP, ideally
+≥16 CPU cores (or a GPU) for a non-trivial smoke; artifacts: this repo,
+and for the native task a locally-built `iwbtgr_1_5_3.iwpack` (never
+committed).
+
+**One setup-and-run command:**
+
+```bash
+bash scripts/setup_pufferlib.sh $HOME/PufferLib && \
+PYTHONPATH=. python scripts/puffer_launch.py disc.research.t06_crusher \
+    --pufferlib-dir $HOME/PufferLib && \
+PYTHONPATH=. python scripts/puffer_smoke.py
+```
+
+**Verification checklist** (`scripts/puffer_verify.py` →
+`build/pufferlib_smoke/verify.json`). Three real facts a smoke run must
+account for, found torch-free:
+
+- **`gru_carry` comes for free; `gru_reset` does NOT.** The adapter's
+  terminal fires only at TASK end, so PufferLib recurrence carries across
+  attempts and resets at task end (= `gru_carry`). The reset-memory
+  ablation (zero the recurrent state at every ATTEMPT boundary) is **not
+  wired** into the PufferLib path — it needs an attempt-boundary reset
+  signal before the H1 ablation can run there.
+- **Value bootstrap on K-exhaustion is a gap.** A task that ends by
+  running out of attempts sets `terminal` with `task_exhausted=1` but
+  raises **no truncation signal**, so the learner would treat exhaustion
+  as a hard terminal and not bootstrap the value. Expose `task_exhausted`
+  as a truncation buffer (goal-reached stays a true terminal) before
+  trusting value estimates on exhausted tasks.
+- **The input protocol is not wired.** `input_protocol.py` (prev-action /
+  reward / boundary) is a validated spec, not consumed by the PufferLib
+  policy/env yet.
+
+These three are the concrete WIRING tasks required before the
+carry-vs-reset scientific runs; the smoke run itself (collection, updates,
+finite losses, checkpoint reload + shared-evaluator eval, throughput)
+needs only the capable machine.
+
 **Scope of "verified" (Prompt-2 item 1 — read carefully).** Nothing
 below runs the real PufferLib PPO learner or the adapter's `c_step`
 under `puffer train`; that path needs torch and is UNVERIFIED here. The

@@ -136,11 +136,17 @@ def build():
                     "the iwbtg_original_2007 physics profile extracted per "
                     "docs/fidelity_contract.md before any exactness claim",
                 ],
-                "network_note": "kayin.moe is reachable from the sandbox at the "
-                                "network level (re-verified this milestone), so "
-                                "egress is no longer the blocker; the blockers "
-                                "above are the user-provided file + external tool "
-                                "+ physics extraction.",
+                "network_note": "kayin.moe is reachable at the network level, "
+                                "but this sandbox's web-fetch policy forbids "
+                                "downloading URLs via curl/wget/python (a "
+                                "compliance guardrail, NOT copyright), so the "
+                                ".mfa cannot be staged here; run the download on "
+                                "the provisioned machine. The external CTFAK 2.0 "
+                                "dump producer is confirmed ABSENT here (no "
+                                "dotnet/mono; IWG_CTFAK_DIR unset). The registry "
+                                "byte-verify + normalize_dump are proven on a "
+                                "SYNTHETIC dump only (not an extraction). Exact "
+                                "end-to-end commands: docs/iwbtg_extraction_runbook.md.",
             }}
 
 

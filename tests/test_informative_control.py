@@ -25,20 +25,23 @@ def test_rooms_exist_and_are_multiple_configs():
     assert len(set(rooms)) == len(rooms)
 
 
-def test_obs_memory_separates_from_erased_and_blind():
+def test_obs_memory_necessary_contrast_and_efficiency():
     s = I.informative_suite()
-    # the observation-matched memory agent solves every room ...
+    # NECESSARY CONTRAST: same agent, memory the only change. The memory
+    # agent solves every room; the memory-erased twin solves none.
     assert s["solved"]["obs_memory"] == s["n_rooms"], s["solved"]
-    # ... in ~1 death (localizes the trap from its own observed failure)
-    assert s["mean_deaths_to_success"]["obs_memory"] <= 1.5
-    # the memory-erased twin never solves
     assert s["solved"]["erased"] == 0, s["solved"]
-    # a single fixed program / attempt counter clears at most the room whose
-    # trap coincides with its fixed guess (here the center), never all
+    assert len(s["separates_vs_erased"]) == s["n_rooms"]
+    # EFFICIENCY, not uniqueness: the memory agent solves in ~1 death.
+    assert s["mean_deaths_to_success"]["obs_memory"] <= 1.5
+    # A blind location-search enumerator CAN also solve (given enough
+    # attempts), but pays strictly more deaths — the honest bound: the
+    # observed location buys efficiency, not capability the search lacks.
+    if s["solved"]["location_search"] > 0:
+        assert (s["mean_deaths_to_success"]["location_search"]
+                > s["mean_deaths_to_success"]["obs_memory"]), s
+    # a single fixed program clears at most the coincidentally-aligned room
     assert s["solved"]["fixed"] <= 1, s["solved"]
-    assert s["solved"]["attempt_counter"] <= 1, s["solved"]
-    # most rooms separate cleanly (memory solves; erased & both blind fail)
-    assert len(s["separates"]) >= s["n_rooms"] - 1, s["separates"]
 
 
 def test_control_is_seed_invariant_deterministic():
@@ -107,6 +110,32 @@ def test_agent_reads_no_privileged_or_hidden_fields():
         for forbidden in ("term_x", "term_y", "term_room", "attempt_event",
                           "info", "hazard", "dormant"):
             assert forbidden not in src, (obj.__name__, forbidden)
+
+
+def test_scripted_signals_are_available_to_the_learner():
+    # every per-step signal the obs_memory agent reads must be inside the
+    # observation vector (obs[0] player x, obs[5] on-ground) or the
+    # permitted observed input protocol (attempt-boundary flag). The only
+    # thing it additionally does is RETAIN the death location across
+    # attempts — which the learner supplies via recurrence / deathmem, the
+    # capability H1/H2 test, not a free signal.
+    from iwanna_gym.clib import OBS_SIZE
+    from iwanna_gym.discovery import input_protocol as P
+    assert 0 < 5 < OBS_SIZE                      # obs[0], obs[5] are real obs
+    v = P.extra_inputs(0, 0.0, True, 12)         # boundary flag is provided
+    assert v[13] == 1.0
+    # the agent's act() consumes only obs (no info, no term_* fields) —
+    # already guarded by test_agent_reads_no_privileged_or_hidden_fields.
+
+
+def test_competing_strategies_bound_the_claim():
+    # continuous jumping is not a shortcut; location search can solve but
+    # costs more deaths than the memory agent.
+    s = I.informative_suite()
+    assert s["solved"]["continuous_jump"] < s["n_rooms"]
+    if s["solved"]["location_search"] == s["n_rooms"]:
+        assert (s["mean_deaths_to_success"]["location_search"]
+                > s["mean_deaths_to_success"]["obs_memory"])
 
 
 def test_erased_twin_pays_full_death_budget():

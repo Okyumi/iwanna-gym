@@ -87,15 +87,23 @@ standard records.
 
 ## 3b. Learner validation (Prompt-2 item 4 — explicit status)
 
-- **Gradient checks — DONE (both paths).** The feed-forward
-  policy+value gradients are finite-difference checked
+- **Gradient checks — DONE (both cells), with a scope caveat.** The
+  feed-forward policy+value gradients are finite-difference checked
   (`test_ff_policy_gradient_matches_finite_differences`, tol 5e-3). The
   **recurrent (GRU/BPTT) gradients are now finite-difference checked**
-  through the exact `gru_step`/`gru_backward_step`/`_update_gru` code
+  through the exact `gru_step`/`gru_backward_step`/`_loss_heads` code
   path, including a memory cut at an attempt boundary
   (`test_gru_bptt_gradient_matches_finite_differences`, tol 5e-3). This
   was the outstanding gap; before this milestone only the FF path was
-  FD-verified.
+  FD-verified. **Scope (important):** these FD checks validate the
+  analytic gradient of the *per-step PPO loss* — the clipped surrogate +
+  value + entropy — through the cell and the BPTT unroll. They do NOT by
+  themselves validate the *complete PPO update pipeline*: GAE advantage
+  computation, batch-level advantage normalization, the epoch/minibatch
+  schedule, and the Adam step are audited and unit-inspected but are not
+  wrapped in a single end-to-end finite-difference check. "The gradient
+  is correct" and "the assembled optimizer update is correct" are
+  distinct claims; only the former is FD-verified.
 - **Loss normalization — DONE (documented choice).** Advantages are
   normalized once per batch, `(ADV - mean)/(std + 1e-8)`
   (`baselines.PPOTrainer.update`), NOT per-minibatch; rewards are not

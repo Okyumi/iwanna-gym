@@ -1,0 +1,20 @@
+{
+  "cpu_count": 2,
+  "have_torch": false,
+  "have_pufferlib": false,
+  "binding_carry_free": true,
+  "task_exhaustion_is_truncation_but_flagged_terminal": true,
+  "input_protocol_wired": false,
+  "gru_reset_wired_in_puffer": false,
+  "checklist": {
+    "actual_collection_and_updates": "needs_capable_machine (puffer_smoke train_ok + finite losses)",
+    "prev_action_reward_boundary_inputs": "needs_wiring: input_protocol.py is a validated SPEC (unit-tested) but is NOT wired into the PufferLib policy/env.",
+    "carry_vs_reset_in_recurrent_learner": "verified_here (PARTIAL): terminal fires only at TASK end, so PufferLib recurrence carries across attempts and resets at task end = gru_carry FOR FREE (carry_free=True). The gru_RESET ablation (zero state at every attempt boundary) is NOT wired in the PufferLib path -> needs_wiring.",
+    "memory_clearing_at_task_boundaries": "verified_here: terminal at task end zeroes PufferLib recurrent state (carry_free=True); intra-task attempt boundaries do NOT terminate, as required.",
+    "termination_truncation_value_bootstrap": "needs_wiring: a task ending by K-EXHAUSTION sets `term` with task_exhausted=True but raises NO separate truncation signal, so the learner would treat exhaustion as a hard terminal and NOT bootstrap the value. Expose task_exhausted as a truncation buffer before trusting value estimates on exhausted tasks. Goal-reached remains a true terminal.",
+    "checkpoint_reload_and_shared_evaluator_eval": "needs_capable_machine (scripts/puffer_eval.py -> evaluator.task_metrics)",
+    "finite_losses_and_changing_parameters": "needs_capable_machine (puffer_smoke parses train log)",
+    "end_to_end_throughput": "needs_capable_machine (puffer_smoke records SPS; sim-only already in docs/discovery_training_report.md)"
+  },
+  "single_command": "bash scripts/setup_pufferlib.sh $HOME/PufferLib && PYTHONPATH=. python scripts/puffer_launch.py disc.research.t06_crusher --pufferlib-dir $HOME/PufferLib && PYTHONPATH=. python scripts/puffer_smoke.py"
+}

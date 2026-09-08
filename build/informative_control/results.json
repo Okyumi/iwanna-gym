@@ -4,18 +4,23 @@
     "obs_memory": 7,
     "erased": 0,
     "fixed": 1,
-    "attempt_counter": 1
+    "attempt_counter": 1,
+    "continuous_jump": 0,
+    "location_search": 7
   },
   "mean_deaths_to_success": {
     "obs_memory": 1.0,
     "erased": null,
     "fixed": 0.0,
-    "attempt_counter": 1.0
+    "attempt_counter": 1.0,
+    "continuous_jump": null,
+    "location_search": 4.285714285714286
   },
-  "separates": [
+  "separates_vs_erased": [
     "informative/hidden_spike_0",
     "informative/hidden_spike_1",
     "informative/hidden_spike_2",
+    "informative/hidden_spike_3",
     "informative/hidden_spike_4",
     "informative/hidden_spike_5",
     "informative/hidden_spike_6"
@@ -42,6 +47,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 0,
+        "attempts_used": 1
       }
     },
     {
@@ -65,6 +80,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 2,
+        "attempts_used": 3
       }
     },
     {
@@ -88,6 +113,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 3,
+        "attempts_used": 4
       }
     },
     {
@@ -111,6 +146,16 @@
         "success": true,
         "deaths": 1,
         "attempts_used": 2
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 4,
+        "attempts_used": 5
       }
     },
     {
@@ -134,6 +179,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 6,
+        "attempts_used": 7
       }
     },
     {
@@ -157,6 +212,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 7,
+        "attempts_used": 8
       }
     },
     {
@@ -180,6 +245,16 @@
         "success": false,
         "deaths": 25,
         "attempts_used": 25
+      },
+      "continuous_jump": {
+        "success": false,
+        "deaths": 25,
+        "attempts_used": 25
+      },
+      "location_search": {
+        "success": true,
+        "deaths": 8,
+        "attempts_used": 9
       }
     }
   ]

@@ -1,0 +1,11 @@
+{
+  "note": "Record of AUTOMATED witness attempts (beam search). Unsuccessful automated attempts do NOT imply witnessing is infeasible — human-play recording (scripts/record_human_witness.py) is the primary path for precision rooms.",
+  "solver": "iwanna_gym.discovery.witness.beam_search_witness",
+  "attempts": [
+    {"task_id": "disc.iwbtgr_1_5_3.rGuy1.first_screen", "beam": 16, "depth": 44, "time_budget_s": 150, "result": "pending", "reason": "no zero-death goal-reaching sequence found within budget"},
+    {"task_id": "disc.iwbtgr_1_5_3.rGuyRoad.bulletbill_strip", "beam": 16, "depth": 40, "time_budget_s": 70, "result": "pending", "reason": "batch run exceeded wall-clock before completion"},
+    {"task_id": "disc.iwbtgr_1_5_3.rMetroid.skwee_gallery", "beam": 16, "depth": 40, "time_budget_s": 70, "result": "pending", "reason": "batch run exceeded wall-clock before completion"}
+  ],
+  "conclusion": "Automated beam search did not find solutions for the sampled precision rooms within a bounded in-sandbox budget. This is a budget/compute observation, not a proof of infeasibility. Use human-play recording for the diverse batch below.",
+  "existing_native_witness": {"task_id": "disc.iwbtgr_1_5_3.rGuyFortress1.chalice_hall", "source": "macro_beam_search", "deaths_before_success": 0, "replays": true}
+}
